@@ -280,6 +280,13 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 3:00 AM
+- **Added persistent UI state** - Window size, section positions, and stats now saved to chess-stats.json
+- **Automatic state restoration** - App loads previous window size and section positions on startup
+- **Debounced saving** - UI state saves 1 second after last change to avoid excessive writes during drag/resize
+- **Immediate game result saving** - Stats save instantly when game ends
+- **Cross-session continuity** - Your layout preferences persist between app sessions
+
 ### November 10, 2025 - 2:30 AM
 - **Enhanced drag-and-drop with grid snapping** - Sections now snap to 20px grid when dragged
 - **Improved space validation** - Sections provide visual feedback when they don't fit in available space

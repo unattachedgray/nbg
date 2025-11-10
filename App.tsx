@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Dimensions,
 } from 'react-native';
 import {ChessBoard} from './src/components/board/chess-board';
 import {AnalysisPanel} from './src/components/analysis/analysis-panel';
@@ -57,10 +58,15 @@ function App(): React.JSX.Element {
     analysis: {x: 420, y: 0}, // Suggestions to the right of board
     controls: {x: 420, y: 420}, // Controls under suggestions
   });
+  const [windowSize, setWindowSize] = useState({
+    width: 0,
+    height: 0,
+  });
 
   const engineRef = useRef<XBoardEngine | null>(null);
   const gameRef = useRef(new Chess());
   const autoPlayStopRef = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const showToast = (message: string, type: Toast['type'] = 'info') => {
     const id = Date.now().toString();
@@ -78,6 +84,74 @@ function App(): React.JSX.Element {
 
   const dismissAllToasts = () => {
     setToasts([]);
+  };
+
+  const loadSavedData = async () => {
+    try {
+      if (Platform.OS !== 'windows') {
+        const RNFS = require('react-native-fs');
+        const statsPath = `${RNFS.DocumentDirectoryPath}/chess-stats.json`;
+
+        // Check if file exists
+        const fileExists = await RNFS.exists(statsPath);
+        if (fileExists) {
+          const fileContent = await RNFS.readFile(statsPath, 'utf8');
+          const savedData = JSON.parse(fileContent);
+
+          // Load game stats
+          if (savedData.stats) {
+            setStats(savedData.stats);
+          }
+
+          // Load section positions
+          if (savedData.sectionPositions) {
+            setSectionPositions(savedData.sectionPositions);
+          }
+
+          // Window size will be set by Dimensions listener
+          console.log('Loaded saved data:', savedData);
+        }
+      } else {
+        // For Windows, try to load from localStorage equivalent or just use defaults
+        console.log('Using default positions for Windows');
+      }
+    } catch (error) {
+      console.error('Failed to load saved data:', error);
+    }
+  };
+
+  const saveUIStateImmediate = async () => {
+    try {
+      const dataToSave = {
+        stats,
+        sectionPositions,
+        windowSize,
+        lastUpdated: new Date().toISOString(),
+      };
+
+      if (Platform.OS !== 'windows') {
+        const RNFS = require('react-native-fs');
+        const statsPath = `${RNFS.DocumentDirectoryPath}/chess-stats.json`;
+        await RNFS.writeFile(statsPath, JSON.stringify(dataToSave, null, 2), 'utf8');
+        console.log('UI state saved');
+      } else {
+        // For Windows, just log to console
+        console.log('UI state (Windows):', dataToSave);
+      }
+    } catch (error) {
+      console.error('Failed to save UI state:', error);
+    }
+  };
+
+  const saveUIState = () => {
+    // Debounce saves to avoid excessive writes during resize/drag
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      saveUIStateImmediate();
+    }, 1000); // Save 1 second after last change
   };
 
   const recordGameResult = async () => {
@@ -99,22 +173,40 @@ function App(): React.JSX.Element {
     }
 
     setStats(newStats);
-
-    // Save stats to file (platform-specific - only on platforms that support file system)
-    if (Platform.OS !== 'windows') {
-      try {
-        const RNFS = require('react-native-fs');
-        const statsPath = `${RNFS.DocumentDirectoryPath}/chess-stats.json`;
-        await RNFS.writeFile(statsPath, JSON.stringify(newStats, null, 2), 'utf8');
-        console.log('Stats saved to:', statsPath);
-      } catch (error) {
-        console.error('Failed to save stats:', error);
-      }
-    } else {
-      // For Windows, just log to console (could save to a different location if needed)
-      console.log('Game stats updated:', newStats);
-    }
+    // UI state will be saved automatically via the useEffect hook
   };
+
+  // Load saved data on mount
+  useEffect(() => {
+    loadSavedData();
+  }, []);
+
+  // Track window size changes
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({window}) => {
+      setWindowSize({width: window.width, height: window.height});
+    });
+
+    // Set initial window size
+    const initialWindow = Dimensions.get('window');
+    setWindowSize({width: initialWindow.width, height: initialWindow.height});
+
+    return () => subscription?.remove();
+  }, []);
+
+  // Save UI state whenever positions or window size change (debounced)
+  useEffect(() => {
+    if (windowSize.width > 0 && windowSize.height > 0) {
+      saveUIState();
+    }
+  }, [sectionPositions, windowSize]);
+
+  // Save immediately when stats change (game result)
+  useEffect(() => {
+    if (stats.totalGames > 0) {
+      saveUIStateImmediate();
+    }
+  }, [stats]);
 
   // Initialize NNUE and engine on mount
   useEffect(() => {
