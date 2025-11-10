@@ -286,6 +286,19 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 12:15 PM
+- **Simplified Suggestions Panel**
+  - Removed evaluation score, evaluation text, depth, and nodes from suggestions
+  - Panel now focuses purely on next move suggestions
+  - Cleaner, less cluttered interface
+  - All engine analysis now lives in stats panel
+- **More Responsive Moves/Min**
+  - Changed sampling period from 6 seconds to 2 seconds
+  - New calculation: (moves in last 2 seconds) × 30
+  - Updates twice per second (500ms interval) instead of once per second
+  - Immediately reflects speed changes in fast mode
+  - Much more responsive to current game pace
+
 ### November 10, 2025 - 12:00 PM
 - **Moved Engine Analysis to Stats Panel**
   - Evaluation score (green for positive, red for negative) now in stats

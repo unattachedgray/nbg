@@ -58,8 +58,8 @@ function App(): React.JSX.Element {
     totalGames: 0,
   });
   const [currentGameMoves, setCurrentGameMoves] = useState(0); // Track moves in current game
-  const [recentMoveTimestamps, setRecentMoveTimestamps] = useState<number[]>([]); // Track move timestamps for last 6 seconds
-  const [movesPerMinute, setMovesPerMinute] = useState(0); // Current game moves per minute (last 6 seconds * 10)
+  const [recentMoveTimestamps, setRecentMoveTimestamps] = useState<number[]>([]); // Track move timestamps for last 2 seconds
+  const [movesPerMinute, setMovesPerMinute] = useState(0); // Current game moves per minute (last 2 seconds * 30)
   const [sectionPositions, setSectionPositions] = useState({
     board: {x: 0, y: 0}, // Board on the left
     analysis: {x: 440, y: 0}, // Suggestions to the right of board
@@ -248,21 +248,21 @@ function App(): React.JSX.Element {
     }
   }, [stats]);
 
-  // Calculate moves per minute based on last 6 seconds
+  // Calculate moves per minute based on last 2 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      const sixSecondsAgo = now - 6000;
+      const twoSecondsAgo = now - 2000;
 
-      // Filter timestamps to only include moves in last 6 seconds
-      const recentMoves = recentMoveTimestamps.filter(timestamp => timestamp > sixSecondsAgo);
+      // Filter timestamps to only include moves in last 2 seconds
+      const recentMoves = recentMoveTimestamps.filter(timestamp => timestamp > twoSecondsAgo);
 
       // Update the filtered list
       setRecentMoveTimestamps(recentMoves);
 
-      // Calculate moves per minute: (moves in 6 seconds) * 10
-      setMovesPerMinute(recentMoves.length * 10);
-    }, 1000);
+      // Calculate moves per minute: (moves in 2 seconds) * 30
+      setMovesPerMinute(recentMoves.length * 30);
+    }, 500); // Update twice per second for more responsiveness
 
     return () => clearInterval(interval);
   }, [recentMoveTimestamps]);

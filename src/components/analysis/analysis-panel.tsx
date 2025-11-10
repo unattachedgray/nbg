@@ -156,79 +156,49 @@ export function AnalysisPanel({
     <View style={styles.container}>
       <Text style={styles.title}>Suggestions</Text>
 
-      {/* Compact layout - All sections visible without scrolling */}
-      <View style={styles.contentGrid}>
-        {/* Evaluation + Stats (Left Column) */}
-        <View style={styles.leftColumn}>
-          {/* Evaluation */}
-          <View style={styles.evalSection}>
-            <Text
-              style={[
-                styles.evalScore,
-                mainLine.score > 0
-                  ? styles.positiveScore
-                  : styles.negativeScore,
-              ]}>
-              {formatScore(mainLine.score)}
-            </Text>
-            <TermText style={styles.evalText}>
-              {getEvaluation(mainLine.score)}
-            </TermText>
+      {/* Show suggestions for human players */}
+      {shouldShowSuggestions ? (
+        <View style={styles.suggestionsContent}>
+          {/* Move suggestion buttons - using validMoves (filtered for correct color) */}
+          <View style={styles.compactSuggestionsRow}>
+            {validMoves.slice(0, 3).map((move, idx) => (
+              <Pressable
+                key={idx}
+                style={[
+                  styles.compactSuggestionButton,
+                  idx === 0 && styles.bestMoveButton,
+                ]}
+                onPress={() => onSuggestionClick?.(move)}
+                onHoverIn={() => {
+                  onSuggestionHover?.(move);
+                }}
+                onHoverOut={() => {
+                  onSuggestionHover?.(null);
+                }}>
+                <Text style={styles.compactMoveText}>
+                  {idx === 0 && '⭐ '}
+                  {move}
+                </Text>
+              </Pressable>
+            ))}
           </View>
 
-          {/* Stats */}
-          <View style={styles.statsSection}>
-            <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Depth</Text>
-              <Text style={styles.statValue}>{mainLine.depth}</Text>
-            </View>
-            <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Nodes</Text>
-              <Text style={styles.statValue}>
-                {(mainLine.nodes / 1000).toFixed(0)}k
+          {/* Continuation preview */}
+          {validMoves.length > 3 && (
+            <View style={styles.continuationPreview}>
+              <Text style={styles.continuationText} numberOfLines={2}>
+                {formatMovePairs(validMoves.slice(3))}
               </Text>
             </View>
-          </View>
+          )}
         </View>
-
-        {/* Suggestions (Right Column) - Only show for human players */}
-        {shouldShowSuggestions && (
-          <View style={styles.rightColumn}>
-            {/* Compact suggestion buttons - using validMoves (filtered for correct color) */}
-            <View style={styles.compactSuggestionsRow}>
-              {validMoves.slice(0, 3).map((move, idx) => (
-                <Pressable
-                  key={idx}
-                  style={[
-                    styles.compactSuggestionButton,
-                    idx === 0 && styles.bestMoveButton,
-                  ]}
-                  onPress={() => onSuggestionClick?.(move)}
-                  onHoverIn={() => {
-                    onSuggestionHover?.(move); // Pass the actual move being hovered
-                  }}
-                  onHoverOut={() => {
-                    onSuggestionHover?.(null); // Clear highlight when hover ends
-                  }}>
-                  <Text style={styles.compactMoveText}>
-                    {idx === 0 && '⭐ '}
-                    {move}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-
-            {/* Continuation preview - keep for context */}
-            {validMoves.length > 3 && (
-              <View style={styles.continuationPreview}>
-                <Text style={styles.continuationText} numberOfLines={2}>
-                  {formatMovePairs(validMoves.slice(3))}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
-      </View>
+      ) : (
+        <View style={styles.placeholder}>
+          <Text style={styles.placeholderText}>
+            {isAIvsAIMode ? 'Watching AI vs AI' : 'AI is thinking...'}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -254,22 +224,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999999',
   },
-  contentGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    alignItems: 'flex-start',
-  },
-  leftColumn: {
-    flex: 1,
-    minWidth: 150,
-    maxWidth: 250,
-    gap: 12,
-  },
-  rightColumn: {
-    flex: 1,
-    minWidth: 150,
-    maxWidth: 250,
+  suggestionsContent: {
     gap: 12,
   },
   compactSuggestionsRow: {
@@ -298,124 +253,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderRadius: 6,
     padding: 8,
-    marginTop: 4,
-  },
-  evalSection: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-  },
-  evalScore: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  positiveScore: {
-    color: '#4CAF50',
-  },
-  negativeScore: {
-    color: '#F44336',
-  },
-  evalText: {
-    fontSize: 12,
-    color: '#555555',
-    textAlign: 'center',
-  },
-  pvSection: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    padding: 12,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 8,
-  },
-  pvText: {
-    fontSize: 12,
-    color: '#333333',
-    lineHeight: 18,
-  },
-  statsSection: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    padding: 12,
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666666',
-  },
-  statValue: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#333333',
-  },
-  suggestionSection: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    padding: 12,
-  },
-  suggestionBox: {
-    backgroundColor: '#2196F3',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    cursor: 'pointer',
-  },
-  bestMoveBox: {
-    backgroundColor: '#4CAF50', // Green for best move
-    borderWidth: 2,
-    borderColor: '#FFD700', // Gold border
-  },
-  suggestionBoxHover: {
-    backgroundColor: '#1976D2',
-    transform: [{scale: 1.05}],
-  },
-  suggestionBoxEmpty: {
-    backgroundColor: '#CCCCCC',
-    cursor: 'default',
-  },
-  suggestionMove: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 4,
-  },
-  suggestionLabel: {
-    fontSize: 11,
-    color: '#ffffff',
-    opacity: 0.9,
-  },
-  continuationBox: {
-    backgroundColor: '#9C27B0',
-    borderRadius: 8,
-    padding: 12,
-    cursor: 'pointer',
-  },
-  continuationBoxHover: {
-    backgroundColor: '#7B1FA2',
-    transform: [{scale: 1.02}],
-  },
-  continuationBoxEmpty: {
-    backgroundColor: '#CCCCCC',
-    cursor: 'default',
   },
   continuationText: {
     fontSize: 12,
-    color: '#ffffff',
-    marginBottom: 4,
+    color: '#333333',
     lineHeight: 18,
-  },
-  continuationLabel: {
-    fontSize: 11,
-    color: '#ffffff',
-    opacity: 0.9,
   },
 });
