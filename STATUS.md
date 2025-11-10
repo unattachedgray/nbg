@@ -280,6 +280,13 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 2:00 AM
+- **Added drag-and-drop functionality** - All main sections (board, analysis, controls) are now draggable
+- **Created DraggableSection component** - Reusable wrapper using PanResponder for drag behavior
+- **Sticky positions** - Sections remember their positions after being dragged
+- **Position state tracking** - Each section's position stored in state for persistence
+- **Visual feedback** - Cursor changes to grab/grabbing, opacity change during drag
+
 ### November 10, 2025 - 1:30 AM
 - **Fixed controls layout** - Controls section now in topRow and wraps properly with window resize
 - **Fixed mate score formatting** - M90001 now shows as M1 (calculated moves to mate properly)

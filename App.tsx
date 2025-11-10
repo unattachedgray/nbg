@@ -15,6 +15,7 @@ import {ChessBoard} from './src/components/board/chess-board';
 import {AnalysisPanel} from './src/components/analysis/analysis-panel';
 import {TermText} from './src/components/ui/tooltip';
 import {ToastNotification, Toast} from './src/components/ui/toast-notification';
+import {DraggableSection} from './src/components/ui/draggable-section';
 import {GameVariant, GameMode, Square, EngineAnalysis} from './src/types/game';
 import {createXBoardEngine, XBoardEngine} from './src/services/xboard-engine';
 import {Chess} from 'chess.js';
@@ -50,6 +51,11 @@ function App(): React.JSX.Element {
     blackWins: 0,
     draws: 0,
     totalGames: 0,
+  });
+  const [sectionPositions, setSectionPositions] = useState({
+    board: {x: 0, y: 0},
+    analysis: {x: 0, y: 0},
+    controls: {x: 0, y: 0},
   });
 
   const engineRef = useRef<XBoardEngine | null>(null);
@@ -564,40 +570,56 @@ function App(): React.JSX.Element {
         </View>
       </View>
 
-      {/* Main Content - Compact Layout */}
+      {/* Main Content - Draggable Layout */}
       <View style={styles.mainContent}>
-        {/* Top Row: Board + Analysis + Controls */}
-        <View style={styles.topRow}>
-          {/* Chess Board */}
-          <View style={styles.boardContainer}>
-            <ChessBoard
-              variant={selectedVariant}
-              onMove={handleMove}
-              fen={currentFen || undefined}
-              suggestedMove={
-                analysis.length > 0 && analysis[0].pv.length > 0 && suggestedMoveHighlight
-                  ? analysis[0].pv[0]
-                  : undefined
-              }
-              moveSequence={moveSequence}
-            />
-          </View>
+        {/* Chess Board - Draggable */}
+        <DraggableSection
+          sectionId="board"
+          initialPosition={sectionPositions.board}
+          onPositionChange={(x, y) =>
+            setSectionPositions(prev => ({...prev, board: {x, y}}))
+          }
+          style={styles.boardContainer}>
+          <ChessBoard
+            variant={selectedVariant}
+            onMove={handleMove}
+            fen={currentFen || undefined}
+            suggestedMove={
+              analysis.length > 0 && analysis[0].pv.length > 0 && suggestedMoveHighlight
+                ? analysis[0].pv[0]
+                : undefined
+            }
+            moveSequence={moveSequence}
+          />
+        </DraggableSection>
 
-          {/* Analysis Panel */}
-          <View style={styles.analysisContainer}>
-            <AnalysisPanel
-              analysis={analysis}
-              onSuggestionClick={handleSuggestionClick}
-              onSuggestionHover={setSuggestedMoveHighlight}
-              onContinuationHover={setMoveSequence}
-              currentTurn={currentTurn}
-              player1Type={player1Type}
-              player2Type={player2Type}
-            />
-          </View>
+        {/* Analysis Panel - Draggable */}
+        <DraggableSection
+          sectionId="analysis"
+          initialPosition={sectionPositions.analysis}
+          onPositionChange={(x, y) =>
+            setSectionPositions(prev => ({...prev, analysis: {x, y}}))
+          }
+          style={styles.analysisContainer}>
+          <AnalysisPanel
+            analysis={analysis}
+            onSuggestionClick={handleSuggestionClick}
+            onSuggestionHover={setSuggestedMoveHighlight}
+            onContinuationHover={setMoveSequence}
+            currentTurn={currentTurn}
+            player1Type={player1Type}
+            player2Type={player2Type}
+          />
+        </DraggableSection>
 
-          {/* Controls Section */}
-          <View style={styles.controlsContainer}>
+        {/* Controls Section - Draggable */}
+        <DraggableSection
+          sectionId="controls"
+          initialPosition={sectionPositions.controls}
+          onPositionChange={(x, y) =>
+            setSectionPositions(prev => ({...prev, controls: {x, y}}))
+          }
+          style={styles.controlsContainer}>
           <Text style={styles.controlsSectionTitle}>Controls</Text>
 
           {/* Stats Section */}
@@ -669,8 +691,7 @@ function App(): React.JSX.Element {
               </Text>
             </Pressable>
           </View>
-        </View>
-        </View>
+        </DraggableSection>
       </View>
 
       {/* Toast Notifications */}
@@ -766,13 +787,7 @@ const styles = StyleSheet.create({
   mainContent: {
     flex: 1,
     padding: 16,
-  },
-  topRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    minHeight: 400,
-    alignItems: 'flex-start',
+    position: 'relative',
   },
   boardContainer: {
     flexGrow: 1,
