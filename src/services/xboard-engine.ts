@@ -67,6 +67,9 @@ export class XBoardEngine {
     // Set variant if not standard chess
     if (this.variant !== 'chess') {
       await this.sendCommand(`variant ${this.variant}`);
+
+      // Load variant-specific NNUE file
+      await this.loadVariantNNUE();
     }
 
     // Set up engine options
@@ -104,6 +107,28 @@ export class XBoardEngine {
     } else {
       // Other platforms: Use the Linux binary
       return this.enginePath;
+    }
+  }
+
+  /**
+   * Load variant-specific NNUE file
+   */
+  private async loadVariantNNUE(): Promise<void> {
+    const nnueFiles: Record<GameVariant, string> = {
+      chess: 'nn-46832cfbead3.nnue',
+      janggi: 'janggi-9991472750de.nnue',
+    };
+
+    const nnueFile = nnueFiles[this.variant];
+    if (!nnueFile) {
+      console.log(`No NNUE file configured for variant: ${this.variant}`);
+      return;
+    }
+
+    if (Platform.OS === 'windows') {
+      const nnuePath = `C:\\Users\\unatt\\OneDrive\\dev\\nbg\\ChessApp\\windows\\chessapp\\Assets\\engines\\${nnueFile}`;
+      console.log(`Loading NNUE file: ${nnuePath}`);
+      await this.sendCommand(`setoption name EvalFile value ${nnuePath}`);
     }
   }
 

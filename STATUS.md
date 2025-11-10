@@ -286,6 +286,19 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 12:30 PM
+- **Started Janggi (Korean Chess) Implementation**
+  - Copied janggi-9991472750de.nnue to Windows assets folder
+  - Added loadVariantNNUE() method to load variant-specific NNUE files
+  - Engine now properly loads Janggi NNUE when variant is set to 'janggi'
+  - **Note**: Full Janggi support requires:
+    - Janggi move library (chess.js only supports chess)
+    - 9x10 board rendering (current board is 8x8)
+    - Janggi piece graphics (Korean characters/symbols)
+    - Palace/fortress markings on board
+    - River marking between ranks 4-5
+  - **Current Status**: Engine configured, UI needs Janggi-specific components
+
 ### November 10, 2025 - 12:15 PM
 - **Simplified Suggestions Panel**
   - Removed evaluation score, evaluation text, depth, and nodes from suggestions
