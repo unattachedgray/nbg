@@ -9,6 +9,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import {ChessBoard} from './src/components/board/chess-board';
 import {AnalysisPanel} from './src/components/analysis/analysis-panel';
@@ -54,7 +55,15 @@ function App(): React.JSX.Element {
 
   const initializeApp = async () => {
     try {
-      // Step 1: Setup NNUE file (download if missing)
+      // For Windows, NNUE file is handled via setup script before build
+      // Skip automatic download on Windows to avoid react-native-fs issues
+      if (Platform.OS === 'windows') {
+        console.log('Windows platform detected - NNUE file managed via setup script');
+        await initializeEngine();
+        return;
+      }
+
+      // Step 1: Setup NNUE file (download if missing) - Android/iOS only
       console.log('Setting up NNUE file...');
       const result = await setupNNUE(progress => {
         setSetupProgress(progress);

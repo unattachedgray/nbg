@@ -2,7 +2,9 @@
 
 A feature-rich chess application built with React Native, supporting multiple chess variants (Chess, Janggi, and more), with advanced features like engine analysis, learning mode, and AI vs AI gameplay.
 
-✨ **Smart Setup**: NNUE neural network (~46MB) is intelligently downloaded on first run. The app automatically searches for the latest files and handles setup for you!
+✨ **Smart Setup**:
+- **Windows**: Run `setup-engines.ps1` once to download NNUE file (~46MB) before building
+- **Android/iOS**: NNUE automatically downloads at runtime with intelligent search
 
 ## Quick Start
 
@@ -14,11 +16,14 @@ cd nbg/ChessApp
 # Install dependencies
 npm install
 
+# Download NNUE file (Windows - run once)
+.\setup-engines.ps1
+
 # Run the app (Windows)
 .\run-app.ps1
 ```
 
-That's it! The NNUE file downloads automatically on first run.
+**Note**: On Windows, run `setup-engines.ps1` once to download the NNUE file before first build. On Android/iOS, the NNUE file downloads automatically at runtime.
 
 ## Features
 
@@ -92,30 +97,23 @@ ChessApp/
    npm install
    ```
 
-3. **NNUE Neural Network** (Intelligent Auto-Download):
+3. **NNUE Neural Network**:
 
-   The NNUE neural network file (~46 MB) is **intelligently downloaded** on first run:
+   **Windows (REQUIRED before building)**:
+   ```powershell
+   .\setup-engines.ps1
+   ```
 
-   **Automatic Process:**
+   This downloads the NNUE neural network file (~46 MB) to the correct location before building.
+
+   **Android/iOS (Automatic at Runtime)**:
+
+   The NNUE file is **intelligently downloaded** at runtime:
    1. App checks if NNUE file exists
    2. If missing, tries default download URL
    3. If that fails, searches https://fairy-stockfish.github.io/nnue/ for latest files
    4. If files found, presents selection dialog
    5. If search fails, prompts for manual URL input
-
-   **You don't need to do anything** - the app handles it automatically!
-
-   **Optional - Manual Setup**: If you prefer to download beforehand:
-
-   **PowerShell (Windows)**:
-   ```powershell
-   .\setup-engines.ps1
-   ```
-
-   **Manual URL Input**: If automatic search fails, the app will:
-   - Show instructions on how to find NNUE files
-   - Provide a dialog to paste the download URL
-   - Download and install the file automatically
 
    **Note**: Engine binaries are included in the repository (custom compiled).
 
