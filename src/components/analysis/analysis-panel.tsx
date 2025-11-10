@@ -130,13 +130,17 @@ export function AnalysisPanel({
           {/* Best Move Suggestion */}
           <View style={styles.suggestionSection}>
             <Text style={styles.sectionTitle}>Suggested Move</Text>
-            {mainLine.pv.length > 0 && (
+            {mainLine.pv.length > 0 ? (
               <View style={styles.suggestionBox}>
                 <Text style={styles.suggestionMove}>{mainLine.pv[0]}</Text>
                 <Text style={styles.suggestionLabel}>Best move</Text>
               </View>
+            ) : (
+              <View style={[styles.suggestionBox, styles.suggestionBoxEmpty]}>
+                <Text style={styles.suggestionMove}>--</Text>
+                <Text style={styles.suggestionLabel}>Analyzing...</Text>
+              </View>
             )}
-          </View>
         </View>
       </View>
     </View>
@@ -166,14 +170,17 @@ const styles = StyleSheet.create({
   },
   contentGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
   },
   leftColumn: {
     flex: 1,
+    minWidth: 200,
     gap: 12,
   },
   rightColumn: {
     flex: 1,
+    minWidth: 200,
     gap: 12,
   },
   evalSection: {
@@ -202,7 +209,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
     padding: 12,
-    flex: 1,
   },
   sectionTitle: {
     fontSize: 13,
@@ -238,13 +244,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
     padding: 12,
-    flex: 1,
   },
   suggestionBox: {
     backgroundColor: '#2196F3',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
+  },
+  suggestionBoxEmpty: {
+    backgroundColor: '#CCCCCC',
   },
   suggestionMove: {
     fontSize: 18,

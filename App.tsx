@@ -488,6 +488,7 @@ const styles = StyleSheet.create({
   },
   topRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     flex: 1,
     gap: 16,
     minHeight: 400,
@@ -502,6 +503,7 @@ const styles = StyleSheet.create({
   analysisContainer: {
     flex: 1,
     minWidth: 300,
+    maxWidth: 500,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     shadowColor: '#000',
