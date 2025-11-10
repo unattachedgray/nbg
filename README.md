@@ -2,7 +2,7 @@
 
 A feature-rich chess application built with React Native, supporting multiple chess variants (Chess, Janggi, and more), with advanced features like engine analysis, learning mode, and AI vs AI gameplay.
 
-⚠️ **Note**: NNUE neural network file (~46MB) is excluded from git. Run the setup script after cloning!
+⚠️ **Note**: NNUE neural network file (~46MB) is automatically downloaded on first run. You can also run the setup script manually if needed.
 
 ## Features
 
@@ -76,23 +76,22 @@ ChessApp/
    npm install
    ```
 
-3. **Download NNUE File** (REQUIRED - Large file not in git):
+3. **NNUE Neural Network** (Automatically Downloaded):
 
-   Run the automated setup script:
+   The NNUE neural network file (~46 MB) will be **automatically downloaded** on first run of the app.
+
+   **Optional - Manual Setup**: If you prefer to download it beforehand, run:
 
    **PowerShell (Windows)**:
    ```powershell
    .\setup-engines.ps1
    ```
 
-   This will automatically download:
-   - NNUE neural network file (46 MB)
-
    **Note**: Engine binaries are included in the repository (custom compiled).
 
    **Configuration** is in `engine.config.json` if you need to update URLs or filenames.
 
-   **Manual Download** (if script fails):
+   **Manual Download** (if needed):
    - NNUE: https://tests.stockfishchess.org/api/nn/nn-46832cfbead3.nnue
    - Place in: `windows/chessapp/Assets/engines/` and `src/assets/engines/`
 

@@ -16,6 +16,7 @@ import {TermText} from './src/components/ui/tooltip';
 import {GameVariant, GameMode, Square, EngineAnalysis} from './src/types/game';
 import {createXBoardEngine, XBoardEngine} from './src/services/xboard-engine';
 import {Chess} from 'chess.js';
+import {setupNNUE, SetupProgress} from './src/utils/setup-nnue';
 
 function App(): React.JSX.Element {
   const [selectedVariant, setSelectedVariant] =
@@ -26,13 +27,16 @@ function App(): React.JSX.Element {
   const [isEngineThinking, setIsEngineThinking] = useState(false);
   const [currentFen, setCurrentFen] = useState('');
   const [analysis, setAnalysis] = useState<EngineAnalysis[]>([]);
+  const [setupProgress, setSetupProgress] = useState<SetupProgress | null>(
+    null,
+  );
 
   const engineRef = useRef<XBoardEngine | null>(null);
   const gameRef = useRef(new Chess());
 
-  // Initialize engine on mount
+  // Initialize NNUE and engine on mount
   useEffect(() => {
-    initializeEngine();
+    initializeApp();
 
     return () => {
       // Cleanup on unmount
@@ -41,6 +45,37 @@ function App(): React.JSX.Element {
       }
     };
   }, [selectedVariant]);
+
+  const initializeApp = async () => {
+    try {
+      // Step 1: Setup NNUE file (download if missing)
+      console.log('Setting up NNUE file...');
+      const nnueReady = await setupNNUE(progress => {
+        setSetupProgress(progress);
+        console.log(`NNUE Setup: ${progress.message}`);
+      });
+
+      if (!nnueReady) {
+        Alert.alert(
+          'Setup Error',
+          'Failed to download NNUE file. The app may not work correctly. Please check your internet connection and restart the app.',
+        );
+        return;
+      }
+
+      // Step 2: Initialize engine
+      await initializeEngine();
+    } catch (error) {
+      console.error('Failed to initialize app:', error);
+      Alert.alert(
+        'Initialization Error',
+        'Failed to initialize the application. Please restart the app.',
+      );
+    } finally {
+      // Clear setup progress after a short delay
+      setTimeout(() => setSetupProgress(null), 2000);
+    }
+  };
 
   const initializeEngine = async () => {
     try {
@@ -165,7 +200,16 @@ function App(): React.JSX.Element {
 
           {/* Engine Status - Inline */}
           <View style={styles.engineStatus}>
-            {!engineReady ? (
+            {setupProgress && setupProgress.stage !== 'complete' ? (
+              <>
+                <ActivityIndicator size="small" color="#2196F3" />
+                <Text style={styles.engineStatusText}>
+                  {setupProgress.message}
+                  {setupProgress.progress !== undefined &&
+                    ` ${setupProgress.progress}%`}
+                </Text>
+              </>
+            ) : !engineReady ? (
               <>
                 <ActivityIndicator size="small" color="#4CAF50" />
                 <Text style={styles.engineStatusText}>Loading...</Text>
