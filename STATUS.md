@@ -286,6 +286,28 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 11:00 AM
+- **Implemented Fast Mode for AI vs AI**
+  - New "Fast Mode" button (only visible during AI vs AI)
+  - Disables board rendering for lightning-fast gameplay
+  - Uses 10ms think time (vs 50ms normal AI vs AI)
+  - Visual indicator showing moves played during fast mode
+  - Automatically exits and updates board when game ends
+  - Achieves maximum possible AI vs AI speed
+- **Optimized Suggestions Display**
+  - Keep previous suggestions visible during AI thinking
+  - No more "make a move" message disrupting flow
+  - Previous analysis persists until new analysis arrives
+  - Better user experience with continuous information
+- **Improved Rendering Performance**
+  - Skip setCurrentFen() calls in fast mode to prevent re-rendering
+  - Skip analysis entirely in fast mode (AI vs AI doesn't need suggestions)
+  - Batch state updates for efficiency
+- **Renamed Learning Mode**
+  - Changed "Learning Mode" → "Learn"
+  - Changed "Exit Learning" → "Exit Learn"
+  - Cleaner, more concise UI
+
 ### November 10, 2025 - 9:45 AM
 - **Optimized AI vs AI performance**
   - Reduced think time from 100ms to 50ms per move

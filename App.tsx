@@ -49,6 +49,8 @@ function App(): React.JSX.Element {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [currentTurn, setCurrentTurn] = useState<'w' | 'b'>('w'); // Track whose turn it is
   const [gameStatus, setGameStatus] = useState<string>(''); // Track check/checkmate/stalemate
+  const [fastMode, setFastMode] = useState(false); // Disable rendering for AI vs AI
+  const [fastModeMovesPlayed, setFastModeMovesPlayed] = useState(0); // Track moves in fast mode
   const [stats, setStats] = useState({
     whiteWins: 0,
     blackWins: 0,
@@ -399,10 +401,7 @@ function App(): React.JSX.Element {
     analysisRequestIdRef.current += 1;
     const thisRequestId = analysisRequestIdRef.current;
 
-    // Clear analysis immediately to prevent showing stale data during move transition
-    setAnalysis([]);
-    setAnalysisTurn(null);
-    setAnalysisFen('');
+    // DON'T clear analysis - keep previous suggestions visible during AI thinking
 
     // Apply the move to gameRef
     gameRef.current.move({from, to, promotion: 'q'});
@@ -410,7 +409,11 @@ function App(): React.JSX.Element {
     // Update FEN and turn
     const newFen = gameRef.current.fen();
     const newTurn = gameRef.current.turn();
-    setCurrentFen(newFen);
+
+    // Only update UI if not in fast mode
+    if (!fastMode) {
+      setCurrentFen(newFen);
+    }
     setCurrentTurn(newTurn);
 
     // Update game status (checkmate takes priority over check)
@@ -492,30 +495,46 @@ function App(): React.JSX.Element {
     try {
       setIsEngineThinking(true);
 
-      // Clear analysis immediately to prevent showing stale data
-      setAnalysis([]);
-      setAnalysisTurn(null);
-      setAnalysisFen('');
+      // DON'T clear analysis - keep previous suggestions visible
 
       // Tell engine about current position and get move
       const fen = gameRef.current.fen();
-      // Ultra-fast thinking for AI vs AI: 50ms (absolute minimum for reasonable moves)
-      const thinkTime = (player1Type === 'ai' && player2Type === 'ai') ? 50 : 500;
+      // Lightning-fast thinking for AI vs AI in fast mode: 10ms, otherwise 50ms for AI vs AI, 500ms for human games
+      const thinkTime = fastMode ? 10 : (player1Type === 'ai' && player2Type === 'ai') ? 50 : 500;
       const engineMove = await engineRef.current.getBestMove(fen, thinkTime);
 
       // Make the engine's move on the board
       gameRef.current.move(engineMove as any);
       const newTurn = gameRef.current.turn();
       const newFen = gameRef.current.fen();
-      setCurrentFen(newFen);
+
+      // Only update UI if not in fast mode
+      if (!fastMode) {
+        setCurrentFen(newFen);
+      } else {
+        // In fast mode, just increment move counter
+        setFastModeMovesPlayed(prev => prev + 1);
+      }
       setCurrentTurn(newTurn);
 
       // Update game status (checkmate takes priority over check)
       if (gameRef.current.isCheckmate()) {
         setGameStatus('Checkmate!');
+        // If fast mode, update board to show final position
+        if (fastMode) {
+          setCurrentFen(newFen);
+          setFastMode(false);
+          setFastModeMovesPlayed(0);
+        }
         await recordGameResult();
       } else if (gameRef.current.isStalemate()) {
         setGameStatus('Stalemate!');
+        // If fast mode, update board to show final position
+        if (fastMode) {
+          setCurrentFen(newFen);
+          setFastMode(false);
+          setFastModeMovesPlayed(0);
+        }
         await recordGameResult();
       } else if (gameRef.current.isCheck()) {
         setGameStatus('Check!');
@@ -525,9 +544,9 @@ function App(): React.JSX.Element {
 
       setIsEngineThinking(false);
 
-      // Skip analysis during AI vs AI for better performance
-      // Only analyze if at least one player is human
-      if (player1Type === 'human' || player2Type === 'human') {
+      // Skip analysis during AI vs AI or fast mode for better performance
+      // Only analyze if at least one player is human and not in fast mode
+      if (!fastMode && (player1Type === 'human' || player2Type === 'human')) {
         try {
           setIsAnalyzing(true);
           const currentAnalysis = await engineRef.current.analyze(newFen, 15);
@@ -562,6 +581,10 @@ function App(): React.JSX.Element {
 
     // Reset game mode to player vs AI
     setGameMode('player-vs-ai');
+
+    // Reset fast mode
+    setFastMode(false);
+    setFastModeMovesPlayed(0);
 
     // Reset game state
     gameRef.current.reset();
@@ -658,7 +681,22 @@ function App(): React.JSX.Element {
 
       // In learning mode, suggestions are always shown for both sides
       // to help the user learn best moves for both white and black
-      showToast('Learning Mode: Play both sides with AI hints!', 'info');
+      showToast('Learn Mode: Play both sides with AI hints!', 'info');
+    }
+  };
+
+  const handleFastModeToggle = () => {
+    if (fastMode) {
+      // Exit fast mode - update board to current position
+      setFastMode(false);
+      setCurrentFen(gameRef.current.fen());
+      setFastModeMovesPlayed(0);
+      showToast('Fast mode disabled - Board rendering enabled', 'info');
+    } else {
+      // Enter fast mode - disable board updates for lightning speed
+      setFastMode(true);
+      setFastModeMovesPlayed(0);
+      showToast('Fast mode enabled - Lightning speed AI vs AI!', 'info');
     }
   };
 
@@ -843,16 +881,29 @@ function App(): React.JSX.Element {
                   <Text style={styles.controlButtonText}>New Game</Text>
                 </Pressable>
                 {player1Type === 'ai' && player2Type === 'ai' && (
-                  <Pressable
-                    style={[
-                      styles.controlButton,
-                      isAutoPlaying && styles.stopButton,
-                    ]}
-                    onPress={handleStartStop}>
-                    <Text style={styles.controlButtonText}>
-                      {isAutoPlaying ? 'Stop' : 'Start'}
-                    </Text>
-                  </Pressable>
+                  <>
+                    <Pressable
+                      style={[
+                        styles.controlButton,
+                        isAutoPlaying && styles.stopButton,
+                      ]}
+                      onPress={handleStartStop}>
+                      <Text style={styles.controlButtonText}>
+                        {isAutoPlaying ? 'Stop' : 'Start'}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={[
+                        styles.controlButton,
+                        styles.fastModeButton,
+                        fastMode && styles.activeButton,
+                      ]}
+                      onPress={handleFastModeToggle}>
+                      <Text style={styles.controlButtonText}>
+                        {fastMode ? 'Normal Speed' : 'Fast Mode'}
+                      </Text>
+                    </Pressable>
+                  </>
                 )}
                 <Pressable
                   style={[
@@ -861,10 +912,19 @@ function App(): React.JSX.Element {
                   ]}
                   onPress={handleLearningMode}>
                   <Text style={styles.controlButtonText}>
-                    {gameMode === 'learning' ? 'Exit Learning' : 'Learning Mode'}
+                    {gameMode === 'learning' ? 'Exit Learn' : 'Learn'}
                   </Text>
                 </Pressable>
               </View>
+
+              {/* Fast Mode Indicator */}
+              {fastMode && (
+                <View style={styles.fastModeIndicator}>
+                  <Text style={styles.fastModeText}>
+                    ⚡ Fast Mode Active - {fastModeMovesPlayed} moves played
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -1118,6 +1178,23 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  fastModeButton: {
+    backgroundColor: '#FF9800',
+  },
+  fastModeIndicator: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#FFF3E0',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#FF9800',
+  },
+  fastModeText: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#F57C00',
+    textAlign: 'center',
   },
 });
 
