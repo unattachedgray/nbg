@@ -7,6 +7,8 @@ interface ChessBoardProps {
   variant?: GameVariant;
   onMove?: (from: Square, to: Square) => void;
   fen?: string;
+  suggestedMove?: string; // e.g., "e2e4"
+  onSuggestedMoveHover?: (hovering: boolean) => void;
 }
 
 const PIECE_SYMBOLS: Record<string, string> = {
@@ -28,11 +30,14 @@ export function ChessBoard({
   variant = 'chess',
   onMove,
   fen,
+  suggestedMove,
+  onSuggestedMoveHover,
 }: ChessBoardProps): React.JSX.Element {
   const [game] = useState(() => new Chess(fen));
   const [board, setBoard] = useState(game.board());
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [legalMoves, setLegalMoves] = useState<Square[]>([]);
+  const [showSuggestedHint, setShowSuggestedHint] = useState(false);
 
   useEffect(() => {
     if (fen) {
@@ -40,6 +45,19 @@ export function ChessBoard({
       setBoard(game.board());
     }
   }, [fen, game]);
+
+  useEffect(() => {
+    onSuggestedMoveHover?.(showSuggestedHint);
+  }, [showSuggestedHint, onSuggestedMoveHover]);
+
+  const parseSuggestedMove = (): {from: Square; to: Square} | null => {
+    if (!suggestedMove || suggestedMove.length < 4) {
+      return null;
+    }
+    const from = suggestedMove.substring(0, 2) as Square;
+    const to = suggestedMove.substring(2, 4) as Square;
+    return {from, to};
+  };
 
   const handleSquarePress = (row: number, col: number) => {
     const files = 'abcdefgh';
@@ -70,11 +88,13 @@ export function ChessBoard({
         setLegalMoves([]);
       }
     } else {
-      // Select a piece
+      // Select a piece (only if it has valid moves)
       if (board[row][col] && board[row][col]!.color === game.turn()) {
-        setSelectedSquare(square);
         const moves = game.moves({square: square as any, verbose: true});
-        setLegalMoves(moves.map((m: any) => m.to));
+        if (moves.length > 0) {
+          setSelectedSquare(square);
+          setLegalMoves(moves.map((m: any) => m.to));
+        }
       }
     }
   };
@@ -84,6 +104,19 @@ export function ChessBoard({
     const files = 'abcdefgh';
     const ranks = '87654321';
     const square = `${files[col]}${ranks[row]}`;
+
+    // Suggested move highlighting (when hovering over suggestion)
+    if (showSuggestedHint) {
+      const suggested = parseSuggestedMove();
+      if (suggested) {
+        if (square === suggested.from) {
+          return '#4fc3f7'; // Blue for suggested piece
+        }
+        if (square === suggested.to) {
+          return '#81c784'; // Green for suggested destination
+        }
+      }
+    }
 
     if (selectedSquare === square) {
       return '#f4e04d'; // Yellow for selected

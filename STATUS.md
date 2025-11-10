@@ -41,8 +41,8 @@
 
 ### 🔨 Currently Working On
 
-- Finalizing responsive layout improvements
-- Ensuring all analysis features are visible
+- Testing interactive suggestion feature
+- Verifying selection improvements
 
 ---
 
@@ -279,6 +279,14 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 9, 2025 - 10:00 PM
+- Fixed selection bug: can't select pieces with no legal moves
+- Made "Your Best Move" interactive with hover and click
+- Hover over suggestion highlights piece (blue) and destination (green) on board
+- Click suggestion to automatically play the move
+- Label changes to "Click to play" when hovering
+- Hover effect with darker blue and scale animation
 
 ### November 9, 2025 - 9:30 PM
 - Fixed XBoard parsing to filter out numeric fields from move list

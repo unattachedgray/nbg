@@ -1,17 +1,22 @@
-import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import React, {useState} from 'react';
+import {View, Text, StyleSheet, Pressable} from 'react-native';
 import {EngineAnalysis} from '../../types/game';
 import {TermText} from '../ui/tooltip';
 
 interface AnalysisPanelProps {
   analysis?: EngineAnalysis[];
   isAnalyzing?: boolean;
+  onSuggestionClick?: (move: string) => void;
+  onSuggestionHover?: (hovering: boolean) => void;
 }
 
 export function AnalysisPanel({
   analysis,
   isAnalyzing = false,
+  onSuggestionClick,
+  onSuggestionHover,
 }: AnalysisPanelProps): React.JSX.Element {
+  const [isHovering, setIsHovering] = useState(false);
   const formatScore = (score: number): string => {
     if (Math.abs(score) > 9000) {
       const mateIn = score > 0 ? 10000 - score : -10000 - score;
@@ -131,10 +136,25 @@ export function AnalysisPanel({
           <View style={styles.suggestionSection}>
             <Text style={styles.sectionTitle}>Your Best Move</Text>
             {mainLine.pv.length > 0 ? (
-              <View style={styles.suggestionBox}>
+              <Pressable
+                style={[
+                  styles.suggestionBox,
+                  isHovering && styles.suggestionBoxHover,
+                ]}
+                onPress={() => onSuggestionClick?.(mainLine.pv[0])}
+                onHoverIn={() => {
+                  setIsHovering(true);
+                  onSuggestionHover?.(true);
+                }}
+                onHoverOut={() => {
+                  setIsHovering(false);
+                  onSuggestionHover?.(false);
+                }}>
                 <Text style={styles.suggestionMove}>{mainLine.pv[0]}</Text>
-                <Text style={styles.suggestionLabel}>Recommended</Text>
-              </View>
+                <Text style={styles.suggestionLabel}>
+                  {isHovering ? 'Click to play' : 'Recommended'}
+                </Text>
+              </Pressable>
             ) : (
               <View style={[styles.suggestionBox, styles.suggestionBoxEmpty]}>
                 <Text style={styles.suggestionMove}>--</Text>
@@ -258,9 +278,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
+    cursor: 'pointer',
+  },
+  suggestionBoxHover: {
+    backgroundColor: '#1976D2',
+    transform: [{scale: 1.05}],
   },
   suggestionBoxEmpty: {
     backgroundColor: '#CCCCCC',
+    cursor: 'default',
   },
   suggestionMove: {
     fontSize: 18,

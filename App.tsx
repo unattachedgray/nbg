@@ -37,6 +37,7 @@ function App(): React.JSX.Element {
   const [setupProgress, setSetupProgress] = useState<SetupProgress | null>(
     null,
   );
+  const [suggestedMoveHighlight, setSuggestedMoveHighlight] = useState(false);
 
   const engineRef = useRef<XBoardEngine | null>(null);
   const gameRef = useRef(new Chess());
@@ -228,6 +229,16 @@ function App(): React.JSX.Element {
     }
   };
 
+  const handleSuggestionClick = (move: string) => {
+    // Parse move like "e2e4" into from/to squares
+    if (move.length >= 4) {
+      const from = move.substring(0, 2) as Square;
+      const to = move.substring(2, 4) as Square;
+      console.log(`Playing suggested move: ${from} -> ${to}`);
+      handleMove(from, to);
+    }
+  };
+
   const getEngineMove = async () => {
     if (!engineRef.current || !engineReady) {
       return;
@@ -380,13 +391,22 @@ function App(): React.JSX.Element {
               variant={selectedVariant}
               onMove={handleMove}
               fen={currentFen || undefined}
+              suggestedMove={
+                analysis.length > 0 && analysis[0].pv.length > 0 && suggestedMoveHighlight
+                  ? analysis[0].pv[0]
+                  : undefined
+              }
             />
           </View>
 
           {/* Analysis Panel */}
           {showAnalysis && (
             <View style={styles.analysisContainer}>
-              <AnalysisPanel analysis={analysis} />
+              <AnalysisPanel
+                analysis={analysis}
+                onSuggestionClick={handleSuggestionClick}
+                onSuggestionHover={setSuggestedMoveHighlight}
+              />
             </View>
           )}
         </View>
