@@ -8,6 +8,7 @@ interface AnalysisPanelProps {
   isAnalyzing?: boolean;
   onSuggestionClick?: (move: string) => void;
   onSuggestionHover?: (hovering: boolean) => void;
+  onContinuationHover?: (moves: string[]) => void;
 }
 
 export function AnalysisPanel({
@@ -15,8 +16,10 @@ export function AnalysisPanel({
   isAnalyzing = false,
   onSuggestionClick,
   onSuggestionHover,
+  onContinuationHover,
 }: AnalysisPanelProps): React.JSX.Element {
-  const [isHovering, setIsHovering] = useState(false);
+  const [isHoveringSuggestion, setIsHoveringSuggestion] = useState(false);
+  const [isHoveringContinuation, setIsHoveringContinuation] = useState(false);
   const formatScore = (score: number): string => {
     if (Math.abs(score) > 9000) {
       const mateIn = score > 0 ? 10000 - score : -10000 - score;
@@ -89,7 +92,7 @@ export function AnalysisPanel({
 
       {/* Compact layout - All sections visible without scrolling */}
       <View style={styles.contentGrid}>
-        {/* Evaluation + Best Line (Left Column) */}
+        {/* Evaluation + Stats (Left Column) */}
         <View style={styles.leftColumn}>
           {/* Evaluation */}
           <View style={styles.evalSection}>
@@ -107,17 +110,6 @@ export function AnalysisPanel({
             </TermText>
           </View>
 
-          {/* Continuation */}
-          <View style={styles.pvSection}>
-            <Text style={styles.sectionTitle}>If You Play Best Move</Text>
-            <Text style={styles.pvText} numberOfLines={3}>
-              {mainLine.pv.length > 1 ? formatMovePairs(mainLine.pv.slice(1)) : 'Analyzing...'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Stats + Alternative Lines (Right Column) */}
-        <View style={styles.rightColumn}>
           {/* Stats */}
           <View style={styles.statsSection}>
             <View style={styles.statRow}>
@@ -131,7 +123,10 @@ export function AnalysisPanel({
               </Text>
             </View>
           </View>
+        </View>
 
+        {/* Suggestions (Right Column) */}
+        <View style={styles.rightColumn}>
           {/* Best Move Suggestion */}
           <View style={styles.suggestionSection}>
             <Text style={styles.sectionTitle}>Your Best Move</Text>
@@ -139,26 +134,58 @@ export function AnalysisPanel({
               <Pressable
                 style={[
                   styles.suggestionBox,
-                  isHovering && styles.suggestionBoxHover,
+                  isHoveringSuggestion && styles.suggestionBoxHover,
                 ]}
                 onPress={() => onSuggestionClick?.(mainLine.pv[0])}
                 onHoverIn={() => {
-                  setIsHovering(true);
+                  setIsHoveringSuggestion(true);
                   onSuggestionHover?.(true);
                 }}
                 onHoverOut={() => {
-                  setIsHovering(false);
+                  setIsHoveringSuggestion(false);
                   onSuggestionHover?.(false);
                 }}>
                 <Text style={styles.suggestionMove}>{mainLine.pv[0]}</Text>
                 <Text style={styles.suggestionLabel}>
-                  {isHovering ? 'Click to play' : 'Recommended'}
+                  {isHoveringSuggestion ? 'Click to play' : 'Recommended'}
                 </Text>
               </Pressable>
             ) : (
               <View style={[styles.suggestionBox, styles.suggestionBoxEmpty]}>
                 <Text style={styles.suggestionMove}>--</Text>
                 <Text style={styles.suggestionLabel}>Analyzing...</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Continuation */}
+          <View style={styles.suggestionSection}>
+            <Text style={styles.sectionTitle}>If You Play Best Move</Text>
+            {mainLine.pv.length > 1 ? (
+              <Pressable
+                style={[
+                  styles.continuationBox,
+                  isHoveringContinuation && styles.continuationBoxHover,
+                ]}
+                onHoverIn={() => {
+                  setIsHoveringContinuation(true);
+                  onContinuationHover?.(mainLine.pv.slice(1));
+                }}
+                onHoverOut={() => {
+                  setIsHoveringContinuation(false);
+                  onContinuationHover?.([]);
+                }}>
+                <Text style={styles.continuationText} numberOfLines={3}>
+                  {formatMovePairs(mainLine.pv.slice(1))}
+                </Text>
+                <Text style={styles.continuationLabel}>
+                  {isHoveringContinuation ? 'Hover to preview' : 'Future moves'}
+                </Text>
+              </Pressable>
+            ) : (
+              <View style={[styles.continuationBox, styles.continuationBoxEmpty]}>
+                <Text style={styles.continuationText}>--</Text>
+                <Text style={styles.continuationLabel}>Analyzing...</Text>
               </View>
             )}
           </View>
@@ -295,6 +322,31 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   suggestionLabel: {
+    fontSize: 11,
+    color: '#ffffff',
+    opacity: 0.9,
+  },
+  continuationBox: {
+    backgroundColor: '#9C27B0',
+    borderRadius: 8,
+    padding: 12,
+    cursor: 'pointer',
+  },
+  continuationBoxHover: {
+    backgroundColor: '#7B1FA2',
+    transform: [{scale: 1.02}],
+  },
+  continuationBoxEmpty: {
+    backgroundColor: '#CCCCCC',
+    cursor: 'default',
+  },
+  continuationText: {
+    fontSize: 12,
+    color: '#ffffff',
+    marginBottom: 4,
+    lineHeight: 18,
+  },
+  continuationLabel: {
     fontSize: 11,
     color: '#ffffff',
     opacity: 0.9,

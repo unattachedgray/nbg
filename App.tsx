@@ -38,9 +38,12 @@ function App(): React.JSX.Element {
     null,
   );
   const [suggestedMoveHighlight, setSuggestedMoveHighlight] = useState(false);
+  const [moveSequence, setMoveSequence] = useState<string[]>([]);
+  const [aiVsAiRunning, setAiVsAiRunning] = useState(false);
 
   const engineRef = useRef<XBoardEngine | null>(null);
   const gameRef = useRef(new Chess());
+  const aiVsAiStopRef = useRef(false);
 
   // Initialize NNUE and engine on mount
   useEffect(() => {
@@ -280,41 +283,99 @@ function App(): React.JSX.Element {
   const handleNewGame = async () => {
     console.log('Starting new game');
 
-    // Reset game
+    // Stop AI vs AI if running
+    if (aiVsAiRunning) {
+      aiVsAiStopRef.current = true;
+      setAiVsAiRunning(false);
+    }
+
+    // Reset game mode to player vs AI
+    setGameMode('player-vs-ai');
+
+    // Reset game state
     gameRef.current.reset();
     setCurrentFen(gameRef.current.fen());
+    setAnalysis([]);
+    setMoveSequence([]);
+    setSuggestedMoveHighlight(false);
 
     // Reset engine
     if (engineRef.current && engineReady) {
       await engineRef.current.newGame();
+
+      // Get initial analysis of starting position
+      if (showAnalysis) {
+        try {
+          const startingFen = gameRef.current.fen();
+          const initialAnalysis = await engineRef.current.analyze(startingFen, 15);
+          setAnalysis([initialAnalysis]);
+          console.log('✅ Initial analysis complete');
+        } catch (error) {
+          console.error('Error getting initial analysis:', error);
+        }
+      }
     }
   };
 
   const handleAIvsAI = async () => {
+    if (aiVsAiRunning) {
+      // Stop AI vs AI
+      aiVsAiStopRef.current = true;
+      setAiVsAiRunning(false);
+      setGameMode('player-vs-ai');
+      console.log('Stopping AI vs AI mode');
+      return;
+    }
+
     setGameMode('ai-vs-ai');
+    setAiVsAiRunning(true);
+    aiVsAiStopRef.current = false;
     console.log('Starting AI vs AI mode');
 
     if (!engineRef.current || !engineReady) {
       Alert.alert('AI vs AI', 'Engine not ready');
+      setAiVsAiRunning(false);
+      setGameMode('player-vs-ai');
       return;
     }
 
     // AI vs AI game loop
-    while (!gameRef.current.isGameOver()) {
+    while (!gameRef.current.isGameOver() && !aiVsAiStopRef.current) {
       await getEngineMove();
       await new Promise<void>(resolve => setTimeout(resolve, 1000)); // 1 second delay
     }
 
-    console.log('Game over!', gameRef.current.isCheckmate() ? 'Checkmate' : 'Draw');
+    setAiVsAiRunning(false);
+
+    if (gameRef.current.isGameOver()) {
+      console.log('Game over!', gameRef.current.isCheckmate() ? 'Checkmate' : 'Draw');
+      Alert.alert(
+        'Game Over',
+        gameRef.current.isCheckmate()
+          ? `Checkmate! ${gameRef.current.turn() === 'w' ? 'Black' : 'White'} wins!`
+          : 'Draw - ' + (gameRef.current.isStalemate() ? 'Stalemate' : 'Draw')
+      );
+    } else {
+      console.log('AI vs AI stopped by user');
+    }
+
+    setGameMode('player-vs-ai');
   };
 
   const handleLearningMode = () => {
-    setGameMode('learning');
-    setShowAnalysis(true);
-    console.log('Starting learning mode');
+    if (gameMode === 'learning') {
+      // Exit learning mode
+      setGameMode('player-vs-ai');
+      console.log('Exiting learning mode');
+    } else {
+      // Enter learning mode
+      setGameMode('learning');
+      setShowAnalysis(true);
+      console.log('Starting learning mode');
 
-    // In learning mode, show continuous analysis
-    // TODO: Implement continuous analysis
+      // Learning mode shows analysis but doesn't auto-play
+      // Analysis is already shown after each move in handleMove()
+    }
   };
 
   return (
@@ -396,6 +457,7 @@ function App(): React.JSX.Element {
                   ? analysis[0].pv[0]
                   : undefined
               }
+              moveSequence={moveSequence}
             />
           </View>
 
@@ -406,6 +468,7 @@ function App(): React.JSX.Element {
                 analysis={analysis}
                 onSuggestionClick={handleSuggestionClick}
                 onSuggestionHover={setSuggestedMoveHighlight}
+                onContinuationHover={setMoveSequence}
               />
             </View>
           )}
@@ -417,16 +480,24 @@ function App(): React.JSX.Element {
             <Pressable style={styles.controlButton} onPress={handleNewGame}>
               <Text style={styles.controlButtonText}>New Game</Text>
             </Pressable>
-            <Pressable style={styles.controlButton} onPress={handleAIvsAI}>
+            <Pressable
+              style={[
+                styles.controlButton,
+                aiVsAiRunning && styles.stopButton,
+              ]}
+              onPress={handleAIvsAI}>
               <Text style={styles.controlButtonText}>
-                AI vs AI {gameMode === 'ai-vs-ai' && '✓'}
+                {aiVsAiRunning ? 'Stop AI vs AI' : 'AI vs AI'}
               </Text>
             </Pressable>
             <Pressable
-              style={styles.controlButton}
+              style={[
+                styles.controlButton,
+                gameMode === 'learning' && styles.activeButton,
+              ]}
               onPress={handleLearningMode}>
               <Text style={styles.controlButtonText}>
-                Learning {gameMode === 'learning' && '✓'}
+                {gameMode === 'learning' ? 'Exit Learning' : 'Learning Mode'}
               </Text>
             </Pressable>
             <Pressable
@@ -509,20 +580,22 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    flex: 1,
     gap: 16,
     minHeight: 400,
+    alignItems: 'flex-start',
   },
   boardContainer: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 0,
+    flexBasis: 400,
     minWidth: 350,
     maxWidth: 600,
     justifyContent: 'center',
     alignItems: 'center',
   },
   analysisContainer: {
-    flex: 1,
-    flexShrink: 1,
+    flexGrow: 1,
+    flexShrink: 0,
     flexBasis: 400,
     minWidth: 300,
     maxWidth: 600,
@@ -550,6 +623,12 @@ const styles = StyleSheet.create({
   },
   toggleButton: {
     backgroundColor: '#9C27B0',
+  },
+  stopButton: {
+    backgroundColor: '#F44336',
+  },
+  activeButton: {
+    backgroundColor: '#4CAF50',
   },
   controlButtonText: {
     color: '#ffffff',

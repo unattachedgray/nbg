@@ -41,8 +41,8 @@
 
 ### 🔨 Currently Working On
 
-- Testing interactive suggestion feature
-- Verifying selection improvements
+- Testing game mode controls (AI vs AI stop, Learning mode toggle)
+- Verifying new game reset functionality
 
 ---
 
@@ -279,6 +279,22 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 9, 2025 - 11:00 PM
+- **Created CLAUDE.md** - Persistent instructions for future sessions with git credentials, STATUS.md protocol, architecture notes
+- **Fixed AI vs AI mode** - Added stop button (red when running), button now toggles start/stop
+- **Fixed New Game** - Now properly resets all state, stops AI vs AI if running, returns to player-vs-ai mode
+- **Improved Learning Mode** - Button now toggles on/off (green when active), shows "Exit Learning" when active
+- **Added visual button states** - Red for stop, green for active learning mode, clear labels showing current state
+- **Fixed invalid move errors on new game** - Proper state cleanup and engine reset with initial analysis
+
+### November 9, 2025 - 10:30 PM
+- Fixed hover highlighting - now properly highlights suggested move on board when hovering over suggestion
+- Reorganized analysis panel layout - moved "If You Play Best Move" to right column next to "Your Best Move"
+- Made continuation section interactive with hover effects (purple box with scale animation)
+- Added move sequence overlays on board - numbered circles show future moves when hovering over continuation
+- Improved horizontal resize behavior with better flex constraints (flexGrow, flexShrink, alignItems)
+- Cleaned up unused onSuggestedMoveHover callback - now using direct prop control from parent
 
 ### November 9, 2025 - 10:00 PM
 - Fixed selection bug: can't select pieces with no legal moves

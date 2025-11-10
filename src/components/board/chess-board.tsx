@@ -7,8 +7,8 @@ interface ChessBoardProps {
   variant?: GameVariant;
   onMove?: (from: Square, to: Square) => void;
   fen?: string;
-  suggestedMove?: string; // e.g., "e2e4"
-  onSuggestedMoveHover?: (hovering: boolean) => void;
+  suggestedMove?: string; // e.g., "e2e4" - highlights this move when hovering over suggestion
+  moveSequence?: string[]; // Array of moves to overlay (e.g., ["e2e4", "e7e5"])
 }
 
 const PIECE_SYMBOLS: Record<string, string> = {
@@ -31,13 +31,12 @@ export function ChessBoard({
   onMove,
   fen,
   suggestedMove,
-  onSuggestedMoveHover,
+  moveSequence,
 }: ChessBoardProps): React.JSX.Element {
   const [game] = useState(() => new Chess(fen));
   const [board, setBoard] = useState(game.board());
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [legalMoves, setLegalMoves] = useState<Square[]>([]);
-  const [showSuggestedHint, setShowSuggestedHint] = useState(false);
 
   useEffect(() => {
     if (fen) {
@@ -45,10 +44,6 @@ export function ChessBoard({
       setBoard(game.board());
     }
   }, [fen, game]);
-
-  useEffect(() => {
-    onSuggestedMoveHover?.(showSuggestedHint);
-  }, [showSuggestedHint, onSuggestedMoveHover]);
 
   const parseSuggestedMove = (): {from: Square; to: Square} | null => {
     if (!suggestedMove || suggestedMove.length < 4) {
@@ -105,8 +100,8 @@ export function ChessBoard({
     const ranks = '87654321';
     const square = `${files[col]}${ranks[row]}`;
 
-    // Suggested move highlighting (when hovering over suggestion)
-    if (showSuggestedHint) {
+    // Suggested move highlighting (when hovering over suggestion in panel)
+    if (suggestedMove) {
       const suggested = parseSuggestedMove();
       if (suggested) {
         if (square === suggested.from) {
@@ -157,6 +152,29 @@ export function ChessBoard({
         {row === 7 && (
           <Text style={styles.fileLabel}>{files[col]}</Text>
         )}
+        {/* Show move sequence overlays */}
+        {moveSequence && moveSequence.map((move, idx) => {
+          if (move.length >= 4) {
+            const from = move.substring(0, 2);
+            const to = move.substring(2, 4);
+            const isFrom = square === from;
+            const isTo = square === to;
+            if (isFrom || isTo) {
+              return (
+                <View
+                  key={`overlay-${idx}-${square}`}
+                  style={[
+                    styles.moveOverlay,
+                    isFrom && styles.moveOverlayFrom,
+                    isTo && styles.moveOverlayTo,
+                  ]}>
+                  <Text style={styles.moveNumber}>{idx + 1}</Text>
+                </View>
+              );
+            }
+          }
+          return null;
+        })}
       </Pressable>
     );
   };
@@ -265,5 +283,28 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#2196F3',
     marginTop: 8,
+  },
+  moveOverlay: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  moveOverlayFrom: {
+    backgroundColor: 'rgba(33, 150, 243, 0.8)', // Blue for source
+  },
+  moveOverlayTo: {
+    backgroundColor: 'rgba(76, 175, 80, 0.8)', // Green for destination
+  },
+  moveNumber: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#ffffff',
   },
 });
