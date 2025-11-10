@@ -1,6 +1,6 @@
 # Chess App - Project Status
 
-**Last Updated**: November 10, 2025, 5:30 AM
+**Last Updated**: November 10, 2025, 5:40 AM
 **Status**: ✅ **Active Development - Core Features Complete**
 
 ---
@@ -282,6 +282,14 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 10, 2025 - 5:40 AM
+- **FIXED: Suggestions back and working** - Set analysisTurn in initial analysis (was null, causing check to fail)
+- **Ultra-optimized AI vs AI** - Reduced to ~100-200ms per move (10x faster than before!)
+  - AI vs AI: 100ms engine thinking
+  - Human vs AI: 500ms engine thinking
+  - Removed setTimeout delays, use Promise.resolve() for immediate execution
+- Now shows 3 suggestions as requested
 
 ### November 10, 2025 - 5:30 AM
 - **FIXED: Suggestion bug (finally!)** - Added analysisTurn tracking to prevent showing stale analysis

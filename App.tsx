@@ -377,6 +377,7 @@ function App(): React.JSX.Element {
         const startingFen = gameRef.current.fen();
         const initialAnalysis = await engine.analyze(startingFen, 15);
         setAnalysis([initialAnalysis]);
+        setAnalysisTurn('w'); // Starting position is white's turn
         console.log('✅ Initial analysis complete');
       } catch (error) {
         console.error('Error getting initial analysis:', error);
@@ -445,8 +446,9 @@ function App(): React.JSX.Element {
     const currentPlayerType = nextTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
 
     if (currentPlayerType === 'ai' && !gameRef.current.isGameOver()) {
-      // Next player is AI, auto-trigger their move with minimal delay
-      setTimeout(() => getEngineMove(), 100);
+      // Next player is AI, trigger immediately (no setTimeout delay)
+      // Use setImmediate or Promise.resolve to avoid blocking UI
+      Promise.resolve().then(() => getEngineMove());
     }
   };
 
@@ -488,8 +490,9 @@ function App(): React.JSX.Element {
 
       // Tell engine about current position and get move
       const fen = gameRef.current.fen();
-      // Reduce thinking time from 2000ms to 500ms for faster AI vs AI
-      const engineMove = await engineRef.current.getBestMove(fen, 500);
+      // Ultra-fast thinking for AI vs AI: 100ms
+      const thinkTime = (player1Type === 'ai' && player2Type === 'ai') ? 100 : 500;
+      const engineMove = await engineRef.current.getBestMove(fen, thinkTime);
 
       // Make the engine's move on the board
       gameRef.current.move(engineMove as any);
@@ -571,14 +574,15 @@ function App(): React.JSX.Element {
         const startingFen = gameRef.current.fen();
         const initialAnalysis = await engineRef.current.analyze(startingFen, 15);
         setAnalysis([initialAnalysis]);
+        setAnalysisTurn('w'); // Starting position is white's turn
         console.log('✅ Initial analysis complete');
       } catch (error) {
         console.error('Error getting initial analysis:', error);
       }
 
-      // If player 2 (white/bottom) is AI, make first move
+      // If player 2 (white/bottom) is AI, make first move immediately
       if (player2Type === 'ai') {
-        setTimeout(() => getEngineMove(), 100);
+        Promise.resolve().then(() => getEngineMove());
       }
     }
   };
