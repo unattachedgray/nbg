@@ -1,0 +1,58 @@
+# React Native
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Metro
+.metro-health-check*
+
+# OSX
+.DS_Store
+
+# Android/IntelliJ
+build/
+.idea
+.gradle
+local.properties
+*.iml
+*.hprof
+.cxx/
+*.keystore
+!debug.keystore
+
+# iOS
+ios/Pods/
+Podfile.lock
+
+# Windows
+windows/x64/
+windows/ARM64/
+windows/AppPackages/
+windows/.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vcxproj.filters
+windows/**/Generated Files/
+
+# Build artifacts
+*.log
+*.lock
+
+# Credentials and secrets
+credentials.json
+.env
+.env.local
+
+# Temp files
+*.tmp
+*.temp
