@@ -20,6 +20,7 @@ import {ToastNotification, Toast} from './src/components/ui/toast-notification';
 import {GameVariant, GameMode, Square, EngineAnalysis} from './src/types/game';
 import {createXBoardEngine, XBoardEngine} from './src/services/xboard-engine';
 import {Chess} from 'chess.js';
+import {applyMoveToFEN} from './src/utils/janggi-fen';
 import {
   setupNNUE,
   SetupProgress,
@@ -518,12 +519,12 @@ function App(): React.JSX.Element {
 
     if (selectedVariant === 'janggi') {
       // For Janggi, we can't use chess.js (doesn't support Janggi)
-      // Just send the move notation to the engine and trust it's legal
-      // TODO: Implement proper FEN tracking for Janggi
-      // For now, we'll just keep the same FEN (board won't update visually)
+      // Use manual FEN manipulation
       console.log(`Janggi move: ${from}${to}`);
-      newFen = currentFen; // Keep current FEN for now
-      newTurn = currentTurn === 'w' ? 'b' : 'w'; // Toggle turn
+      newFen = applyMoveToFEN(currentFen, `${from}${to}`);
+      console.log('Updated Janggi FEN:', newFen);
+      setCurrentFen(newFen);
+      newTurn = currentTurn === 'w' ? 'b' : 'w';
       setCurrentTurn(newTurn);
       // Skip game status checks for Janggi (need engine to determine)
     } else {
@@ -574,10 +575,11 @@ function App(): React.JSX.Element {
     }
 
     // Check if next player is AI and should auto-move
-    const nextTurn = gameRef.current.turn();
+    const nextTurn = selectedVariant === 'janggi' ? newTurn : gameRef.current.turn();
+    const isGameOver = selectedVariant === 'janggi' ? false : gameRef.current.isGameOver(); // For Janggi, assume game continues
     const currentPlayerType = nextTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
 
-    if (currentPlayerType === 'ai' && !gameRef.current.isGameOver()) {
+    if (currentPlayerType === 'ai' && !isGameOver) {
       // Next player is AI, trigger immediately (no setTimeout delay)
       // Use setImmediate or Promise.resolve to avoid blocking UI
       Promise.resolve().then(() => getEngineMove());
@@ -623,20 +625,29 @@ function App(): React.JSX.Element {
       // DON'T clear analysis - keep previous suggestions visible
 
       // Tell engine about current position and get move
-      const fen = gameRef.current.fen();
+      const fen = selectedVariant === 'janggi' ? currentFen : gameRef.current.fen();
       // Lightning-fast thinking for AI vs AI in fast mode: 10ms, otherwise 50ms for AI vs AI, 500ms for human games
       const thinkTime = fastMode ? 10 : (player1Type === 'ai' && player2Type === 'ai') ? 50 : 500;
       const engineMove = await engineRef.current.getBestMove(fen, thinkTime);
 
-      // Make the engine's move on the board
-      gameRef.current.move(engineMove as any);
+      let newFen: string;
+      let newTurn: 'w' | 'b';
+
+      if (selectedVariant === 'janggi') {
+        // For Janggi, apply move manually to FEN
+        console.log(`Janggi AI move: ${engineMove}`);
+        newFen = applyMoveToFEN(currentFen, engineMove);
+        newTurn = currentTurn === 'w' ? 'b' : 'w';
+      } else {
+        // For Chess, use chess.js
+        gameRef.current.move(engineMove as any);
+        newTurn = gameRef.current.turn();
+        newFen = gameRef.current.fen();
+      }
 
       // Increment move counter and add timestamp
       setCurrentGameMoves(prev => prev + 1);
       setRecentMoveTimestamps(prev => [...prev, Date.now()]);
-
-      const newTurn = gameRef.current.turn();
-      const newFen = gameRef.current.fen();
 
       // Only update UI if not in fast mode
       if (!fastMode) {
@@ -648,28 +659,31 @@ function App(): React.JSX.Element {
       setCurrentTurn(newTurn);
 
       // Update game status (checkmate takes priority over check)
-      if (gameRef.current.isCheckmate()) {
-        setGameStatus('Checkmate!');
-        // If fast mode, update board to show final position
-        if (fastMode) {
-          setCurrentFen(newFen);
-          setFastMode(false);
-          setFastModeMovesPlayed(0);
+      // For Janggi, skip game status checks (need engine to determine)
+      if (selectedVariant === 'chess') {
+        if (gameRef.current.isCheckmate()) {
+          setGameStatus('Checkmate!');
+          // If fast mode, update board to show final position
+          if (fastMode) {
+            setCurrentFen(newFen);
+            setFastMode(false);
+            setFastModeMovesPlayed(0);
+          }
+          await recordGameResult();
+        } else if (gameRef.current.isStalemate()) {
+          setGameStatus('Stalemate!');
+          // If fast mode, update board to show final position
+          if (fastMode) {
+            setCurrentFen(newFen);
+            setFastMode(false);
+            setFastModeMovesPlayed(0);
+          }
+          await recordGameResult();
+        } else if (gameRef.current.isCheck()) {
+          setGameStatus('Check!');
+        } else {
+          setGameStatus('');
         }
-        await recordGameResult();
-      } else if (gameRef.current.isStalemate()) {
-        setGameStatus('Stalemate!');
-        // If fast mode, update board to show final position
-        if (fastMode) {
-          setCurrentFen(newFen);
-          setFastMode(false);
-          setFastModeMovesPlayed(0);
-        }
-        await recordGameResult();
-      } else if (gameRef.current.isCheck()) {
-        setGameStatus('Check!');
-      } else {
-        setGameStatus('');
       }
 
       setIsEngineThinking(false);
