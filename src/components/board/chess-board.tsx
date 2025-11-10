@@ -21,15 +21,27 @@ export function ChessBoard({
   suggestedMove,
   moveSequence,
 }: ChessBoardProps): React.JSX.Element {
-  const [game] = useState(() => new Chess(fen));
+  const [game] = useState(() => {
+    try {
+      return new Chess(fen);
+    } catch (error) {
+      console.warn('ChessBoard: Invalid initial FEN, using default');
+      return new Chess();
+    }
+  });
   const [board, setBoard] = useState(game.board());
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [legalMoves, setLegalMoves] = useState<Square[]>([]);
 
   useEffect(() => {
     if (fen) {
-      game.load(fen);
-      setBoard(game.board());
+      try {
+        game.load(fen);
+        setBoard(game.board());
+      } catch (error) {
+        console.warn('ChessBoard: Invalid FEN, ignoring:', fen);
+        // Ignore invalid FEN (e.g., Janggi FEN passed during variant switch)
+      }
     }
   }, [fen, game]);
 

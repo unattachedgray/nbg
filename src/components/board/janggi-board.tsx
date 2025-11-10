@@ -75,9 +75,16 @@ export function JanggiBoard({
             row.push(null);
           }
         } else {
-          // Piece
+          // Piece - map FEN notation to our internal notation
           const color = char === char.toUpperCase() ? 'r' : 'b';
-          const piece = char.toLowerCase();
+          let piece = char.toLowerCase();
+
+          // Janggi FEN uses chess-like notation, map to Janggi pieces:
+          // n (knight) -> h (horse)
+          // b (bishop) -> e (elephant)
+          if (piece === 'n') piece = 'h';
+          if (piece === 'b') piece = 'e';
+
           row.push(color + piece);
         }
       }
