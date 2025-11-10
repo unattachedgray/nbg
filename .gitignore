@@ -53,13 +53,9 @@ credentials.json
 .env
 .env.local
 
-# Large engine files (download via setup script)
+# Large NNUE files (download via setup script)
+# Only exclude easily downloadable/updatable files
 *.nnue
-*.exe
-!windows/chessapp/chessapp.exe
-src/assets/engines/
-windows/chessapp/Assets/engines/
-Fairy-Stockfish/
 
 # Temp files
 *.tmp

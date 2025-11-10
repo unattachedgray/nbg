@@ -3,12 +3,8 @@
     "filename": "nn-46832cfbead3.nnue",
     "url": "https://tests.stockfishchess.org/api/nn/nn-46832cfbead3.nnue",
     "description": "Current best NNUE network for standard chess (+300 Elo)",
-    "source": "https://fairy-stockfish.github.io/nnue/"
+    "source": "https://fairy-stockfish.github.io/nnue/",
+    "size": "46 MB"
   },
-  "engine": {
-    "filename": "fairy-stockfish-largeboard_x86-64-bmi2.exe",
-    "url": "https://github.com/fairy-stockfish/Fairy-Stockfish/releases/download/fairy_sf_14/fairy-stockfish-largeboard_x86-64-bmi2.exe",
-    "version": "fairy_sf_14",
-    "variants": ["chess", "janggi", "makruk", "shogi", "xiangqi"]
-  }
+  "note": "Engine binaries (fairy-stockfish, fairy-stockfish-largeboard_x86-64-bmi2.exe) are included in the repository as they were custom compiled"
 }

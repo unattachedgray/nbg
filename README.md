@@ -2,7 +2,7 @@
 
 A feature-rich chess application built with React Native, supporting multiple chess variants (Chess, Janggi, and more), with advanced features like engine analysis, learning mode, and AI vs AI gameplay.
 
-⚠️ **Note**: Large files (NNUE networks, engine binaries) are excluded from git. Run the setup script after cloning!
+⚠️ **Note**: NNUE neural network file (~46MB) is excluded from git. Run the setup script after cloning!
 
 ## Features
 
@@ -76,7 +76,7 @@ ChessApp/
    npm install
    ```
 
-3. **Download Engine Files** (REQUIRED - Large files not in git):
+3. **Download NNUE File** (REQUIRED - Large file not in git):
 
    Run the automated setup script:
 
@@ -86,15 +86,15 @@ ChessApp/
    ```
 
    This will automatically download:
-   - Fairy-Stockfish engine binary (3.6 MB)
    - NNUE neural network file (46 MB)
+
+   **Note**: Engine binaries are included in the repository (custom compiled).
 
    **Configuration** is in `engine.config.json` if you need to update URLs or filenames.
 
    **Manual Download** (if script fails):
-   - Engine: https://github.com/fairy-stockfish/Fairy-Stockfish/releases/download/fairy_sf_14/fairy-stockfish-largeboard_x86-64-bmi2.exe
    - NNUE: https://tests.stockfishchess.org/api/nn/nn-46832cfbead3.nnue
-   - Place both in: `windows/chessapp/Assets/engines/`
+   - Place in: `windows/chessapp/Assets/engines/` and `src/assets/engines/`
 
 4. **✅ Fairy-Stockfish Engine Details**:
 
