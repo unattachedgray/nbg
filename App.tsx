@@ -16,7 +16,13 @@ import {TermText} from './src/components/ui/tooltip';
 import {GameVariant, GameMode, Square, EngineAnalysis} from './src/types/game';
 import {createXBoardEngine, XBoardEngine} from './src/services/xboard-engine';
 import {Chess} from 'chess.js';
-import {setupNNUE, SetupProgress} from './src/utils/setup-nnue';
+import {
+  setupNNUE,
+  SetupProgress,
+  NNUEFileInfo,
+  downloadNNUEFromURL,
+  getManualDownloadInstructions,
+} from './src/utils/setup-nnue';
 
 function App(): React.JSX.Element {
   const [selectedVariant, setSelectedVariant] =
@@ -50,21 +56,31 @@ function App(): React.JSX.Element {
     try {
       // Step 1: Setup NNUE file (download if missing)
       console.log('Setting up NNUE file...');
-      const nnueReady = await setupNNUE(progress => {
+      const result = await setupNNUE(progress => {
         setSetupProgress(progress);
         console.log(`NNUE Setup: ${progress.message}`);
       });
 
-      if (!nnueReady) {
+      if (result.success) {
+        // NNUE file ready, proceed to initialize engine
+        await initializeEngine();
+      } else if (result.needsSelection) {
+        // Need user to select a file or provide URL
+        if (result.files && result.files.length > 0) {
+          // Show file selection dialog
+          showFileSelectionDialog(result.files);
+        } else {
+          // Show manual URL input dialog
+          showManualURLDialog();
+        }
+        return; // Don't initialize engine yet
+      } else {
         Alert.alert(
           'Setup Error',
           'Failed to download NNUE file. The app may not work correctly. Please check your internet connection and restart the app.',
         );
         return;
       }
-
-      // Step 2: Initialize engine
-      await initializeEngine();
     } catch (error) {
       console.error('Failed to initialize app:', error);
       Alert.alert(
@@ -75,6 +91,75 @@ function App(): React.JSX.Element {
       // Clear setup progress after a short delay
       setTimeout(() => setSetupProgress(null), 2000);
     }
+  };
+
+  const showFileSelectionDialog = (files: NNUEFileInfo[]) => {
+    const fileOptions = files.map(
+      (f, i) => `${i + 1}. ${f.description || f.filename}`,
+    );
+
+    Alert.alert(
+      'Select NNUE File',
+      `Found ${files.length} NNUE files. Please select one:\n\n${fileOptions.join('\n')}\n\nOr tap "Manual Input" to provide a custom URL.`,
+      [
+        ...files.map((file, index) => ({
+          text: `${index + 1}`,
+          onPress: async () => {
+            const result = await setupNNUE(
+              progress => setSetupProgress(progress),
+              file,
+            );
+            if (result.success) {
+              await initializeEngine();
+            }
+          },
+        })),
+        {
+          text: 'Manual Input',
+          onPress: () => showManualURLDialog(),
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+    );
+  };
+
+  const showManualURLDialog = () => {
+    const instructions = getManualDownloadInstructions();
+
+    Alert.prompt(
+      'Manual NNUE Download',
+      instructions,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Download',
+          onPress: async url => {
+            if (url) {
+              const success = await downloadNNUEFromURL(url, progress =>
+                setSetupProgress(progress),
+              );
+              if (success) {
+                await initializeEngine();
+              } else {
+                Alert.alert(
+                  'Download Failed',
+                  'Failed to download NNUE file from the provided URL. Please check the URL and try again.',
+                );
+              }
+            }
+          },
+        },
+      ],
+      'plain-text',
+      '',
+      'url',
+    );
   };
 
   const initializeEngine = async () => {
@@ -200,9 +285,16 @@ function App(): React.JSX.Element {
 
           {/* Engine Status - Inline */}
           <View style={styles.engineStatus}>
-            {setupProgress && setupProgress.stage !== 'complete' ? (
+            {setupProgress &&
+            setupProgress.stage !== 'complete' &&
+            setupProgress.stage !== 'manual_input' ? (
               <>
-                <ActivityIndicator size="small" color="#2196F3" />
+                <ActivityIndicator
+                  size="small"
+                  color={
+                    setupProgress.stage === 'searching' ? '#9C27B0' : '#2196F3'
+                  }
+                />
                 <Text style={styles.engineStatusText}>
                   {setupProgress.message}
                   {setupProgress.progress !== undefined &&
