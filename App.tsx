@@ -423,14 +423,47 @@ function App(): React.JSX.Element {
       try {
         setIsAnalyzing(true);
         const moveAnalysis = await engineRef.current.analyze(newFen, 15);
-        console.log('=== ANALYSIS DEBUG ===');
+        console.log('=== ANALYSIS DEBUG (handleMove) ===');
         console.log('Position FEN:', newFen);
-        console.log('Turn after move (newTurn):', newTurn);
-        console.log('Suggested move:', moveAnalysis.pv[0]);
+        console.log('Turn in FEN (whose turn to move):', newTurn);
+        console.log('Suggested move from engine:', moveAnalysis.pv[0]);
         console.log('player1Type (black/top):', player1Type);
         console.log('player2Type (white/bottom):', player2Type);
-        console.log('Current player type:', newTurn === 'w' ? player2Type : player1Type);
-        console.log('Should show suggestions:', newTurn === 'w' ? player2Type === 'human' : player1Type === 'human');
+        console.log('Current player type (who should move):', newTurn === 'w' ? player2Type : player1Type);
+        console.log('Is current player human?:', newTurn === 'w' ? player2Type === 'human' : player1Type === 'human');
+        console.log('Setting analysisTurn to:', newTurn);
+        console.log('Setting currentTurn state to:', newTurn);
+
+        // VALIDATION: Check if suggested move is valid for current position
+        try {
+          const testGame = new Chess(newFen);
+          const fromSquare = moveAnalysis.pv[0].substring(0, 2) as any;
+          const toSquare = moveAnalysis.pv[0].substring(2, 4) as any;
+
+          // Check what piece is on the from square
+          const piece = testGame.get(fromSquare);
+          if (piece) {
+            console.log('Piece being moved:', piece.type, 'color:', piece.color);
+            console.log('Turn to move:', testGame.turn());
+
+            if (piece.color !== testGame.turn()) {
+              console.error('❌ CRITICAL ERROR: Trying to move', piece.color === 'w' ? 'WHITE' : 'BLACK', 'piece when it\'s', testGame.turn() === 'w' ? 'WHITE' : 'BLACK', '\'s turn!');
+            }
+          }
+
+          const testMove = testGame.move({
+            from: fromSquare,
+            to: toSquare,
+            promotion: 'q'
+          });
+          if (testMove) {
+            console.log('✅ Suggested move IS VALID for', newTurn === 'w' ? 'WHITE' : 'BLACK', 'to move');
+          } else {
+            console.error('❌ ERROR: Suggested move INVALID for current position!');
+          }
+        } catch (err) {
+          console.error('❌ ERROR: Could not validate suggested move:', err);
+        }
         console.log('====================');
         setAnalysis([moveAnalysis]);
         setAnalysisTurn(newTurn); // Mark which turn this analysis is for

@@ -1,6 +1,6 @@
 # Chess App - Project Status
 
-**Last Updated**: November 10, 2025, 5:50 AM
+**Last Updated**: November 10, 2025, 6:00 AM
 **Status**: ✅ **Active Development - Core Features Complete**
 
 ---
@@ -282,6 +282,14 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 10, 2025 - 6:00 AM
+- **Added comprehensive test logging** to catch black move suggestions
+  - Validates suggested move is legal for current position
+  - Checks piece color matches turn to move
+  - Logs FEN, turn, player types, analysisTurn vs currentTurn
+  - Logs suggestion display decision with all conditions
+  - Will catch exact moment/reason wrong color moves are shown
 
 ### November 10, 2025 - 5:50 AM
 - **Compact suggestions** - Buttons now only show move notation (e.g., "⭐ e2e4") without extra text

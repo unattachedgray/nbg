@@ -122,6 +122,22 @@ export function AnalysisPanel({
     mainLine.pv.length > 0 &&
     analysisTurn === currentTurn; // Only show if analysis matches current turn!
 
+  // DEBUG: Log suggestion display decision
+  if (mainLine && mainLine.pv.length > 0) {
+    console.log('=== SUGGESTION DISPLAY CHECK ===');
+    console.log('currentTurn:', currentTurn);
+    console.log('analysisTurn:', analysisTurn);
+    console.log('player1Type (black):', player1Type);
+    console.log('player2Type (white):', player2Type);
+    console.log('currentPlayerType:', currentPlayerType);
+    console.log('isHumanTurn:', isHumanTurn);
+    console.log('isAIvsAI:', isAIvsAI);
+    console.log('analysisTurn === currentTurn?:', analysisTurn === currentTurn);
+    console.log('shouldShowSuggestions:', shouldShowSuggestions);
+    console.log('First suggested move:', mainLine.pv[0]);
+    console.log('================================');
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Suggestions</Text>
