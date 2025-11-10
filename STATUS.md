@@ -286,6 +286,22 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 12:00 PM
+- **Moved Engine Analysis to Stats Panel**
+  - Evaluation score (green for positive, red for negative) now in stats
+  - Evaluation text ("White is slightly better", etc.) displayed in stats
+  - Depth and nodes information moved to stats panel
+  - Analysis panel now focuses only on move suggestions
+- **Optimized Stats Display**
+  - Made moves/min and moves boxes more compact (smaller font sizes)
+  - New calculation: moves/min = (moves in last 6 seconds) × 10
+  - More responsive to current game speed
+  - Real-time updates based on recent activity
+- **Enhanced Game Recording**
+  - Added detailed logging for game results
+  - Tracks checkmate, stalemate, draws, and game-over states
+  - Better debugging for stats persistence
+
 ### November 10, 2025 - 11:30 AM
 - **Created Comprehensive Statistics Panel**
   - New dedicated stats section separated from controls

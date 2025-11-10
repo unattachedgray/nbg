@@ -58,8 +58,8 @@ function App(): React.JSX.Element {
     totalGames: 0,
   });
   const [currentGameMoves, setCurrentGameMoves] = useState(0); // Track moves in current game
-  const [gameStartTime, setGameStartTime] = useState<number>(Date.now()); // Track game start time
-  const [movesPerMinute, setMovesPerMinute] = useState(0); // Current game moves per minute
+  const [recentMoveTimestamps, setRecentMoveTimestamps] = useState<number[]>([]); // Track move timestamps for last 6 seconds
+  const [movesPerMinute, setMovesPerMinute] = useState(0); // Current game moves per minute (last 6 seconds * 10)
   const [sectionPositions, setSectionPositions] = useState({
     board: {x: 0, y: 0}, // Board on the left
     analysis: {x: 440, y: 0}, // Suggestions to the right of board
@@ -185,7 +185,10 @@ function App(): React.JSX.Element {
   };
 
   const recordGameResult = async () => {
-    if (!gameRef.current.isGameOver()) return;
+    if (!gameRef.current.isGameOver()) {
+      console.log('Game not over, not recording result');
+      return;
+    }
 
     const newStats = {...stats};
     newStats.totalGames += 1;
@@ -194,14 +197,21 @@ function App(): React.JSX.Element {
       // Winner is the opposite of current turn (current turn is the loser)
       if (currentTurn === 'w') {
         newStats.blackWins += 1;
+        console.log('Recording Black win');
       } else {
         newStats.whiteWins += 1;
+        console.log('Recording White win');
       }
     } else {
       // Draw (stalemate, insufficient material, etc.)
       newStats.draws += 1;
+      console.log('Recording Draw - isStalemate:', gameRef.current.isStalemate(),
+                  'isDraw:', gameRef.current.isDraw(),
+                  'isInsufficientMaterial:', gameRef.current.isInsufficientMaterial(),
+                  'isThreefoldRepetition:', gameRef.current.isThreefoldRepetition());
     }
 
+    console.log('New stats:', newStats);
     setStats(newStats);
     // UI state will be saved automatically via the useEffect hook
   };
@@ -238,17 +248,24 @@ function App(): React.JSX.Element {
     }
   }, [stats]);
 
-  // Calculate moves per minute every second
+  // Calculate moves per minute based on last 6 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      const elapsedMinutes = (Date.now() - gameStartTime) / 60000;
-      if (elapsedMinutes > 0 && currentGameMoves > 0) {
-        setMovesPerMinute(Math.round(currentGameMoves / elapsedMinutes));
-      }
+      const now = Date.now();
+      const sixSecondsAgo = now - 6000;
+
+      // Filter timestamps to only include moves in last 6 seconds
+      const recentMoves = recentMoveTimestamps.filter(timestamp => timestamp > sixSecondsAgo);
+
+      // Update the filtered list
+      setRecentMoveTimestamps(recentMoves);
+
+      // Calculate moves per minute: (moves in 6 seconds) * 10
+      setMovesPerMinute(recentMoves.length * 10);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [gameStartTime, currentGameMoves]);
+  }, [recentMoveTimestamps]);
 
   // Initialize NNUE and engine on mount
   useEffect(() => {
@@ -421,8 +438,9 @@ function App(): React.JSX.Element {
     // Apply the move to gameRef
     gameRef.current.move({from, to, promotion: 'q'});
 
-    // Increment move counter
+    // Increment move counter and add timestamp
     setCurrentGameMoves(prev => prev + 1);
+    setRecentMoveTimestamps(prev => [...prev, Date.now()]);
 
     // Update FEN and turn
     const newFen = gameRef.current.fen();
@@ -524,8 +542,9 @@ function App(): React.JSX.Element {
       // Make the engine's move on the board
       gameRef.current.move(engineMove as any);
 
-      // Increment move counter
+      // Increment move counter and add timestamp
       setCurrentGameMoves(prev => prev + 1);
+      setRecentMoveTimestamps(prev => [...prev, Date.now()]);
 
       const newTurn = gameRef.current.turn();
       const newFen = gameRef.current.fen();
@@ -610,7 +629,7 @@ function App(): React.JSX.Element {
 
     // Reset game timing stats
     setCurrentGameMoves(0);
-    setGameStartTime(Date.now());
+    setRecentMoveTimestamps([]);
     setMovesPerMinute(0);
 
     // Reset game state
@@ -861,15 +880,78 @@ function App(): React.JSX.Element {
             <View style={styles.statsContainer}>
               <Text style={styles.controlsSectionTitle}>Statistics</Text>
 
-              {/* Live Game Stats */}
-              <View style={styles.liveStatsRow}>
-                <View style={styles.liveStatBox}>
-                  <Text style={styles.liveStatValue}>{movesPerMinute}</Text>
-                  <Text style={styles.liveStatLabel}>Moves/Min</Text>
+              {/* Engine Analysis Stats */}
+              {analysis && analysis.length > 0 && (
+                <View style={styles.engineStatsSection}>
+                  <View style={styles.evaluationRow}>
+                    <View style={styles.scoreBox}>
+                      <Text
+                        style={[
+                          styles.scoreValue,
+                          analysis[0].score > 0
+                            ? styles.positiveScore
+                            : styles.negativeScore,
+                        ]}>
+                        {Math.abs(analysis[0].score) > 9000
+                          ? `M${Math.abs(
+                              analysis[0].score > 0
+                                ? Math.ceil((10000 - analysis[0].score) / 2)
+                                : Math.ceil((-10000 - analysis[0].score) / 2),
+                            )}`
+                          : (analysis[0].score / 100).toFixed(2)}
+                      </Text>
+                      <Text style={styles.scoreLabel}>Evaluation</Text>
+                    </View>
+                    <View style={styles.depthNodesBox}>
+                      <View style={styles.miniStatRow}>
+                        <Text style={styles.miniStatLabel}>Depth:</Text>
+                        <Text style={styles.miniStatValue}>{analysis[0].depth}</Text>
+                      </View>
+                      <View style={styles.miniStatRow}>
+                        <Text style={styles.miniStatLabel}>Nodes:</Text>
+                        <Text style={styles.miniStatValue}>
+                          {(analysis[0].nodes / 1000).toFixed(0)}k
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  <Text style={styles.evaluationText}>
+                    {(() => {
+                      const score = analysis[0].score;
+                      const absScore = Math.abs(score);
+                      if (absScore > 9000) {
+                        return score > 0 ? 'White is winning' : 'Black is winning';
+                      }
+                      if (absScore > 300) {
+                        return score > 0
+                          ? 'White has a winning advantage'
+                          : 'Black has a winning advantage';
+                      }
+                      if (absScore > 150) {
+                        return score > 0
+                          ? 'White has a significant advantage'
+                          : 'Black has a significant advantage';
+                      }
+                      if (absScore > 50) {
+                        return score > 0
+                          ? 'White is slightly better'
+                          : 'Black is slightly better';
+                      }
+                      return 'The position is equal';
+                    })()}
+                  </Text>
                 </View>
-                <View style={styles.liveStatBox}>
-                  <Text style={styles.liveStatValue}>{currentGameMoves}</Text>
-                  <Text style={styles.liveStatLabel}>Moves</Text>
+              )}
+
+              {/* Live Game Stats - Compact */}
+              <View style={styles.liveStatsRow}>
+                <View style={styles.compactStatBox}>
+                  <Text style={styles.compactStatValue}>{movesPerMinute}</Text>
+                  <Text style={styles.compactStatLabel}>Moves/Min</Text>
+                </View>
+                <View style={styles.compactStatBox}>
+                  <Text style={styles.compactStatValue}>{currentGameMoves}</Text>
+                  <Text style={styles.compactStatLabel}>Moves</Text>
                 </View>
               </View>
 
@@ -1170,28 +1252,89 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  liveStatsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  liveStatBox: {
-    flex: 1,
-    backgroundColor: '#E3F2FD',
+  engineStatsSection: {
+    backgroundColor: '#F3E5F5',
     borderRadius: 8,
     padding: 12,
-    alignItems: 'center',
+    marginBottom: 12,
     borderWidth: 2,
-    borderColor: '#2196F3',
+    borderColor: '#9C27B0',
   },
-  liveStatValue: {
-    fontSize: 24,
+  evaluationRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 8,
+  },
+  scoreBox: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 6,
+    padding: 10,
+    alignItems: 'center',
+  },
+  scoreValue: {
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#1976D2',
     marginBottom: 4,
   },
-  liveStatLabel: {
+  positiveScore: {
+    color: '#4CAF50',
+  },
+  negativeScore: {
+    color: '#F44336',
+  },
+  scoreLabel: {
+    fontSize: 10,
+    color: '#666666',
+    fontWeight: '600',
+  },
+  depthNodesBox: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 6,
+    padding: 10,
+    justifyContent: 'center',
+  },
+  miniStatRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  miniStatLabel: {
     fontSize: 11,
+    color: '#666666',
+  },
+  miniStatValue: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  evaluationText: {
+    fontSize: 12,
+    color: '#6A1B9A',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  liveStatsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  compactStatBox: {
+    flex: 1,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 6,
+    padding: 8,
+    alignItems: 'center',
+  },
+  compactStatValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1976D2',
+    marginBottom: 2,
+  },
+  compactStatLabel: {
+    fontSize: 9,
     color: '#1565C0',
     fontWeight: '600',
   },
