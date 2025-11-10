@@ -499,8 +499,8 @@ function App(): React.JSX.Element {
 
       // Tell engine about current position and get move
       const fen = gameRef.current.fen();
-      // Ultra-fast thinking for AI vs AI: 100ms
-      const thinkTime = (player1Type === 'ai' && player2Type === 'ai') ? 100 : 500;
+      // Ultra-fast thinking for AI vs AI: 50ms (absolute minimum for reasonable moves)
+      const thinkTime = (player1Type === 'ai' && player2Type === 'ai') ? 50 : 500;
       const engineMove = await engineRef.current.getBestMove(fen, thinkTime);
 
       // Make the engine's move on the board
@@ -646,16 +646,19 @@ function App(): React.JSX.Element {
 
   const handleLearningMode = () => {
     if (gameMode === 'learning') {
-      // Exit learning mode
+      // Exit learning mode - return to player vs AI
       setGameMode('player-vs-ai');
-      console.log('Exiting learning mode');
+      setPlayer1Type('ai');  // Black = AI
+      setPlayer2Type('human');  // White = Human
     } else {
-      // Enter learning mode
+      // Enter learning mode - human plays both sides with continuous hints
       setGameMode('learning');
-      console.log('Starting learning mode');
+      setPlayer1Type('human');  // Black = Human
+      setPlayer2Type('human');  // White = Human
 
-      // Learning mode shows analysis but doesn't auto-play
-      // Analysis is always shown after each move in handleMove()
+      // In learning mode, suggestions are always shown for both sides
+      // to help the user learn best moves for both white and black
+      showToast('Learning Mode: Play both sides with AI hints!', 'info');
     }
   };
 
