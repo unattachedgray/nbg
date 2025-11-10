@@ -286,6 +286,15 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 9:00 AM
+- **FIXED: Persistent black move suggestion bug** (Definitive fix with request ID system!)
+  - Implemented `analysisRequestIdRef` to track which analysis request is current
+  - Every move and new game increments the request ID
+  - Analysis is only applied if request ID matches current ID
+  - Issue: Complex race conditions in multiple scenarios (game mode switches, rapid moves, etc.)
+  - Solution: Request ID system ensures ONLY the most recent analysis is ever used
+  - Previous fixes (FEN comparison, position guard) were partial - this is comprehensive
+
 ### November 10, 2025 - 8:45 AM
 - **FIXED: Suggestions disappearing** (Second race condition!)
   - Added guard in `handleMove()` to only set analysis if position hasn't changed
