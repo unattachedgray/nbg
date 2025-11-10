@@ -267,7 +267,7 @@ function App(): React.JSX.Element {
     return () => clearInterval(interval);
   }, [recentMoveTimestamps]);
 
-  // Initialize NNUE and engine on mount
+  // Initialize NNUE and engine on mount (only once)
   useEffect(() => {
     initializeApp();
 
@@ -277,7 +277,14 @@ function App(): React.JSX.Element {
         engineRef.current.quit();
       }
     };
-  }, [selectedVariant]);
+  }, []); // Empty dependency array - only run once
+
+  // Handle variant changes without reinitializing engine
+  useEffect(() => {
+    if (engineRef.current && engineReady) {
+      switchVariant(selectedVariant);
+    }
+  }, [selectedVariant, engineReady]);
 
   const initializeApp = async () => {
     try {
@@ -425,6 +432,71 @@ function App(): React.JSX.Element {
         'Failed to initialize chess engine. Make sure you are running on Windows desktop.',
         'error',
       );
+    }
+  };
+
+  const switchVariant = async (variant: GameVariant) => {
+    if (!engineRef.current || !engineReady) {
+      console.log('Engine not ready, cannot switch variant');
+      return;
+    }
+
+    try {
+      console.log(`Switching to variant: ${variant}`);
+
+      // Tell engine to switch variant
+      await engineRef.current.setVariant(variant);
+
+      // Reset game state based on variant
+      if (variant === 'chess') {
+        // Standard chess starting position
+        gameRef.current.reset();
+        const startingFen = gameRef.current.fen();
+        setCurrentFen(startingFen);
+
+        // Get initial analysis for chess
+        try {
+          const initialAnalysis = await engineRef.current.analyze(startingFen, 15);
+          setAnalysis([initialAnalysis]);
+          setAnalysisTurn('w');
+          setAnalysisFen(startingFen);
+        } catch (error) {
+          console.error('Error getting initial analysis:', error);
+        }
+      } else if (variant === 'janggi') {
+        // Janggi starting position (9x10 board)
+        const janggiStartingFen =
+          'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1';
+        setCurrentFen(janggiStartingFen);
+
+        // Get initial analysis for Janggi
+        try {
+          const initialAnalysis = await engineRef.current.analyze(
+            janggiStartingFen,
+            15,
+          );
+          setAnalysis([initialAnalysis]);
+          setAnalysisTurn('w');
+          setAnalysisFen(janggiStartingFen);
+        } catch (error) {
+          console.error('Error getting initial analysis:', error);
+        }
+      }
+
+      // Reset game counters
+      setCurrentGameMoves(0);
+      setRecentMoveTimestamps([]);
+      setMovesPerMinute(0);
+      setCurrentTurn('w');
+      setGameStatus('');
+      setMoveSequence([]);
+      setHoveredMove(null);
+
+      showToast(`Switched to ${variant}`, 'success');
+      console.log(`✅ Successfully switched to ${variant}`);
+    } catch (error) {
+      console.error(`Error switching variant:`, error);
+      showToast(`Failed to switch to ${variant}`, 'error');
     }
   };
 

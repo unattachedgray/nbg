@@ -111,6 +111,26 @@ export class XBoardEngine {
   }
 
   /**
+   * Change to a different game variant
+   */
+  async setVariant(variant: GameVariant): Promise<void> {
+    console.log(`Changing variant from ${this.variant} to ${variant}`);
+    this.variant = variant;
+
+    // Send variant command to engine
+    if (variant !== 'chess') {
+      await this.sendCommand(`variant ${variant}`);
+    } else {
+      await this.sendCommand('variant normal');
+    }
+
+    // Load variant-specific NNUE file
+    await this.loadVariantNNUE();
+
+    console.log(`✅ Variant changed to ${variant}`);
+  }
+
+  /**
    * Load variant-specific NNUE file
    */
   private async loadVariantNNUE(): Promise<void> {

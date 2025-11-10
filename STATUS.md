@@ -286,6 +286,21 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 2:30 PM
+- **Fixed Engine Reinitialization Bug on Variant Switch**
+  - Problem: Switching from chess to janggi caused "Failed to copy engine to temp folder" error
+  - Root cause: useEffect had `selectedVariant` in dependency array, causing full engine reinitialization
+  - Solution: Split into two useEffects:
+    1. Engine initialization only runs once on mount (empty dependency array)
+    2. Separate useEffect calls `switchVariant()` when selectedVariant changes
+  - Added `setVariant()` method to XBoardEngine class to handle variant switching without reinitialization
+  - Implemented `switchVariant()` function in App.tsx to:
+    - Send variant command to existing engine
+    - Load correct NNUE file (janggi-9991472750de.nnue for Janggi)
+    - Reset game state with appropriate starting FEN
+    - Reset move counters and analysis
+  - Now variant switching works seamlessly without recreating engine process
+
 ### November 10, 2025 - 1:00 PM
 - **Janggi Implementation - Board Component Created**
   - Created janggi-board.tsx with authentic Korean character pieces
