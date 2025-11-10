@@ -286,18 +286,28 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
-### November 10, 2025 - 12:30 PM
-- **Started Janggi (Korean Chess) Implementation**
-  - Copied janggi-9991472750de.nnue to Windows assets folder
-  - Added loadVariantNNUE() method to load variant-specific NNUE files
-  - Engine now properly loads Janggi NNUE when variant is set to 'janggi'
-  - **Note**: Full Janggi support requires:
-    - Janggi move library (chess.js only supports chess)
-    - 9x10 board rendering (current board is 8x8)
-    - Janggi piece graphics (Korean characters/symbols)
-    - Palace/fortress markings on board
-    - River marking between ranks 4-5
-  - **Current Status**: Engine configured, UI needs Janggi-specific components
+### November 10, 2025 - 1:00 PM
+- **Janggi Implementation - Board Component Created**
+  - Created janggi-board.tsx with authentic Korean character pieces
+  - Implemented 9x10 board with proper coordinate system (a-i files, 0-9 ranks)
+  - Added palace markings and river visualization
+  - Traditional color scheme: Red (漢 Han) vs Blue (楚 Cho)
+  - Authentic piece symbols:
+    - 漢/楚 (General), 士 (Advisor), 車 (Chariot), 馬 (Horse), 象 (Elephant), 包 (Cannon), 卒/兵 (Soldier)
+  - FEN parsing for Janggi position format
+  - Click-based move input with legal move highlighting
+
+- **Integration Needed**:
+  - Update App.tsx to conditionally render JanggiBoard vs ChessBoard
+  - Modify handleMove to work with Janggi notation (a0-i9 range)
+  - Remove chess.js dependency for Janggi (use engine-only validation)
+  - Update initial FEN for Janggi starting position
+  - Test with Fairy-Stockfish Janggi variant
+
+- **Engine Already Configured**:
+  - NNUE file: janggi-9991472750de.nnue loaded
+  - Variant command sent to engine: `variant janggi`
+  - Move validation handled by engine (not client-side)
 
 ### November 10, 2025 - 12:15 PM
 - **Simplified Suggestions Panel**
