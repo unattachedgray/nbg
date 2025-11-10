@@ -141,6 +141,7 @@ export function AnalysisPanel({
                 <Text style={styles.suggestionLabel}>Analyzing...</Text>
               </View>
             )}
+          </View>
         </View>
       </View>
     </View>
