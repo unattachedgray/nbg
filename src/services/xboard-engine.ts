@@ -132,23 +132,24 @@ export class XBoardEngine {
 
   /**
    * Load variant-specific NNUE file
+   *
+   * NOTE: XBoard protocol doesn't support runtime NNUE loading via commands.
+   * Fairy-Stockfish should automatically load the correct NNUE file for each variant
+   * from the engines directory. If not, NNUE must be specified via command-line args.
    */
   private async loadVariantNNUE(): Promise<void> {
+    // XBoard doesn't support setoption command (that's UCI)
+    // Fairy-Stockfish should auto-load NNUE files for variants
+    // Just log what we expect the engine to use
     const nnueFiles: Record<GameVariant, string> = {
       chess: 'nn-46832cfbead3.nnue',
       janggi: 'janggi-9991472750de.nnue',
     };
 
     const nnueFile = nnueFiles[this.variant];
-    if (!nnueFile) {
-      console.log(`No NNUE file configured for variant: ${this.variant}`);
-      return;
-    }
-
-    if (Platform.OS === 'windows') {
-      const nnuePath = `C:\\Users\\unatt\\OneDrive\\dev\\nbg\\ChessApp\\windows\\chessapp\\Assets\\engines\\${nnueFile}`;
-      console.log(`Loading NNUE file: ${nnuePath}`);
-      await this.sendCommand(`setoption name EvalFile value ${nnuePath}`);
+    if (nnueFile) {
+      console.log(`Expected NNUE file for ${this.variant}: ${nnueFile}`);
+      console.log(`(Fairy-Stockfish should load this automatically)`);
     }
   }
 

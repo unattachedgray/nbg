@@ -13,6 +13,7 @@ import {
   Dimensions,
 } from 'react-native';
 import {ChessBoard} from './src/components/board/chess-board';
+import {JanggiBoard} from './src/components/board/janggi-board';
 import {AnalysisPanel} from './src/components/analysis/analysis-panel';
 import {TermText} from './src/components/ui/tooltip';
 import {ToastNotification, Toast} from './src/components/ui/toast-notification';
@@ -507,34 +508,49 @@ function App(): React.JSX.Element {
 
     // DON'T clear analysis - keep previous suggestions visible during AI thinking
 
-    // Apply the move to gameRef
-    gameRef.current.move({from, to, promotion: 'q'});
-
     // Increment move counter and add timestamp
     setCurrentGameMoves(prev => prev + 1);
     setRecentMoveTimestamps(prev => [...prev, Date.now()]);
 
-    // Update FEN and turn
-    const newFen = gameRef.current.fen();
-    const newTurn = gameRef.current.turn();
+    let newFen: string;
+    let newTurn: 'w' | 'b';
 
-    // Only update UI if not in fast mode
-    if (!fastMode) {
-      setCurrentFen(newFen);
-    }
-    setCurrentTurn(newTurn);
-
-    // Update game status (checkmate takes priority over check)
-    if (gameRef.current.isCheckmate()) {
-      setGameStatus('Checkmate!');
-      await recordGameResult();
-    } else if (gameRef.current.isStalemate()) {
-      setGameStatus('Stalemate!');
-      await recordGameResult();
-    } else if (gameRef.current.isCheck()) {
-      setGameStatus('Check!');
+    if (selectedVariant === 'janggi') {
+      // For Janggi, we can't use chess.js (doesn't support Janggi)
+      // Just send the move notation to the engine and trust it's legal
+      // TODO: Implement proper FEN tracking for Janggi
+      // For now, we'll just keep the same FEN (board won't update visually)
+      console.log(`Janggi move: ${from}${to}`);
+      newFen = currentFen; // Keep current FEN for now
+      newTurn = currentTurn === 'w' ? 'b' : 'w'; // Toggle turn
+      setCurrentTurn(newTurn);
+      // Skip game status checks for Janggi (need engine to determine)
     } else {
-      setGameStatus('');
+      // Chess: use chess.js for move validation and game state
+      gameRef.current.move({from, to, promotion: 'q'});
+
+      // Update FEN and turn
+      newFen = gameRef.current.fen();
+      newTurn = gameRef.current.turn();
+
+      // Only update UI if not in fast mode
+      if (!fastMode) {
+        setCurrentFen(newFen);
+      }
+      setCurrentTurn(newTurn);
+
+      // Update game status (checkmate takes priority over check)
+      if (gameRef.current.isCheckmate()) {
+        setGameStatus('Checkmate!');
+        await recordGameResult();
+      } else if (gameRef.current.isStalemate()) {
+        setGameStatus('Stalemate!');
+        await recordGameResult();
+      } else if (gameRef.current.isCheck()) {
+        setGameStatus('Check!');
+      } else {
+        setGameStatus('');
+      }
     }
 
     // Analyze position after move
@@ -920,13 +936,23 @@ function App(): React.JSX.Element {
           {/* Left Column - Board */}
           <View style={styles.leftColumn}>
             <View style={styles.boardContainer}>
-              <ChessBoard
-                variant={selectedVariant}
-                onMove={handleMove}
-                fen={currentFen || undefined}
-                suggestedMove={hoveredMove || undefined}
-                moveSequence={moveSequence}
-              />
+              {selectedVariant === 'janggi' ? (
+                <JanggiBoard
+                  variant={selectedVariant}
+                  onMove={handleMove}
+                  fen={currentFen || undefined}
+                  suggestedMove={hoveredMove || undefined}
+                  legalMoves={analysis[0]?.pv || []}
+                />
+              ) : (
+                <ChessBoard
+                  variant={selectedVariant}
+                  onMove={handleMove}
+                  fen={currentFen || undefined}
+                  suggestedMove={hoveredMove || undefined}
+                  moveSequence={moveSequence}
+                />
+              )}
             </View>
           </View>
 

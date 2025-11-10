@@ -286,6 +286,23 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 3:00 PM
+- **Fixed Janggi Crash and XBoard Protocol Errors**
+  - Problem 1: `Error (unknown command): setoption` - wrong protocol command
+    - `setoption` is UCI, not XBoard
+    - Removed invalid command, Fairy-Stockfish auto-loads NNUE files
+  - Problem 2: App crashed when switching to Janggi
+    - Root cause: chess.js doesn't support Janggi FEN parsing
+    - ChessBoard component was rendered unconditionally
+  - Solution:
+    - Imported JanggiBoard component
+    - Conditionally render based on selectedVariant
+    - Modified handleMove to skip chess.js validation for Janggi
+    - For Janggi: moves sent directly to engine, no client-side validation
+  - Known Limitation: Janggi board doesn't update visually after moves yet
+    - Need to implement proper FEN tracking without chess.js
+    - TODO: Track game state using engine responses or manual FEN manipulation
+
 ### November 10, 2025 - 2:30 PM
 - **Fixed Engine Reinitialization Bug on Variant Switch**
   - Problem: Switching from chess to janggi caused "Failed to copy engine to temp folder" error
