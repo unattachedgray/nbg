@@ -33,6 +33,7 @@ function App(): React.JSX.Element {
   const [gameMode, setGameMode] = useState<GameMode>('player-vs-ai');
   const [engineReady, setEngineReady] = useState(false);
   const [isEngineThinking, setIsEngineThinking] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentFen, setCurrentFen] = useState('');
   const [analysis, setAnalysis] = useState<EngineAnalysis[]>([]);
   const [setupProgress, setSetupProgress] = useState<SetupProgress | null>(
@@ -389,9 +390,7 @@ function App(): React.JSX.Element {
   };
 
   const handleMove = async (from: Square, to: Square) => {
-    console.log(`Move: ${from} -> ${to}`);
-
-    // Clear analysis immediately to prevent showing stale suggestions
+    // Clear analysis immediately to prevent showing stale data during move transition
     setAnalysis([]);
 
     // Apply the move to gameRef
@@ -416,15 +415,16 @@ function App(): React.JSX.Element {
       setGameStatus('');
     }
 
-    console.log('After human move - new turn:', newTurn);
-
     // Analyze position after move
     if (engineRef.current && engineReady) {
       try {
+        setIsAnalyzing(true);
         const moveAnalysis = await engineRef.current.analyze(newFen, 15);
         setAnalysis([moveAnalysis]);
+        setIsAnalyzing(false);
       } catch (error) {
         console.error('Error getting move analysis:', error);
+        setIsAnalyzing(false);
       }
     }
 
@@ -443,8 +443,22 @@ function App(): React.JSX.Element {
     if (move.length >= 4) {
       const from = move.substring(0, 2) as Square;
       const to = move.substring(2, 4) as Square;
-      console.log(`Playing suggested move: ${from} -> ${to}`);
-      handleMove(from, to);
+
+      // Verify the move is valid for the current position before playing
+      try {
+        const moveObj = gameRef.current.move({from, to, promotion: 'q'});
+        if (moveObj) {
+          // Move was valid, undo it so handleMove can redo it properly
+          gameRef.current.undo();
+          handleMove(from, to);
+        } else {
+          console.error('Invalid suggested move:', move);
+          showToast('Invalid move suggestion', 'error');
+        }
+      } catch (error) {
+        console.error('Error playing suggested move:', error);
+        showToast('Could not play suggested move', 'error');
+      }
     }
   };
 
@@ -456,19 +470,18 @@ function App(): React.JSX.Element {
     try {
       setIsEngineThinking(true);
 
+      // Clear analysis immediately to prevent showing stale data
+      setAnalysis([]);
+
       // Tell engine about current position and get move
       const fen = gameRef.current.fen();
       const engineMove = await engineRef.current.getBestMove(fen, 2000);
 
-      console.log(`Engine move: ${engineMove}`);
-
-      // Clear analysis before making the move
-      setAnalysis([]);
-
       // Make the engine's move on the board
       gameRef.current.move(engineMove as any);
       const newTurn = gameRef.current.turn();
-      setCurrentFen(gameRef.current.fen());
+      const newFen = gameRef.current.fen();
+      setCurrentFen(newFen);
       setCurrentTurn(newTurn);
 
       // Update game status
@@ -484,20 +497,19 @@ function App(): React.JSX.Element {
         setGameStatus('');
       }
 
-      console.log('After engine move - new turn:', newTurn);
+      setIsEngineThinking(false);
 
       // Update analysis after the move (after each complete round)
       try {
-        const currentAnalysis = await engineRef.current.analyze(
-          gameRef.current.fen(),
-          15,
-        );
+        setIsAnalyzing(true);
+        const currentAnalysis = await engineRef.current.analyze(newFen, 15);
         setAnalysis([currentAnalysis]);
+        setIsAnalyzing(false);
+        console.log('Analysis complete for', newTurn, 'to move, suggested:', currentAnalysis.pv[0]);
       } catch (error) {
         console.error('Error getting analysis:', error);
+        setIsAnalyzing(false);
       }
-
-      setIsEngineThinking(false);
     } catch (error) {
       console.error('Error getting engine move:', error);
       setIsEngineThinking(false);

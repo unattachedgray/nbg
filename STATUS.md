@@ -1,6 +1,6 @@
 # Chess App - Project Status
 
-**Last Updated**: November 9, 2025, 8:45 PM
+**Last Updated**: November 10, 2025, 4:50 AM
 **Status**: ✅ **Active Development - Core Features Complete**
 
 ---
@@ -41,10 +41,10 @@
 
 ### 🔨 Currently Working On
 
-- ✅ **FIXED: Redesigned layout system** - Replaced absolute positioning with flex-based layout
-- ✅ **FIXED: Controls section visibility** - All sections now always visible with flex layout
-- ✅ **Added Reset Stats button** - Clear game statistics next to Reset Layout button
-- Testing new flex-based layout for stability and responsiveness
+- ✅ **FIXED: Suggestion display bug** - Suggestions no longer show wrong player's moves or disappear when clicked
+- ✅ **FIXED: Analysis state management** - Analysis cleared on move to prevent stale data
+- ✅ **Downloaded chess piece SVG assets** - Ready for integration into ChessBoard component
+- Next: Integrate SVG chess pieces into board rendering
 
 ---
 
@@ -102,21 +102,6 @@
 
 ## 🚧 Known Issues & Limitations
 
-### Critical Issues (IN PROGRESS)
-1. **Drag-and-Drop Positioning System Broken**
-   - Sections won't move to positions next to board despite available space
-   - Position clamping is too restrictive
-   - Absolute positioning in ScrollView causing conflicts
-   - Controls section not visible even with scrolling enabled
-   - Reset Layout button doesn't fully solve the issue
-   - **NEEDS REDESIGN**: Consider flex-based or grid-based layout instead of absolute positioning
-
-2. **Section Visibility Problems**
-   - Controls section disappears and can't be reached
-   - Scrolling added but doesn't make hidden sections accessible
-   - Window resize doesn't properly reposition sections into view
-   - Need better visibility guarantees and layout flow
-
 ### Minor Issues
 1. **XBoard Protocol Limitation**
    - No multi-PV support (can't show alternative lines)
@@ -144,14 +129,8 @@
 
 ## 📋 Next Steps (Prioritized)
 
-### URGENT - Layout System Fix
-- [ ] **Redesign section layout system** - Replace absolute positioning with flex-based or grid-based layout
-- [ ] **Fix section visibility** - Ensure all sections always visible or properly accessible via scroll
-- [ ] **Improve drag-and-drop** - Allow sections to be positioned next to each other when space available
-- [ ] **Test on different window sizes** - Verify layout works from small to large windows
-- [ ] **Ensure Controls section always accessible** - Critical UI element cannot disappear
-
 ### High Priority
+- [ ] **Integrate chess piece SVG assets** - Use downloaded SVGs in ChessBoard component for better visuals
 - [ ] Move history with undo/redo
 - [ ] Save/load games (PGN format)
 - [ ] AI vs AI speed control
@@ -303,6 +282,12 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 10, 2025 - 4:50 AM
+- **Fixed suggestion disappearing bug** - Clear analysis at start of handleMove() and getEngineMove() to prevent stale data
+- **Fixed wrong player suggestions** - UI now shows "Analyzing..." during transitions instead of old analysis
+- **Downloaded chess piece SVG assets** - All 12 pieces (wK, wQ, wR, wB, wN, wP, bK, bQ, bR, bB, bN, bP) from Wikimedia Commons
+- **Cleaned up debug logs** - Removed console.log statements added during debugging
 
 ### November 10, 2025 - 4:15 AM
 - **Fixed suggestion display bug** - Suggestions now correctly show only for the human player's turn
