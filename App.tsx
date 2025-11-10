@@ -39,8 +39,8 @@ function App(): React.JSX.Element {
   const [suggestedMoveHighlight, setSuggestedMoveHighlight] = useState(false);
   const [moveSequence, setMoveSequence] = useState<string[]>([]);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
-  const [player1Type, setPlayer1Type] = useState<'human' | 'ai'>('human'); // White
-  const [player2Type, setPlayer2Type] = useState<'human' | 'ai'>('ai'); // Black
+  const [player1Type, setPlayer1Type] = useState<'human' | 'ai'>('ai'); // Black (top)
+  const [player2Type, setPlayer2Type] = useState<'human' | 'ai'>('human'); // White (bottom)
 
   const engineRef = useRef<XBoardEngine | null>(null);
   const gameRef = useRef(new Chess());
@@ -227,7 +227,7 @@ function App(): React.JSX.Element {
 
     // Check if next player is AI and should auto-move
     const currentTurn = gameRef.current.turn();
-    const currentPlayerType = currentTurn === 'w' ? player1Type : player2Type;
+    const currentPlayerType = currentTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
 
     if (currentPlayerType === 'ai' && !gameRef.current.isGameOver()) {
       // Next player is AI, auto-trigger their move
@@ -316,8 +316,8 @@ function App(): React.JSX.Element {
         console.error('Error getting initial analysis:', error);
       }
 
-      // If player 1 (white) is AI, make first move
-      if (player1Type === 'ai') {
+      // If player 2 (white/bottom) is AI, make first move
+      if (player2Type === 'ai') {
         setTimeout(() => getEngineMove(), 1000);
       }
     }
@@ -345,7 +345,7 @@ function App(): React.JSX.Element {
     // Continuous play loop
     while (!gameRef.current.isGameOver() && !autoPlayStopRef.current) {
       const currentTurn = gameRef.current.turn();
-      const currentPlayerType = currentTurn === 'w' ? player1Type : player2Type;
+      const currentPlayerType = currentTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
 
       if (currentPlayerType === 'ai') {
         await getEngineMove();
@@ -476,11 +476,31 @@ function App(): React.JSX.Element {
               onSuggestionClick={handleSuggestionClick}
               onSuggestionHover={setSuggestedMoveHighlight}
               onContinuationHover={setMoveSequence}
-              player1Type={player1Type}
-              player2Type={player2Type}
-              onPlayer1TypeChange={setPlayer1Type}
-              onPlayer2TypeChange={setPlayer2Type}
             />
+          </View>
+        </View>
+
+        {/* Player Selection */}
+        <View style={styles.playerSelectionRow}>
+          <View style={styles.playerControl}>
+            <Text style={styles.playerLabel}>Player 1 (Black - Top):</Text>
+            <Pressable
+              style={styles.playerButton}
+              onPress={() => setPlayer1Type(player1Type === 'human' ? 'ai' : 'human')}>
+              <Text style={styles.playerButtonText}>
+                {player1Type === 'human' ? 'Human' : 'AI'}
+              </Text>
+            </Pressable>
+          </View>
+          <View style={styles.playerControl}>
+            <Text style={styles.playerLabel}>Player 2 (White - Bottom):</Text>
+            <Pressable
+              style={styles.playerButton}
+              onPress={() => setPlayer2Type(player2Type === 'human' ? 'ai' : 'human')}>
+              <Text style={styles.playerButtonText}>
+                {player2Type === 'human' ? 'Human' : 'AI'}
+              </Text>
+            </Pressable>
           </View>
         </View>
 
@@ -490,16 +510,18 @@ function App(): React.JSX.Element {
             <Pressable style={styles.controlButton} onPress={handleNewGame}>
               <Text style={styles.controlButtonText}>New Game</Text>
             </Pressable>
-            <Pressable
-              style={[
-                styles.controlButton,
-                isAutoPlaying && styles.stopButton,
-              ]}
-              onPress={handleStartStop}>
-              <Text style={styles.controlButtonText}>
-                {isAutoPlaying ? 'Stop' : 'Start'}
-              </Text>
-            </Pressable>
+            {player1Type === 'ai' && player2Type === 'ai' && (
+              <Pressable
+                style={[
+                  styles.controlButton,
+                  isAutoPlaying && styles.stopButton,
+                ]}
+                onPress={handleStartStop}>
+                <Text style={styles.controlButtonText}>
+                  {isAutoPlaying ? 'Stop' : 'Start'}
+                </Text>
+              </Pressable>
+            )}
             <Pressable
               style={[
                 styles.controlButton,
@@ -609,6 +631,45 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  playerSelectionRow: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 16,
+    flexDirection: 'row',
+    gap: 16,
+    flexWrap: 'wrap',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  playerControl: {
+    flex: 1,
+    minWidth: 250,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  playerLabel: {
+    fontSize: 13,
+    color: '#555555',
+    fontWeight: '600',
+  },
+  playerButton: {
+    backgroundColor: '#2196F3',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  playerButtonText: {
+    fontSize: 13,
+    color: '#ffffff',
+    fontWeight: '600',
   },
   bottomRow: {
     paddingTop: 16,
