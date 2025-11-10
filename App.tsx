@@ -234,8 +234,10 @@ function App(): React.JSX.Element {
 
     // Update FEN and turn
     const newFen = gameRef.current.fen();
+    const newTurn = gameRef.current.turn();
     setCurrentFen(newFen);
-    setCurrentTurn(gameRef.current.turn());
+    setCurrentTurn(newTurn);
+    console.log('After human move - new turn:', newTurn);
 
     // Analyze position after move
     if (engineRef.current && engineReady) {
@@ -283,8 +285,10 @@ function App(): React.JSX.Element {
 
       // Make the engine's move on the board
       gameRef.current.move(engineMove as any);
+      const newTurn = gameRef.current.turn();
       setCurrentFen(gameRef.current.fen());
-      setCurrentTurn(gameRef.current.turn());
+      setCurrentTurn(newTurn);
+      console.log('After engine move - new turn:', newTurn);
 
       // Update analysis after the move (after each complete round)
       try {
@@ -508,33 +512,43 @@ function App(): React.JSX.Element {
               player2Type={player2Type}
             />
           </View>
+        </View>
 
-          {/* Controls Section */}
-          <View style={styles.controlsSection}>
+        {/* Controls Section */}
+        <View style={styles.controlsSection}>
           <Text style={styles.controlsSectionTitle}>Controls</Text>
 
           {/* Player Selection */}
           <View style={styles.playerSelectionRow}>
-            <View style={styles.playerControl}>
-              <Text style={styles.playerLabel}>Player 1 (Black - Top):</Text>
-              <Pressable
-                style={styles.playerButton}
-                onPress={() => setPlayer1Type(player1Type === 'human' ? 'ai' : 'human')}>
-                <Text style={styles.playerButtonText}>
-                  {player1Type === 'human' ? 'Human' : 'AI'}
-                </Text>
-              </Pressable>
-            </View>
-            <View style={styles.playerControl}>
-              <Text style={styles.playerLabel}>Player 2 (White - Bottom):</Text>
-              <Pressable
-                style={styles.playerButton}
-                onPress={() => setPlayer2Type(player2Type === 'human' ? 'ai' : 'human')}>
-                <Text style={styles.playerButtonText}>
-                  {player2Type === 'human' ? 'Human' : 'AI'}
-                </Text>
-              </Pressable>
-            </View>
+            <Pressable
+              style={[
+                styles.playerColorButton,
+                styles.blackButton,
+                player1Type === 'ai' && styles.playerButtonAI,
+              ]}
+              onPress={() => setPlayer1Type(player1Type === 'human' ? 'ai' : 'human')}>
+              <Text style={[styles.playerColorButtonText, styles.blackButtonText]}>
+                Black
+              </Text>
+              <Text style={[styles.playerTypeText, styles.blackButtonText]}>
+                {player1Type === 'human' ? 'Human' : 'AI'}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={[
+                styles.playerColorButton,
+                styles.whiteButton,
+                player2Type === 'ai' && styles.playerButtonAI,
+              ]}
+              onPress={() => setPlayer2Type(player2Type === 'human' ? 'ai' : 'human')}>
+              <Text style={[styles.playerColorButtonText, styles.whiteButtonText]}>
+                White
+              </Text>
+              <Text style={[styles.playerTypeText, styles.whiteButtonText]}>
+                {player2Type === 'human' ? 'Human' : 'AI'}
+              </Text>
+            </Pressable>
           </View>
 
           {/* Game Control Buttons */}
@@ -565,7 +579,6 @@ function App(): React.JSX.Element {
               </Text>
             </Pressable>
           </View>
-        </View>
         </View>
       </View>
 
@@ -679,14 +692,10 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   controlsSection: {
-    flexGrow: 1,
-    flexShrink: 0,
-    flexBasis: 400,
-    minWidth: 300,
-    maxWidth: 600,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
+    marginTop: 16,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
@@ -701,34 +710,50 @@ const styles = StyleSheet.create({
   },
   playerSelectionRow: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 12,
     flexWrap: 'wrap',
     marginBottom: 12,
+    justifyContent: 'center',
   },
-  playerControl: {
-    flex: 1,
-    minWidth: 250,
-    flexDirection: 'row',
+  playerColorButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 10,
+    minWidth: 120,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
   },
-  playerLabel: {
-    fontSize: 13,
-    color: '#555555',
-    fontWeight: '600',
+  blackButton: {
+    backgroundColor: '#1a1a1a',
+    borderColor: '#000000',
   },
-  playerButton: {
-    backgroundColor: '#2196F3',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    minWidth: 80,
-    alignItems: 'center',
+  whiteButton: {
+    backgroundColor: '#f5f5f5',
+    borderColor: '#d0d0d0',
   },
-  playerButtonText: {
-    fontSize: 13,
+  playerButtonAI: {
+    opacity: 0.8,
+  },
+  playerColorButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  blackButtonText: {
     color: '#ffffff',
+  },
+  whiteButtonText: {
+    color: '#333333',
+  },
+  playerTypeText: {
+    fontSize: 12,
     fontWeight: '600',
+    opacity: 0.9,
   },
   gameControls: {
     flexDirection: 'row',

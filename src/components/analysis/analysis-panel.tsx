@@ -96,6 +96,13 @@ export function AnalysisPanel({
   const currentPlayerType = currentTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
   const isHumanTurn = currentPlayerType === 'human';
 
+  // Debug logging
+  console.log('AnalysisPanel - currentTurn:', currentTurn);
+  console.log('AnalysisPanel - player1Type (black):', player1Type);
+  console.log('AnalysisPanel - player2Type (white):', player2Type);
+  console.log('AnalysisPanel - currentPlayerType:', currentPlayerType);
+  console.log('AnalysisPanel - isHumanTurn:', isHumanTurn);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Suggestions</Text>

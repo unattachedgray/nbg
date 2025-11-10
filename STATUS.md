@@ -280,6 +280,13 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 1:00 AM
+- **Redesigned player selection** - Black and White buttons with stylized colors (black bg with white text, light bg with dark text)
+- **Moved controls section** - Now below topRow instead of inside it, appears under suggestions panel
+- **Added visual distinction** - Black button (#1a1a1a) and White button (#f5f5f5) with shadows and borders
+- **Added debug logging** - Console logs to track turn state and player types for debugging suggestion issue
+- **Improved player buttons** - Show "Human" or "AI" status directly on colored buttons
+
 ### November 10, 2025 - 12:45 AM
 - **Added turn tracking state** - currentTurn state now properly tracks whose turn it is (w/b)
 - **Fixed suggestion display** - Now uses currentTurn state instead of ref, ensuring suggestions update correctly
