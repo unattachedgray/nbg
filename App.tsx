@@ -671,7 +671,6 @@ function App(): React.JSX.Element {
           </View>
         </View>
         </View>
-        </View>
       </View>
 
       {/* Toast Notifications */}
