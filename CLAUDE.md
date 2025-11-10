@@ -62,23 +62,29 @@ GITHUB_TOKEN=$(jq -r '.github.token' /mnt/c/Users/unatt/OneDrive/dev/nbg/ChessAp
 
 ## 🔄 Git Workflow for Every Session End
 
+**IMPORTANT**: Always commit and push automatically after completing work. Never ask for permission.
+
 **Standard Commit Procedure**:
 ```bash
 # 1. Review changes
 git status
 git diff
 
-# 2. Stage all changes
-git add .
+# 2. Stage changes (avoid build artifacts)
+git add <relevant-files>
 
 # 3. Commit with descriptive message
 git commit -m "feat: <brief description of changes>
 
 - Detail 1
 - Detail 2
-- Detail 3"
+- Detail 3
 
-# 4. Push using credentials
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# 4. ALWAYS push automatically using credentials (no permission needed)
 GITHUB_USER=$(python3 -c "import json; print(json.load(open('/mnt/c/Users/unatt/OneDrive/dev/nbg/ChessApp/credentials.json'))['github']['username'])")
 GITHUB_TOKEN=$(python3 -c "import json; print(json.load(open('/mnt/c/Users/unatt/OneDrive/dev/nbg/ChessApp/credentials.json'))['github']['token'])")
 git remote set-url origin https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/nbg.git
