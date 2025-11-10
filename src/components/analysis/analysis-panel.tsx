@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, Pressable} from 'react-native';
+import {Chess} from 'chess.js';
 import {EngineAnalysis} from '../../types/game';
 import {TermText} from '../ui/tooltip';
 
@@ -107,6 +108,40 @@ export function AnalysisPanel({
 
   const mainLine = analysis[0];
 
+  // FINAL VALIDATION: Filter moves to ensure they're for the correct color
+  // This is the last line of defense against race conditions
+  const validateMoveColor = (move: string): boolean => {
+    if (!currentFen || move.length < 4) return false;
+
+    try {
+      const testGame = new Chess(currentFen);
+      const fromSquare = move.substring(0, 2) as any;
+      const piece = testGame.get(fromSquare);
+
+      if (!piece) {
+        console.error(`❌ FILTER: No piece at ${fromSquare} for move ${move}`);
+        return false;
+      }
+
+      const moveColor = piece.color;
+      const expectedColor = currentTurn;
+
+      if (moveColor !== expectedColor) {
+        console.error(`❌ FILTER: Move ${move} is for ${moveColor === 'w' ? 'WHITE' : 'BLACK'} but it's ${expectedColor === 'w' ? 'WHITE' : 'BLACK'}'s turn - REJECTED`);
+        return false;
+      }
+
+      console.log(`✅ FILTER: Move ${move} is valid for ${expectedColor === 'w' ? 'WHITE' : 'BLACK'}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ FILTER: Error validating move ${move}:`, error);
+      return false;
+    }
+  };
+
+  // Filter all suggested moves to only include valid ones for current turn
+  const validMoves = mainLine?.pv.filter(validateMoveColor) || [];
+
   // Determine if current player is human
   // player1Type = black (top), player2Type = white (bottom)
   // currentTurn 'w' means white to move, 'b' means black to move
@@ -117,15 +152,15 @@ export function AnalysisPanel({
   // Validate: only show suggestions if:
   // 1. Not AI vs AI
   // 2. Current player is human
-  // 3. Analysis exists and has moves
-  // 4. CRITICAL: Analysis FEN matches current FEN (prevents showing stale analysis from race conditions)
+  // 3. Analysis exists and has VALID moves (filtered for correct color)
+  // 4. Analysis FEN matches current FEN
   const fenMatches = analysisFen === currentFen;
   const shouldShowSuggestions =
     !isAIvsAI &&
     isHumanTurn &&
     mainLine &&
-    mainLine.pv.length > 0 &&
-    fenMatches; // Only show if analysis FEN matches current position!
+    validMoves.length > 0 && // Must have at least one valid move after filtering
+    fenMatches;
 
   // DEBUG: Log suggestion display decision
   if (mainLine && mainLine.pv.length > 0) {
@@ -135,13 +170,15 @@ export function AnalysisPanel({
     console.log('currentFen:', currentFen);
     console.log('analysisFen:', analysisFen);
     console.log('FEN matches?:', fenMatches);
+    console.log('Total moves in PV:', mainLine.pv.length);
+    console.log('Valid moves after filtering:', validMoves.length);
+    console.log('Valid moves:', validMoves.slice(0, 3));
     console.log('player1Type (black):', player1Type);
     console.log('player2Type (white):', player2Type);
     console.log('currentPlayerType:', currentPlayerType);
     console.log('isHumanTurn:', isHumanTurn);
     console.log('isAIvsAI:', isAIvsAI);
     console.log('shouldShowSuggestions:', shouldShowSuggestions);
-    console.log('First suggested move:', mainLine.pv[0]);
     console.log('================================');
   }
 
@@ -187,9 +224,9 @@ export function AnalysisPanel({
         {/* Suggestions (Right Column) - Only show for human players */}
         {shouldShowSuggestions && (
           <View style={styles.rightColumn}>
-            {/* Compact suggestion buttons */}
+            {/* Compact suggestion buttons - using validMoves (filtered for correct color) */}
             <View style={styles.compactSuggestionsRow}>
-              {mainLine.pv.slice(0, 3).map((move, idx) => (
+              {validMoves.slice(0, 3).map((move, idx) => (
                 <Pressable
                   key={idx}
                   style={[
@@ -212,10 +249,10 @@ export function AnalysisPanel({
             </View>
 
             {/* Continuation preview - keep for context */}
-            {mainLine.pv.length > 3 && (
+            {validMoves.length > 3 && (
               <View style={styles.continuationPreview}>
                 <Text style={styles.continuationText} numberOfLines={2}>
-                  {formatMovePairs(mainLine.pv.slice(3))}
+                  {formatMovePairs(validMoves.slice(3))}
                 </Text>
               </View>
             )}
