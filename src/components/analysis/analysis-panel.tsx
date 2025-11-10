@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
 import {EngineAnalysis} from '../../types/game';
 import {TermText} from '../ui/tooltip';
 
@@ -43,6 +43,22 @@ export function AnalysisPanel({
     return 'The position is equal';
   };
 
+  const formatMovePairs = (moves: string[]): string => {
+    let formatted = '';
+    for (let i = 0; i < Math.min(moves.length, 10); i += 2) {
+      const moveNum = Math.floor(i / 2) + 1;
+      const whiteMove = moves[i];
+      const blackMove = moves[i + 1];
+
+      if (blackMove) {
+        formatted += `${moveNum}. ${whiteMove} ${blackMove}  `;
+      } else {
+        formatted += `${moveNum}. ${whiteMove}`;
+      }
+    }
+    return formatted.trim();
+  };
+
   if (!analysis || analysis.length === 0) {
     return (
       <View style={styles.container}>
@@ -52,7 +68,7 @@ export function AnalysisPanel({
             <Text style={styles.placeholderText}>Analyzing...</Text>
           ) : (
             <Text style={styles.placeholderText}>
-              Analysis will appear here
+              Make a move to see analysis
             </Text>
           )}
         </View>
@@ -63,120 +79,117 @@ export function AnalysisPanel({
   const mainLine = analysis[0];
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Engine Analysis</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Analysis</Text>
 
-      {/* Main Evaluation */}
-      <View style={styles.evaluationCard}>
-        <Text style={styles.evalLabel}>Evaluation:</Text>
-        <Text
-          style={[
-            styles.evalScore,
-            mainLine.score > 0 ? styles.positiveScore : styles.negativeScore,
-          ]}>
-          {formatScore(mainLine.score)}
-        </Text>
-        <TermText style={styles.evalText}>
-          {getEvaluation(mainLine.score)}
-        </TermText>
-      </View>
+      {/* Compact layout - All sections visible without scrolling */}
+      <View style={styles.contentGrid}>
+        {/* Evaluation + Best Line (Left Column) */}
+        <View style={styles.leftColumn}>
+          {/* Evaluation */}
+          <View style={styles.evalSection}>
+            <Text
+              style={[
+                styles.evalScore,
+                mainLine.score > 0
+                  ? styles.positiveScore
+                  : styles.negativeScore,
+              ]}>
+              {formatScore(mainLine.score)}
+            </Text>
+            <TermText style={styles.evalText}>
+              {getEvaluation(mainLine.score)}
+            </TermText>
+          </View>
 
-      {/* Principal Variation */}
-      <View style={styles.pvCard}>
-        <Text style={styles.sectionTitle}>Best Line:</Text>
-        <View style={styles.movesContainer}>
-          {mainLine.pv.slice(0, 8).map((move, index) => (
-            <View key={index} style={styles.moveItem}>
-              <Text style={styles.moveNumber}>{Math.floor(index / 2) + 1}.</Text>
-              <Text style={styles.moveText}>{move}</Text>
+          {/* Best Line */}
+          <View style={styles.pvSection}>
+            <Text style={styles.sectionTitle}>Best Line</Text>
+            <Text style={styles.pvText} numberOfLines={3}>
+              {formatMovePairs(mainLine.pv)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Stats + Alternative Lines (Right Column) */}
+        <View style={styles.rightColumn}>
+          {/* Stats */}
+          <View style={styles.statsSection}>
+            <View style={styles.statRow}>
+              <Text style={styles.statLabel}>Depth</Text>
+              <Text style={styles.statValue}>{mainLine.depth}</Text>
             </View>
-          ))}
-        </View>
-      </View>
-
-      {/* Statistics */}
-      <View style={styles.statsCard}>
-        <Text style={styles.sectionTitle}>Statistics:</Text>
-        <View style={styles.statRow}>
-          <TermText style={styles.statLabel}>Depth:</TermText>
-          <Text style={styles.statValue}>{mainLine.depth}</Text>
-        </View>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Nodes:</Text>
-          <Text style={styles.statValue}>
-            {mainLine.nodes.toLocaleString()}
-          </Text>
-        </View>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Speed:</Text>
-          <Text style={styles.statValue}>
-            {(mainLine.nps / 1000).toFixed(0)}k nps
-          </Text>
-        </View>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Time:</Text>
-          <Text style={styles.statValue}>
-            {(mainLine.time / 1000).toFixed(1)}s
-          </Text>
-        </View>
-      </View>
-
-      {/* Alternative Lines */}
-      {analysis.length > 1 && (
-        <View style={styles.alternativesCard}>
-          <Text style={styles.sectionTitle}>Alternative Lines:</Text>
-          {analysis.slice(1, 4).map((line, index) => (
-            <View key={index} style={styles.altLine}>
-              <Text style={styles.altScore}>{formatScore(line.score)}</Text>
-              <Text style={styles.altMoves}>
-                {line.pv.slice(0, 4).join(' ')}
+            <View style={styles.statRow}>
+              <Text style={styles.statLabel}>Nodes</Text>
+              <Text style={styles.statValue}>
+                {(mainLine.nodes / 1000).toFixed(0)}k
               </Text>
             </View>
-          ))}
+          </View>
+
+          {/* Alternative Lines */}
+          {analysis.length > 1 && (
+            <View style={styles.altSection}>
+              <Text style={styles.sectionTitle}>Alternatives</Text>
+              {analysis.slice(1, 3).map((line, index) => (
+                <View key={index} style={styles.altLine}>
+                  <Text style={styles.altScore}>{formatScore(line.score)}</Text>
+                  <Text style={styles.altMoves} numberOfLines={1}>
+                    {formatMovePairs(line.pv.slice(0, 4))}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
-      )}
-    </ScrollView>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#ffffff',
-    padding: 16,
+    padding: 12,
+    borderRadius: 12,
   },
   title: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333333',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   placeholder: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: 30,
   },
   placeholderText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#999999',
   },
-  evaluationCard: {
+  contentGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  leftColumn: {
+    flex: 1,
+    gap: 12,
+  },
+  rightColumn: {
+    flex: 1,
+    gap: 12,
+  },
+  evalSection: {
     backgroundColor: '#f5f5f5',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 8,
+    padding: 12,
     alignItems: 'center',
   },
-  evalLabel: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 8,
-  },
   evalScore: {
-    fontSize: 36,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   positiveScore: {
     color: '#4CAF50',
@@ -185,89 +198,66 @@ const styles = StyleSheet.create({
     color: '#F44336',
   },
   evalText: {
-    fontSize: 16,
+    fontSize: 12,
     color: '#555555',
     textAlign: 'center',
   },
-  pvCard: {
+  pvSection: {
     backgroundColor: '#f9f9f9',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 8,
+    padding: 12,
+    flex: 1,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '600',
     color: '#333333',
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  movesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  moveItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  moveNumber: {
+  pvText: {
     fontSize: 12,
-    color: '#999999',
-    marginRight: 6,
-  },
-  moveText: {
-    fontSize: 14,
-    fontWeight: '500',
     color: '#333333',
+    lineHeight: 18,
   },
-  statsCard: {
+  statsSection: {
     backgroundColor: '#f9f9f9',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 8,
+    padding: 12,
   },
   statRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    paddingVertical: 4,
   },
   statLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666666',
   },
   statValue: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: '#333333',
   },
-  alternativesCard: {
+  altSection: {
     backgroundColor: '#f9f9f9',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 8,
+    padding: 12,
+    flex: 1,
   },
   altLine: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    paddingVertical: 4,
+    gap: 8,
   },
   altScore: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: '#2196F3',
-    marginRight: 12,
-    minWidth: 50,
+    minWidth: 40,
   },
   altMoves: {
-    fontSize: 14,
+    fontSize: 11,
     color: '#555555',
     flex: 1,
   },

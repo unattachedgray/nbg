@@ -181,6 +181,18 @@ function App(): React.JSX.Element {
 
       setEngineReady(true);
       console.log('✅ Engine ready!');
+
+      // Get initial analysis of starting position
+      if (showAnalysis) {
+        try {
+          const startingFen = gameRef.current.fen();
+          const initialAnalysis = await engine.analyze(startingFen, 15);
+          setAnalysis([initialAnalysis]);
+          console.log('✅ Initial analysis complete');
+        } catch (error) {
+          console.error('Error getting initial analysis:', error);
+        }
+      }
     } catch (error) {
       console.error('Failed to initialize engine:', error);
       Alert.alert(
@@ -197,7 +209,18 @@ function App(): React.JSX.Element {
     gameRef.current.move({from, to, promotion: 'q'});
 
     // Update FEN
-    setCurrentFen(gameRef.current.fen());
+    const newFen = gameRef.current.fen();
+    setCurrentFen(newFen);
+
+    // Analyze position after player move
+    if ((showAnalysis || gameMode === 'learning') && engineRef.current && engineReady) {
+      try {
+        const moveAnalysis = await engineRef.current.analyze(newFen, 15);
+        setAnalysis([moveAnalysis]);
+      } catch (error) {
+        console.error('Error getting move analysis:', error);
+      }
+    }
 
     if (gameMode === 'player-vs-ai' && engineRef.current && engineReady) {
       // Get AI response
@@ -347,62 +370,55 @@ function App(): React.JSX.Element {
         </View>
       </View>
 
-      {/* Main Content */}
-      <ScrollView style={styles.mainContent}>
-        {/* Chess Board */}
-        <View style={styles.boardContainer}>
-          <ChessBoard
-            variant={selectedVariant}
-            onMove={handleMove}
-            fen={currentFen || undefined}
-          />
-        </View>
-
-        {/* Info Panel with Terminology */}
-        <View style={styles.infoPanel}>
-          <TermText style={styles.infoText}>
-            {gameMode === 'learning'
-              ? 'Learning Mode: Hover over terms like checkmate, fork, or pin to learn more!'
-              : gameMode === 'ai-vs-ai'
-                ? 'AI vs AI: Watch the engine play against itself at high speed.'
-                : 'Player vs AI: Make your move and the engine will respond.'}
-          </TermText>
-        </View>
-
-        {/* Analysis Panel */}
-        {showAnalysis && analysis.length > 0 && (
-          <View style={styles.analysisContainer}>
-            <AnalysisPanel analysis={analysis} />
+      {/* Main Content - Compact Layout */}
+      <View style={styles.mainContent}>
+        {/* Top Row: Board + Analysis */}
+        <View style={styles.topRow}>
+          {/* Chess Board */}
+          <View style={styles.boardContainer}>
+            <ChessBoard
+              variant={selectedVariant}
+              onMove={handleMove}
+              fen={currentFen || undefined}
+            />
           </View>
-        )}
 
-        {/* Controls */}
-        <View style={styles.controls}>
-          <Text style={styles.controlsTitle}>Game Controls</Text>
-          <Pressable style={styles.controlButton} onPress={handleNewGame}>
-            <Text style={styles.controlButtonText}>New Game</Text>
-          </Pressable>
-          <Pressable style={styles.controlButton} onPress={handleAIvsAI}>
-            <Text style={styles.controlButtonText}>
-              AI vs AI {gameMode === 'ai-vs-ai' && '(Active)'}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={styles.controlButton}
-            onPress={handleLearningMode}>
-            <Text style={styles.controlButtonText}>
-              Learning Mode {gameMode === 'learning' && '(Active)'}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[styles.controlButton, styles.toggleButton]}
-            onPress={() => setShowAnalysis(!showAnalysis)}>
-            <Text style={styles.controlButtonText}>
-              {showAnalysis ? 'Hide' : 'Show'} Analysis
-            </Text>
-          </Pressable>
+          {/* Analysis Panel */}
+          {showAnalysis && (
+            <View style={styles.analysisContainer}>
+              <AnalysisPanel analysis={analysis} />
+            </View>
+          )}
         </View>
-      </ScrollView>
+
+        {/* Bottom Row: Controls */}
+        <View style={styles.bottomRow}>
+          <View style={styles.controls}>
+            <Pressable style={styles.controlButton} onPress={handleNewGame}>
+              <Text style={styles.controlButtonText}>New Game</Text>
+            </Pressable>
+            <Pressable style={styles.controlButton} onPress={handleAIvsAI}>
+              <Text style={styles.controlButtonText}>
+                AI vs AI {gameMode === 'ai-vs-ai' && '✓'}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.controlButton}
+              onPress={handleLearningMode}>
+              <Text style={styles.controlButtonText}>
+                Learning {gameMode === 'learning' && '✓'}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.controlButton, styles.toggleButton]}
+              onPress={() => setShowAnalysis(!showAnalysis)}>
+              <Text style={styles.controlButtonText}>
+                {showAnalysis ? 'Hide' : 'Show'} Analysis
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -468,26 +484,20 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
+    padding: 16,
+  },
+  topRow: {
+    flexDirection: 'row',
+    flex: 1,
+    gap: 16,
   },
   boardContainer: {
-    padding: 20,
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  infoPanel: {
-    backgroundColor: '#e3f2fd',
-    padding: 16,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#1976d2',
-    lineHeight: 20,
-  },
   analysisContainer: {
-    marginHorizontal: 20,
-    marginBottom: 16,
+    flex: 1,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     shadowColor: '#000',
@@ -496,33 +506,26 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  controls: {
-    padding: 20,
-    backgroundColor: '#ffffff',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    marginTop: 20,
+  bottomRow: {
+    paddingTop: 16,
   },
-  controlsTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 15,
+  controls: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'center',
   },
   controlButton: {
     backgroundColor: '#2196F3',
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
-    marginBottom: 10,
-    alignItems: 'center',
   },
   toggleButton: {
     backgroundColor: '#9C27B0',
   },
   controlButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
 });
