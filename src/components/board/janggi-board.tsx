@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Pressable, Dimensions} from 'react-native';
 import {GameVariant} from '../../types/game';
+import {JanggiPiece} from './janggi-piece';
 
 interface JanggiBoardProps {
   variant?: GameVariant;
@@ -175,14 +176,14 @@ export function JanggiBoard({
       return '#C5E1A5'; // Light lime
     }
 
-    // Palace squares
-    if (isInPalace(rank, file)) return '#FFF9C4'; // Pale yellow
+    // Palace squares - slightly darker wood
+    if (isInPalace(rank, file)) return '#C19A6B'; // Camel/light brown
 
-    // River (between ranks 4 and 5)
-    if (rank === 4 || rank === 5) return '#B3E5FC'; // Pale blue
+    // River (between ranks 4 and 5) - lighter wood
+    if (rank === 4 || rank === 5) return '#DEB887'; // Burlywood
 
-    // Default
-    return '#EFEBE9'; // Warm grey
+    // Default - natural wood
+    return '#D2B48C'; // Tan
   };
 
   const renderSquare = (rank: number, file: number) => {
@@ -200,13 +201,10 @@ export function JanggiBoard({
         onPress={() => handleSquarePress(rank, file)}>
         {/* Render piece */}
         {piece && (
-          <Text
-            style={[
-              styles.pieceText,
-              piece[0] === 'r' ? styles.redPiece : styles.bluePiece,
-            ]}>
-            {PIECE_SYMBOLS[piece] || piece}
-          </Text>
+          <JanggiPiece
+            piece={piece}
+            size={Math.min(intersectionWidth * 0.8, intersectionHeight * 0.8)}
+          />
         )}
 
         {/* File labels (top row) */}
@@ -262,10 +260,10 @@ const styles = StyleSheet.create({
   board: {
     width: boardWidth,
     height: boardHeight,
-    borderWidth: 3,
-    borderColor: '#5D4037',
+    borderWidth: 4,
+    borderColor: '#5D4037', // Dark brown border
     borderRadius: 4,
-    backgroundColor: '#D7CCC8',
+    backgroundColor: '#D2B48C', // Tan/wood color
   },
   rank: {
     flexDirection: 'row',
@@ -277,17 +275,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
     borderWidth: 0.5,
-    borderColor: '#8D6E63',
-  },
-  pieceText: {
-    fontSize: Math.min(intersectionWidth * 0.6, intersectionHeight * 0.6),
-    fontWeight: 'bold',
-  },
-  redPiece: {
-    color: '#C62828', // Deep red
-  },
-  bluePiece: {
-    color: '#1565C0', // Deep blue
+    borderColor: '#8B4513', // Saddle brown
   },
   fileLabel: {
     position: 'absolute',
