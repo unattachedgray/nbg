@@ -109,7 +109,6 @@ export function AnalysisPanel({
   const mainLine = analysis[0];
 
   // FINAL VALIDATION: Filter moves to ensure they're for the correct color
-  // This is the last line of defense against race conditions
   const validateMoveColor = (move: string): boolean => {
     if (!currentFen || move.length < 4) return false;
 
@@ -118,23 +117,13 @@ export function AnalysisPanel({
       const fromSquare = move.substring(0, 2) as any;
       const piece = testGame.get(fromSquare);
 
-      if (!piece) {
-        console.error(`❌ FILTER: No piece at ${fromSquare} for move ${move}`);
-        return false;
-      }
+      if (!piece) return false;
 
       const moveColor = piece.color;
       const expectedColor = currentTurn;
 
-      if (moveColor !== expectedColor) {
-        console.error(`❌ FILTER: Move ${move} is for ${moveColor === 'w' ? 'WHITE' : 'BLACK'} but it's ${expectedColor === 'w' ? 'WHITE' : 'BLACK'}'s turn - REJECTED`);
-        return false;
-      }
-
-      console.log(`✅ FILTER: Move ${move} is valid for ${expectedColor === 'w' ? 'WHITE' : 'BLACK'}`);
-      return true;
+      return moveColor === expectedColor;
     } catch (error) {
-      console.error(`❌ FILTER: Error validating move ${move}:`, error);
       return false;
     }
   };
@@ -162,25 +151,6 @@ export function AnalysisPanel({
     validMoves.length > 0 && // Must have at least one valid move after filtering
     fenMatches;
 
-  // DEBUG: Log suggestion display decision
-  if (mainLine && mainLine.pv.length > 0) {
-    console.log('=== SUGGESTION DISPLAY CHECK ===');
-    console.log('currentTurn:', currentTurn);
-    console.log('analysisTurn:', analysisTurn);
-    console.log('currentFen:', currentFen);
-    console.log('analysisFen:', analysisFen);
-    console.log('FEN matches?:', fenMatches);
-    console.log('Total moves in PV:', mainLine.pv.length);
-    console.log('Valid moves after filtering:', validMoves.length);
-    console.log('Valid moves:', validMoves.slice(0, 3));
-    console.log('player1Type (black):', player1Type);
-    console.log('player2Type (white):', player2Type);
-    console.log('currentPlayerType:', currentPlayerType);
-    console.log('isHumanTurn:', isHumanTurn);
-    console.log('isAIvsAI:', isAIvsAI);
-    console.log('shouldShowSuggestions:', shouldShowSuggestions);
-    console.log('================================');
-  }
 
   return (
     <View style={styles.container}>

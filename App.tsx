@@ -34,10 +34,10 @@ function App(): React.JSX.Element {
   const [engineReady, setEngineReady] = useState(false);
   const [isEngineThinking, setIsEngineThinking] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [currentFen, setCurrentFen] = useState('');
+  const [currentFen, setCurrentFen] = useState(new Chess().fen());
   const [analysis, setAnalysis] = useState<EngineAnalysis[]>([]);
   const [analysisTurn, setAnalysisTurn] = useState<'w' | 'b' | null>(null); // Track which turn the analysis is for
-  const [analysisFen, setAnalysisFen] = useState<string>(''); // Track which FEN position the analysis is for
+  const [analysisFen, setAnalysisFen] = useState<string>(new Chess().fen()); // Track which FEN position the analysis is for
   const [setupProgress, setSetupProgress] = useState<SetupProgress | null>(
     null,
   );
@@ -398,7 +398,6 @@ function App(): React.JSX.Element {
     // Increment request ID to invalidate any pending analysis
     analysisRequestIdRef.current += 1;
     const thisRequestId = analysisRequestIdRef.current;
-    console.log(`🔵 Starting analysis request #${thisRequestId}`);
 
     // Clear analysis immediately to prevent showing stale data during move transition
     setAnalysis([]);
@@ -432,58 +431,12 @@ function App(): React.JSX.Element {
       try {
         setIsAnalyzing(true);
         const moveAnalysis = await engineRef.current.analyze(newFen, 15);
-        console.log('=== ANALYSIS DEBUG (handleMove) ===');
-        console.log('Position FEN:', newFen);
-        console.log('Turn in FEN (whose turn to move):', newTurn);
-        console.log('Suggested move from engine:', moveAnalysis.pv[0]);
-        console.log('player1Type (black/top):', player1Type);
-        console.log('player2Type (white/bottom):', player2Type);
-        console.log('Current player type (who should move):', newTurn === 'w' ? player2Type : player1Type);
-        console.log('Is current player human?:', newTurn === 'w' ? player2Type === 'human' : player1Type === 'human');
-        console.log('Setting analysisTurn to:', newTurn);
-        console.log('Setting currentTurn state to:', newTurn);
-
-        // VALIDATION: Check if suggested move is valid for current position
-        try {
-          const testGame = new Chess(newFen);
-          const fromSquare = moveAnalysis.pv[0].substring(0, 2) as any;
-          const toSquare = moveAnalysis.pv[0].substring(2, 4) as any;
-
-          // Check what piece is on the from square
-          const piece = testGame.get(fromSquare);
-          if (piece) {
-            console.log('Piece being moved:', piece.type, 'color:', piece.color);
-            console.log('Turn to move:', testGame.turn());
-
-            if (piece.color !== testGame.turn()) {
-              console.error('❌ CRITICAL ERROR: Trying to move', piece.color === 'w' ? 'WHITE' : 'BLACK', 'piece when it\'s', testGame.turn() === 'w' ? 'WHITE' : 'BLACK', '\'s turn!');
-            }
-          }
-
-          const testMove = testGame.move({
-            from: fromSquare,
-            to: toSquare,
-            promotion: 'q'
-          });
-          if (testMove) {
-            console.log('✅ Suggested move IS VALID for', newTurn === 'w' ? 'WHITE' : 'BLACK', 'to move');
-          } else {
-            console.error('❌ ERROR: Suggested move INVALID for current position!');
-          }
-        } catch (err) {
-          console.error('❌ ERROR: Could not validate suggested move:', err);
-        }
-        console.log('====================');
 
         // GUARD: Only set analysis if this is still the current request
-        // This prevents race condition where AI makes a move while analysis is pending
         if (analysisRequestIdRef.current === thisRequestId && gameRef.current.fen() === newFen) {
-          console.log(`✅ Request #${thisRequestId} is still current, updating analysis`);
           setAnalysis([moveAnalysis]);
           setAnalysisTurn(newTurn);
           setAnalysisFen(newFen);
-        } else {
-          console.log(`⚠️ Request #${thisRequestId} is stale (current: ${analysisRequestIdRef.current}), discarding analysis`);
         }
         setIsAnalyzing(false);
       } catch (error) {
@@ -535,7 +488,6 @@ function App(): React.JSX.Element {
     // Increment request ID to invalidate any pending analysis
     analysisRequestIdRef.current += 1;
     const thisRequestId = analysisRequestIdRef.current;
-    console.log(`🔵 Starting engine move analysis request #${thisRequestId}`);
 
     try {
       setIsEngineThinking(true);
@@ -579,23 +531,12 @@ function App(): React.JSX.Element {
         try {
           setIsAnalyzing(true);
           const currentAnalysis = await engineRef.current.analyze(newFen, 15);
-          console.log('=== ENGINE MOVE ANALYSIS DEBUG ===');
-          console.log('Position FEN:', newFen);
-          console.log('Turn after engine move:', newTurn);
-          console.log('Suggested move:', currentAnalysis.pv[0]);
-          console.log('player1Type (black/top):', player1Type);
-          console.log('player2Type (white/bottom):', player2Type);
-          console.log('Current player type:', newTurn === 'w' ? player2Type : player1Type);
-          console.log('==================================');
 
           // GUARD: Only set analysis if this is still the current request
           if (analysisRequestIdRef.current === thisRequestId && gameRef.current.fen() === newFen) {
-            console.log(`✅ Engine request #${thisRequestId} is still current, updating analysis`);
             setAnalysis([currentAnalysis]);
             setAnalysisTurn(newTurn);
             setAnalysisFen(newFen);
-          } else {
-            console.log(`⚠️ Engine request #${thisRequestId} is stale (current: ${analysisRequestIdRef.current}), discarding`);
           }
           setIsAnalyzing(false);
         } catch (error) {
@@ -610,11 +551,8 @@ function App(): React.JSX.Element {
   };
 
   const handleNewGame = async () => {
-    console.log('Starting new game');
-
     // Increment request ID to invalidate any pending analysis from old game
     analysisRequestIdRef.current += 1;
-    console.log(`🔵 New game started, reset to request #${analysisRequestIdRef.current}`);
 
     // Stop auto-play if running
     if (isAutoPlaying) {
