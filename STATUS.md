@@ -41,6 +41,7 @@
 
 ### 🔨 Currently Working On
 
+- ✅ **FIXED: Race condition bug** - FEN tracking prevents showing black moves when it's white's turn
 - ✅ **FIXED: Suggestion display bug** - analysisTurn tracking prevents showing wrong player's moves
 - ✅ **FIXED: UI crashes** - Click same square, invalid move errors all handled
 - ✅ **Added 3 suggestions** - Shows best move + 2 alternatives with visual distinction
@@ -282,6 +283,15 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 10, 2025 - 8:30 AM
+- **FIXED: Race condition causing black move suggestions** (Root cause fix!)
+  - Added `analysisFen` state to track exact FEN position analysis is for
+  - Changed validation from turn comparison to FEN comparison
+  - Prevents stale analysis from async operations completing out of order
+  - Issue: When moves happen quickly (human vs AI), async analysis could complete out of order
+  - Solution: Now verify exact board position (FEN) matches, not just turn
+  - This definitively prevents showing black moves when it's white's turn
 
 ### November 10, 2025 - 6:00 AM
 - **Added comprehensive test logging** to catch black move suggestions
