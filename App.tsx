@@ -663,7 +663,9 @@ function App(): React.JSX.Element {
       </View>
 
       {/* Main Content - Draggable Layout */}
-      <View style={styles.mainContent}>
+      <ScrollView
+        style={styles.mainContent}
+        contentContainerStyle={styles.scrollContent}>
         {/* Chess Board - Draggable */}
         <DraggableSection
           sectionId="board"
@@ -784,7 +786,7 @@ function App(): React.JSX.Element {
             </Pressable>
           </View>
         </DraggableSection>
-      </View>
+      </ScrollView>
 
       {/* Toast Notifications */}
       <ToastNotification
@@ -878,7 +880,10 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
+  },
+  scrollContent: {
     padding: 16,
+    minHeight: 900, // Ensure enough space for draggable sections
     position: 'relative',
   },
   boardContainer: {

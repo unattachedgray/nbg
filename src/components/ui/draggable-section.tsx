@@ -49,8 +49,11 @@ export function DraggableSection({
 
     const {x: finalX, y: finalY} = clampPosition(currentX, currentY);
 
-    // Only update if position needs adjustment
-    if (currentX !== finalX || currentY !== finalY) {
+    // Always ensure section is visible when window resizes
+    // This prevents sections from disappearing off-screen
+    const isOutOfBounds = currentX !== finalX || currentY !== finalY;
+
+    if (isOutOfBounds) {
       Animated.spring(pan, {
         toValue: {x: finalX, y: finalY},
         useNativeDriver: false,
@@ -67,17 +70,24 @@ export function DraggableSection({
   };
 
   const clampPosition = (x: number, y: number) => {
-    // Calculate available space
-    const maxX = containerSize.width - layout.width - 32; // 32px margin
-    const maxY = containerSize.height - layout.height - 100; // 100px margin for header
+    // Calculate available space with minimal margins
+    const marginX = 16; // Small margin on sides
+    const marginY = 16; // Small margin on top/bottom
+
+    const maxX = Math.max(0, containerSize.width - layout.width - marginX);
+    const maxY = Math.max(0, containerSize.height - layout.height - marginY);
 
     // Snap first, then clamp
     const snappedX = snapToGrid(x);
     const snappedY = snapToGrid(y);
 
-    // Ensure section fits in available space
-    const clampedX = Math.max(0, Math.min(snappedX, maxX));
-    const clampedY = Math.max(0, Math.min(snappedY, maxY));
+    // Ensure at least part of section is visible
+    // Allow negative values but ensure section doesn't completely disappear
+    const minVisibleX = -(layout.width - 100); // Keep at least 100px visible
+    const minVisibleY = 0; // Don't allow negative Y (would go under header)
+
+    const clampedX = Math.max(minVisibleX, Math.min(snappedX, maxX));
+    const clampedY = Math.max(minVisibleY, Math.min(snappedY, maxY));
 
     return {
       x: clampedX,

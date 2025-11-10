@@ -280,6 +280,13 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 3:15 AM
+- **Added scrolling to main content** - Sections can now be scrolled to if they extend beyond window bounds
+- **Improved position clamping** - Sections always keep at least 100px visible, preventing complete disappearance
+- **Reduced margins** - Changed from 32px/100px margins to 16px for more usable space
+- **Better window resize handling** - Sections automatically reposition to stay visible when window changes size
+- **Minimum scroll area** - 900px minimum height ensures adequate space for all sections
+
 ### November 10, 2025 - 3:00 AM
 - **Added persistent UI state** - Window size, section positions, and stats now saved to chess-stats.json
 - **Automatic state restoration** - App loads previous window size and section positions on startup
