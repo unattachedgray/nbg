@@ -41,8 +41,8 @@
 
 ### 🔨 Currently Working On
 
-- Testing player selection controls and auto-move logic
-- Verifying Start/Stop button functionality
+- Testing toast notification system
+- Verifying all error messages appear as dismissible toasts
 
 ---
 
@@ -279,6 +279,13 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 9, 2025 - 11:45 PM
+- **Created toast notification system** - Non-blocking error/info messages at bottom of screen
+- **Replaced Alert.alert with toasts** - Errors, warnings, and game over messages now show as toasts
+- **Added dismiss functionality** - Each toast has X button to dismiss, auto-dismisses after 5 seconds
+- **Added "Dismiss All" button** - Shows when multiple toasts are present
+- **Fixed showAnalysis error** - Removed all references to removed showAnalysis state variable
 
 ### November 9, 2025 - 11:30 PM
 - **Added player selection controls** - Choose Human/AI for Player 1 (White) and Player 2 (Black) in analysis panel

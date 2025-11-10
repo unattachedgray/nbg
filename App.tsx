@@ -14,6 +14,7 @@ import {
 import {ChessBoard} from './src/components/board/chess-board';
 import {AnalysisPanel} from './src/components/analysis/analysis-panel';
 import {TermText} from './src/components/ui/tooltip';
+import {ToastNotification, Toast} from './src/components/ui/toast-notification';
 import {GameVariant, GameMode, Square, EngineAnalysis} from './src/types/game';
 import {createXBoardEngine, XBoardEngine} from './src/services/xboard-engine';
 import {Chess} from 'chess.js';
@@ -41,10 +42,29 @@ function App(): React.JSX.Element {
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [player1Type, setPlayer1Type] = useState<'human' | 'ai'>('ai'); // Black (top)
   const [player2Type, setPlayer2Type] = useState<'human' | 'ai'>('human'); // White (bottom)
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   const engineRef = useRef<XBoardEngine | null>(null);
   const gameRef = useRef(new Chess());
   const autoPlayStopRef = useRef(false);
+
+  const showToast = (message: string, type: Toast['type'] = 'info') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, {id, message, type}]);
+
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 5000);
+  };
+
+  const dismissToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
+  const dismissAllToasts = () => {
+    setToasts([]);
+  };
 
   // Initialize NNUE and engine on mount
   useEffect(() => {
@@ -89,17 +109,17 @@ function App(): React.JSX.Element {
         }
         return; // Don't initialize engine yet
       } else {
-        Alert.alert(
-          'Setup Error',
+        showToast(
           'Failed to download NNUE file. The app may not work correctly. Please check your internet connection and restart the app.',
+          'error',
         );
         return;
       }
     } catch (error) {
       console.error('Failed to initialize app:', error);
-      Alert.alert(
-        'Initialization Error',
+      showToast(
         'Failed to initialize the application. Please restart the app.',
+        'error',
       );
     } finally {
       // Clear setup progress after a short delay
@@ -161,9 +181,9 @@ function App(): React.JSX.Element {
               if (success) {
                 await initializeEngine();
               } else {
-                Alert.alert(
-                  'Download Failed',
+                showToast(
                   'Failed to download NNUE file from the provided URL. Please check the URL and try again.',
+                  'error',
                 );
               }
             }
@@ -198,9 +218,9 @@ function App(): React.JSX.Element {
       }
     } catch (error) {
       console.error('Failed to initialize engine:', error);
-      Alert.alert(
-        'Engine Error',
+      showToast(
         'Failed to initialize chess engine. Make sure you are running on Windows desktop.',
+        'error',
       );
     }
   };
@@ -337,7 +357,7 @@ function App(): React.JSX.Element {
     console.log('Starting auto-play');
 
     if (!engineRef.current || !engineReady) {
-      Alert.alert('Auto-Play', 'Engine not ready');
+      showToast('Engine not ready', 'warning');
       setIsAutoPlaying(false);
       return;
     }
@@ -360,11 +380,11 @@ function App(): React.JSX.Element {
 
     if (gameRef.current.isGameOver()) {
       console.log('Game over!', gameRef.current.isCheckmate() ? 'Checkmate' : 'Draw');
-      Alert.alert(
-        'Game Over',
+      showToast(
         gameRef.current.isCheckmate()
           ? `Checkmate! ${gameRef.current.turn() === 'w' ? 'Black' : 'White'} wins!`
-          : 'Draw - ' + (gameRef.current.isStalemate() ? 'Stalemate' : 'Draw')
+          : 'Draw - ' + (gameRef.current.isStalemate() ? 'Stalemate' : 'Draw'),
+        'success',
       );
     } else {
       console.log('Auto-play stopped');
@@ -535,6 +555,13 @@ function App(): React.JSX.Element {
           </View>
         </View>
       </View>
+
+      {/* Toast Notifications */}
+      <ToastNotification
+        toasts={toasts}
+        onDismiss={dismissToast}
+        onDismissAll={dismissAllToasts}
+      />
     </SafeAreaView>
   );
 }
