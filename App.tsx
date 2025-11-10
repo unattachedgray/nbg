@@ -55,8 +55,8 @@ function App(): React.JSX.Element {
   });
   const [sectionPositions, setSectionPositions] = useState({
     board: {x: 0, y: 0}, // Board on the left
-    analysis: {x: 420, y: 0}, // Suggestions to the right of board
-    controls: {x: 420, y: 420}, // Controls under suggestions
+    analysis: {x: 440, y: 0}, // Suggestions to the right of board
+    controls: {x: 440, y: 320}, // Controls under suggestions on right
   });
   const [windowSize, setWindowSize] = useState({
     width: 0,
@@ -84,6 +84,17 @@ function App(): React.JSX.Element {
 
   const dismissAllToasts = () => {
     setToasts([]);
+  };
+
+  const resetLayout = () => {
+    // Reset to default layout: Board left, Suggestions and Controls on right
+    const defaultPositions = {
+      board: {x: 0, y: 0},
+      analysis: {x: 440, y: 0}, // Right of board (400px board + 40px gap)
+      controls: {x: 440, y: 320}, // Below analysis on right side
+    };
+    setSectionPositions(defaultPositions);
+    showToast('Layout reset to default', 'info');
   };
 
   const loadSavedData = async () => {
@@ -643,6 +654,13 @@ function App(): React.JSX.Element {
             )}
           </View>
 
+          {/* Reset Layout Button */}
+          <Pressable
+            style={styles.resetLayoutButton}
+            onPress={resetLayout}>
+            <Text style={styles.resetLayoutText}>Reset Layout</Text>
+          </Pressable>
+
           {/* Variant Dropdown */}
           <View style={styles.variantSelector}>
             <Text style={styles.variantLabel}>Game: </Text>
@@ -856,6 +874,18 @@ const styles = StyleSheet.create({
   checkmateText: {
     color: '#F44336',
   },
+  resetLayoutButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#9C27B0',
+    marginRight: 12,
+  },
+  resetLayoutText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
   variantSelector: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -897,7 +927,7 @@ const styles = StyleSheet.create({
     width: 380,
     minWidth: 300,
     maxWidth: 500,
-    maxHeight: 400,
+    maxHeight: 300,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     shadowColor: '#000',
@@ -911,7 +941,7 @@ const styles = StyleSheet.create({
     width: 380,
     minWidth: 300,
     maxWidth: 500,
-    maxHeight: 350,
+    maxHeight: 280,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,

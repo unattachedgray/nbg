@@ -280,6 +280,13 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 3:30 AM
+- **Added Reset Layout button** - Purple button in header (left of Game selector) to reset layout to default
+- **Improved default layout** - Board left, Suggestions and Controls stacked vertically on right
+- **Reduced section heights** - Analysis maxHeight 300px, Controls maxHeight 280px for better stacking
+- **Fixed position updates** - Sections now properly respond to position changes from reset button
+- **Updated default positions** - Suggestions at (440, 0), Controls at (440, 320) for proper right-side stacking
+
 ### November 10, 2025 - 3:15 AM
 - **Added scrolling to main content** - Sections can now be scrolled to if they extend beyond window bounds
 - **Improved position clamping** - Sections always keep at least 100px visible, preventing complete disappearance

@@ -40,6 +40,11 @@ export function DraggableSection({
     return () => subscription?.remove();
   }, []);
 
+  // Update position when initialPosition prop changes (for reset functionality)
+  useEffect(() => {
+    pan.setValue(initialPosition);
+  }, [initialPosition.x, initialPosition.y]);
+
   // Recalculate position when container size changes to keep sections in bounds
   useEffect(() => {
     if (layout.width === 0 || layout.height === 0) return;
