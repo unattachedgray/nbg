@@ -41,11 +41,13 @@
 
 ### 🔨 Currently Working On
 
+- ✅ **FIXED: Suggestions disappearing** - Guard prevents stale analysis from overwriting current analysis
 - ✅ **FIXED: Race condition bug** - FEN tracking prevents showing black moves when it's white's turn
 - ✅ **FIXED: Suggestion display bug** - analysisTurn tracking prevents showing wrong player's moves
 - ✅ **FIXED: UI crashes** - Click same square, invalid move errors all handled
 - ✅ **Added 3 suggestions** - Shows best move + 2 alternatives with visual distinction
-- Next: Integrate SVG chess pieces into board rendering
+- ✅ **Integrated SVG chess pieces** - Replaced Unicode symbols with high-quality SVG graphics
+- Next: Move history with undo/redo functionality
 
 ---
 
@@ -283,6 +285,18 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 10, 2025 - 8:45 AM
+- **FIXED: Suggestions disappearing** (Second race condition!)
+  - Added guard in `handleMove()` to only set analysis if position hasn't changed
+  - Issue: Human makes move → analysis requested → AI makes move → old analysis completes and overwrites current analysis
+  - Solution: Check `gameRef.current.fen() === newFen` before setting analysis state
+  - Prevents stale analysis from overwriting current analysis
+- **Integrated SVG chess pieces**
+  - Created `ChessPiece` component to render SVG assets
+  - Replaced Unicode symbols (♔♕♖) with high-quality SVG graphics
+  - Better visual appearance and scaling
+  - Uses downloaded Wikimedia Commons chess piece SVGs
 
 ### November 10, 2025 - 8:30 AM
 - **FIXED: Race condition causing black move suggestions** (Root cause fix!)
