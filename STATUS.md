@@ -286,6 +286,19 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 4:15 PM
+- **Implemented Complete Janggi Move Tracking**
+  - Created janggi-fen.ts utility module for FEN manipulation
+  - Implemented parseJanggiFEN() to convert FEN to board array
+  - Implemented positionToFEN() to convert board back to FEN string
+  - Implemented applyMoveToFEN() to update position after moves
+  - Updated handleMove() to use manual FEN updates for Janggi
+  - Updated getEngineMove() to apply AI moves to Janggi FEN
+  - Board now updates visually after human and AI moves
+  - AI can play full Janggi games with proper move tracking
+  - Skips chess.js validation for Janggi (uses engine-only validation)
+  - Properly handles turn toggling and move number increments
+
 ### November 10, 2025 - 3:45 PM
 - **Added Wooden Janggi Pieces and Board Styling**
   - Downloaded authentic wooden Janggi SVG pieces from Kadagaden/chess-pieces repo
