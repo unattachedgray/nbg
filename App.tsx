@@ -37,6 +37,7 @@ function App(): React.JSX.Element {
   const [currentFen, setCurrentFen] = useState('');
   const [analysis, setAnalysis] = useState<EngineAnalysis[]>([]);
   const [analysisTurn, setAnalysisTurn] = useState<'w' | 'b' | null>(null); // Track which turn the analysis is for
+  const [analysisFen, setAnalysisFen] = useState<string>(''); // Track which FEN position the analysis is for
   const [setupProgress, setSetupProgress] = useState<SetupProgress | null>(
     null,
   );
@@ -378,6 +379,7 @@ function App(): React.JSX.Element {
         const initialAnalysis = await engine.analyze(startingFen, 15);
         setAnalysis([initialAnalysis]);
         setAnalysisTurn('w'); // Starting position is white's turn
+        setAnalysisFen(startingFen); // Store the FEN this analysis is for
         console.log('✅ Initial analysis complete');
       } catch (error) {
         console.error('Error getting initial analysis:', error);
@@ -395,6 +397,7 @@ function App(): React.JSX.Element {
     // Clear analysis immediately to prevent showing stale data during move transition
     setAnalysis([]);
     setAnalysisTurn(null);
+    setAnalysisFen('');
 
     // Apply the move to gameRef
     gameRef.current.move({from, to, promotion: 'q'});
@@ -467,6 +470,7 @@ function App(): React.JSX.Element {
         console.log('====================');
         setAnalysis([moveAnalysis]);
         setAnalysisTurn(newTurn); // Mark which turn this analysis is for
+        setAnalysisFen(newFen); // Store the FEN this analysis is for
         setIsAnalyzing(false);
       } catch (error) {
         console.error('Error getting move analysis:', error);
@@ -520,6 +524,7 @@ function App(): React.JSX.Element {
       // Clear analysis immediately to prevent showing stale data
       setAnalysis([]);
       setAnalysisTurn(null);
+      setAnalysisFen('');
 
       // Tell engine about current position and get move
       const fen = gameRef.current.fen();
@@ -565,6 +570,7 @@ function App(): React.JSX.Element {
           console.log('==================================');
           setAnalysis([currentAnalysis]);
           setAnalysisTurn(newTurn); // Mark which turn this analysis is for
+          setAnalysisFen(newFen); // Store the FEN this analysis is for
           setIsAnalyzing(false);
         } catch (error) {
           console.error('Error getting analysis:', error);
@@ -595,6 +601,7 @@ function App(): React.JSX.Element {
     setCurrentTurn('w'); // White starts
     setGameStatus('');
     setAnalysis([]);
+    setAnalysisFen('');
     setMoveSequence([]);
     setHoveredMove(null);
 
@@ -608,6 +615,7 @@ function App(): React.JSX.Element {
         const initialAnalysis = await engineRef.current.analyze(startingFen, 15);
         setAnalysis([initialAnalysis]);
         setAnalysisTurn('w'); // Starting position is white's turn
+        setAnalysisFen(startingFen); // Store the FEN this analysis is for
         console.log('✅ Initial analysis complete');
       } catch (error) {
         console.error('Error getting initial analysis:', error);
@@ -802,6 +810,8 @@ function App(): React.JSX.Element {
               <AnalysisPanel
                 analysis={analysis}
                 analysisTurn={analysisTurn}
+                analysisFen={analysisFen}
+                currentFen={currentFen}
                 onSuggestionClick={handleSuggestionClick}
                 onSuggestionHover={setHoveredMove}
                 onContinuationHover={setMoveSequence}

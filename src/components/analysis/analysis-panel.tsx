@@ -6,6 +6,8 @@ import {TermText} from '../ui/tooltip';
 interface AnalysisPanelProps {
   analysis?: EngineAnalysis[];
   analysisTurn?: 'w' | 'b' | null; // Which turn the analysis is for
+  analysisFen?: string; // Which FEN position the analysis is for
+  currentFen?: string; // Current board position
   isAnalyzing?: boolean;
   onSuggestionClick?: (move: string) => void;
   onSuggestionHover?: (move: string | null) => void; // Pass the move string, not just boolean
@@ -18,6 +20,8 @@ interface AnalysisPanelProps {
 export function AnalysisPanel({
   analysis,
   analysisTurn,
+  analysisFen,
+  currentFen,
   isAnalyzing = false,
   onSuggestionClick,
   onSuggestionHover,
@@ -114,25 +118,28 @@ export function AnalysisPanel({
   // 1. Not AI vs AI
   // 2. Current player is human
   // 3. Analysis exists and has moves
-  // 4. CRITICAL: Analysis is for the current turn (prevents showing stale analysis)
+  // 4. CRITICAL: Analysis FEN matches current FEN (prevents showing stale analysis from race conditions)
+  const fenMatches = analysisFen === currentFen;
   const shouldShowSuggestions =
     !isAIvsAI &&
     isHumanTurn &&
     mainLine &&
     mainLine.pv.length > 0 &&
-    analysisTurn === currentTurn; // Only show if analysis matches current turn!
+    fenMatches; // Only show if analysis FEN matches current position!
 
   // DEBUG: Log suggestion display decision
   if (mainLine && mainLine.pv.length > 0) {
     console.log('=== SUGGESTION DISPLAY CHECK ===');
     console.log('currentTurn:', currentTurn);
     console.log('analysisTurn:', analysisTurn);
+    console.log('currentFen:', currentFen);
+    console.log('analysisFen:', analysisFen);
+    console.log('FEN matches?:', fenMatches);
     console.log('player1Type (black):', player1Type);
     console.log('player2Type (white):', player2Type);
     console.log('currentPlayerType:', currentPlayerType);
     console.log('isHumanTurn:', isHumanTurn);
     console.log('isAIvsAI:', isAIvsAI);
-    console.log('analysisTurn === currentTurn?:', analysisTurn === currentTurn);
     console.log('shouldShowSuggestions:', shouldShowSuggestions);
     console.log('First suggested move:', mainLine.pv[0]);
     console.log('================================');
