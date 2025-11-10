@@ -44,10 +44,24 @@ export function JanggiBoard({
     const [boardPart] = fenString.split(' ');
     const ranks = boardPart.split('/');
 
+    // Validate that we have a Janggi FEN (10 ranks)
+    if (ranks.length !== 10) {
+      console.error('JanggiBoard: Invalid FEN - expected 10 ranks, got', ranks.length);
+      console.error('JanggiBoard: This looks like a chess FEN, not Janggi');
+      // Return empty 10x9 board instead of crashing
+      return Array.from({length: 10}, () => Array(9).fill(null));
+    }
+
     const newBoard: (string | null)[][] = [];
 
     for (let rank = 0; rank < 10; rank++) {
       const rankData = ranks[rank];
+      if (!rankData) {
+        console.error('JanggiBoard: Missing rank data for rank', rank);
+        newBoard.push(Array(9).fill(null));
+        continue;
+      }
+
       const row: (string | null)[] = [];
 
       for (let i = 0; i < rankData.length; i++) {

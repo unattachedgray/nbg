@@ -282,6 +282,7 @@ function App(): React.JSX.Element {
 
   // Handle variant changes without reinitializing engine
   useEffect(() => {
+    console.log('Variant change detected:', selectedVariant, 'Engine ready:', engineReady);
     if (engineRef.current && engineReady) {
       switchVariant(selectedVariant);
     }
@@ -940,7 +941,12 @@ function App(): React.JSX.Element {
                 <JanggiBoard
                   variant={selectedVariant}
                   onMove={handleMove}
-                  fen={currentFen || undefined}
+                  fen={
+                    currentFen &&
+                    currentFen.split('/').length === 10
+                      ? currentFen
+                      : 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1'
+                  }
                   suggestedMove={hoveredMove || undefined}
                   legalMoves={analysis[0]?.pv || []}
                 />
