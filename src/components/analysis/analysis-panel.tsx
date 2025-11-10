@@ -127,20 +127,16 @@ export function AnalysisPanel({
             </View>
           </View>
 
-          {/* Alternative Lines */}
-          {analysis.length > 1 && (
-            <View style={styles.altSection}>
-              <Text style={styles.sectionTitle}>Alternatives</Text>
-              {analysis.slice(1, 3).map((line, index) => (
-                <View key={index} style={styles.altLine}>
-                  <Text style={styles.altScore}>{formatScore(line.score)}</Text>
-                  <Text style={styles.altMoves} numberOfLines={1}>
-                    {formatMovePairs(line.pv.slice(0, 4))}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          )}
+          {/* Best Move Suggestion */}
+          <View style={styles.suggestionSection}>
+            <Text style={styles.sectionTitle}>Suggested Move</Text>
+            {mainLine.pv.length > 0 && (
+              <View style={styles.suggestionBox}>
+                <Text style={styles.suggestionMove}>{mainLine.pv[0]}</Text>
+                <Text style={styles.suggestionLabel}>Best move</Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
     </View>
@@ -238,27 +234,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333333',
   },
-  altSection: {
+  suggestionSection: {
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
     padding: 12,
     flex: 1,
   },
-  altLine: {
-    flexDirection: 'row',
+  suggestionBox: {
+    backgroundColor: '#2196F3',
+    borderRadius: 8,
+    padding: 12,
     alignItems: 'center',
-    paddingVertical: 4,
-    gap: 8,
   },
-  altScore: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#2196F3',
-    minWidth: 40,
+  suggestionMove: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 4,
   },
-  altMoves: {
+  suggestionLabel: {
     fontSize: 11,
-    color: '#555555',
-    flex: 1,
+    color: '#ffffff',
+    opacity: 0.9,
   },
 });

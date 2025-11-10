@@ -490,14 +490,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flex: 1,
     gap: 16,
+    minHeight: 400,
   },
   boardContainer: {
     flex: 1,
+    minWidth: 350,
+    maxWidth: 600,
     justifyContent: 'center',
     alignItems: 'center',
   },
   analysisContainer: {
     flex: 1,
+    minWidth: 300,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     shadowColor: '#000',
