@@ -286,6 +286,21 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 11:30 AM
+- **Created Comprehensive Statistics Panel**
+  - New dedicated stats section separated from controls
+  - **Live Game Stats**: Moves per minute (real-time calculation), current moves
+  - **Historical Stats**: Total games, white wins, black wins, draws
+  - **Win Probability**: Calculated percentages for white/black/draw based on game history
+  - Color-coded odds (green for white, red for black, orange for draw)
+  - Clean grid layout with visual hierarchy
+  - Updates every second during gameplay
+- **Performance Tracking**
+  - Real-time moves per minute calculation
+  - Tracks game start time and move count
+  - Resets on new game
+  - Always visible during gameplay
+
 ### November 10, 2025 - 11:00 AM
 - **Implemented Fast Mode for AI vs AI**
   - New "Fast Mode" button (only visible during AI vs AI)

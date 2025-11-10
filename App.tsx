@@ -57,6 +57,9 @@ function App(): React.JSX.Element {
     draws: 0,
     totalGames: 0,
   });
+  const [currentGameMoves, setCurrentGameMoves] = useState(0); // Track moves in current game
+  const [gameStartTime, setGameStartTime] = useState<number>(Date.now()); // Track game start time
+  const [movesPerMinute, setMovesPerMinute] = useState(0); // Current game moves per minute
   const [sectionPositions, setSectionPositions] = useState({
     board: {x: 0, y: 0}, // Board on the left
     analysis: {x: 440, y: 0}, // Suggestions to the right of board
@@ -235,6 +238,18 @@ function App(): React.JSX.Element {
     }
   }, [stats]);
 
+  // Calculate moves per minute every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const elapsedMinutes = (Date.now() - gameStartTime) / 60000;
+      if (elapsedMinutes > 0 && currentGameMoves > 0) {
+        setMovesPerMinute(Math.round(currentGameMoves / elapsedMinutes));
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [gameStartTime, currentGameMoves]);
+
   // Initialize NNUE and engine on mount
   useEffect(() => {
     initializeApp();
@@ -406,6 +421,9 @@ function App(): React.JSX.Element {
     // Apply the move to gameRef
     gameRef.current.move({from, to, promotion: 'q'});
 
+    // Increment move counter
+    setCurrentGameMoves(prev => prev + 1);
+
     // Update FEN and turn
     const newFen = gameRef.current.fen();
     const newTurn = gameRef.current.turn();
@@ -505,6 +523,10 @@ function App(): React.JSX.Element {
 
       // Make the engine's move on the board
       gameRef.current.move(engineMove as any);
+
+      // Increment move counter
+      setCurrentGameMoves(prev => prev + 1);
+
       const newTurn = gameRef.current.turn();
       const newFen = gameRef.current.fen();
 
@@ -585,6 +607,11 @@ function App(): React.JSX.Element {
     // Reset fast mode
     setFastMode(false);
     setFastModeMovesPlayed(0);
+
+    // Reset game timing stats
+    setCurrentGameMoves(0);
+    setGameStartTime(Date.now());
+    setMovesPerMinute(0);
 
     // Reset game state
     gameRef.current.reset();
@@ -830,17 +857,76 @@ function App(): React.JSX.Element {
               />
             </View>
 
+            {/* Stats Panel */}
+            <View style={styles.statsContainer}>
+              <Text style={styles.controlsSectionTitle}>Statistics</Text>
+
+              {/* Live Game Stats */}
+              <View style={styles.liveStatsRow}>
+                <View style={styles.liveStatBox}>
+                  <Text style={styles.liveStatValue}>{movesPerMinute}</Text>
+                  <Text style={styles.liveStatLabel}>Moves/Min</Text>
+                </View>
+                <View style={styles.liveStatBox}>
+                  <Text style={styles.liveStatValue}>{currentGameMoves}</Text>
+                  <Text style={styles.liveStatLabel}>Moves</Text>
+                </View>
+              </View>
+
+              {/* Historical Stats - Games */}
+              <View style={styles.historicalStatsSection}>
+                <Text style={styles.statsSubtitle}>Games Played</Text>
+                <View style={styles.statsGrid}>
+                  <View style={styles.statBox}>
+                    <Text style={styles.statValue}>{stats.totalGames}</Text>
+                    <Text style={styles.statLabel}>Total</Text>
+                  </View>
+                  <View style={styles.statBox}>
+                    <Text style={styles.statValue}>{stats.whiteWins}</Text>
+                    <Text style={styles.statLabel}>White Wins</Text>
+                  </View>
+                  <View style={styles.statBox}>
+                    <Text style={styles.statValue}>{stats.blackWins}</Text>
+                    <Text style={styles.statLabel}>Black Wins</Text>
+                  </View>
+                  <View style={styles.statBox}>
+                    <Text style={styles.statValue}>{stats.draws}</Text>
+                    <Text style={styles.statLabel}>Draws</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Win Odds */}
+              {stats.totalGames > 0 && (
+                <View style={styles.winOddsSection}>
+                  <Text style={styles.statsSubtitle}>Win Probability</Text>
+                  <View style={styles.oddsRow}>
+                    <View style={styles.oddsBox}>
+                      <Text style={[styles.oddsValue, styles.whiteOdds]}>
+                        {((stats.whiteWins / stats.totalGames) * 100).toFixed(1)}%
+                      </Text>
+                      <Text style={styles.oddsLabel}>White</Text>
+                    </View>
+                    <View style={styles.oddsBox}>
+                      <Text style={[styles.oddsValue, styles.drawOdds]}>
+                        {((stats.draws / stats.totalGames) * 100).toFixed(1)}%
+                      </Text>
+                      <Text style={styles.oddsLabel}>Draw</Text>
+                    </View>
+                    <View style={styles.oddsBox}>
+                      <Text style={[styles.oddsValue, styles.blackOdds]}>
+                        {((stats.blackWins / stats.totalGames) * 100).toFixed(1)}%
+                      </Text>
+                      <Text style={styles.oddsLabel}>Black</Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+            </View>
+
             {/* Controls Section */}
             <View style={styles.controlsContainer}>
               <Text style={styles.controlsSectionTitle}>Controls</Text>
-
-              {/* Stats Section */}
-              <View style={styles.statsSection}>
-                <Text style={styles.statItem}>Games: {stats.totalGames}</Text>
-                <Text style={styles.statItem}>White: {stats.whiteWins}W</Text>
-                <Text style={styles.statItem}>Black: {stats.blackWins}W</Text>
-                <Text style={styles.statItem}>Draws: {stats.draws}</Text>
-              </View>
 
               {/* Player Selection */}
               <View style={styles.playerSelectionRow}>
@@ -1073,6 +1159,106 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     overflow: 'scroll',
+  },
+  statsContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  liveStatsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  liveStatBox: {
+    flex: 1,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#2196F3',
+  },
+  liveStatValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1976D2',
+    marginBottom: 4,
+  },
+  liveStatLabel: {
+    fontSize: 11,
+    color: '#1565C0',
+    fontWeight: '600',
+  },
+  historicalStatsSection: {
+    marginBottom: 16,
+  },
+  statsSubtitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666666',
+    marginBottom: 8,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  statBox: {
+    flex: 1,
+    minWidth: 70,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 6,
+    padding: 8,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 2,
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#666666',
+  },
+  winOddsSection: {
+    marginTop: 8,
+  },
+  oddsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  oddsBox: {
+    flex: 1,
+    borderRadius: 6,
+    padding: 10,
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  oddsValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  whiteOdds: {
+    color: '#4CAF50',
+  },
+  blackOdds: {
+    color: '#F44336',
+  },
+  drawOdds: {
+    color: '#FF9800',
+  },
+  oddsLabel: {
+    fontSize: 10,
+    color: '#666666',
+    fontWeight: '600',
   },
   controlsContainer: {
     backgroundColor: '#ffffff',
