@@ -1,6 +1,6 @@
 # Chess App - Project Status
 
-**Last Updated**: November 10, 2025, 5:15 AM
+**Last Updated**: November 10, 2025, 5:30 AM
 **Status**: ✅ **Active Development - Core Features Complete**
 
 ---
@@ -41,10 +41,10 @@
 
 ### 🔨 Currently Working On
 
-- ✅ **FIXED: AI vs AI performance** - Optimized from 2.5s to 0.6s per move (4x faster)
-- ✅ **FIXED: UI jumping during AI vs AI** - Suggestions hidden during AI vs AI mode
-- 🔍 **DEBUGGING: Suggestion bug** - Added extensive logging to track turn state and identify fault lines
-- Next: Analyze logs to fix remaining suggestion display issues, then integrate SVG chess pieces
+- ✅ **FIXED: Suggestion display bug** - analysisTurn tracking prevents showing wrong player's moves
+- ✅ **FIXED: UI crashes** - Click same square, invalid move errors all handled
+- ✅ **Added 3 suggestions** - Shows best move + 2 alternatives with visual distinction
+- Next: Integrate SVG chess pieces into board rendering
 
 ---
 
@@ -282,6 +282,13 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 10, 2025 - 5:30 AM
+- **FIXED: Suggestion bug (finally!)** - Added analysisTurn tracking to prevent showing stale analysis
+- **Show 3 suggestions** - Now shows best move + 2 alternatives from PV with ⭐ indicator
+- **Fixed click-same-square crash** - Clicking a selected piece now deselects it instead of crashing
+- **Better error handling** - Wrapped chess.js move attempts in try-catch
+- **Visual distinction** - Best move has green background with gold border
 
 ### November 10, 2025 - 5:15 AM
 - **Removed turn indicator** - "White to move" / "Black to move" text removed

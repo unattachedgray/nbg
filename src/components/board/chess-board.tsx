@@ -60,27 +60,47 @@ export function ChessBoard({
     const square = `${files[col]}${ranks[row]}` as Square;
 
     if (selectedSquare) {
-      // Try to make a move
-      const move = game.move({
-        from: selectedSquare,
-        to: square,
-        promotion: 'q', // Always promote to queen for simplicity
-      });
+      // If clicking the same square, deselect it
+      if (selectedSquare === square) {
+        setSelectedSquare(null);
+        setLegalMoves([]);
+        return;
+      }
 
-      if (move) {
-        setBoard(game.board());
-        onMove?.(selectedSquare, square);
-        setSelectedSquare(null);
-        setLegalMoves([]);
-      } else if (board[row][col] && board[row][col]!.color === game.turn()) {
-        // Select different piece
-        setSelectedSquare(square);
-        const moves = game.moves({square: square as any, verbose: true});
-        setLegalMoves(moves.map((m: any) => m.to));
-      } else {
-        // Deselect
-        setSelectedSquare(null);
-        setLegalMoves([]);
+      // Try to make a move
+      try {
+        const move = game.move({
+          from: selectedSquare,
+          to: square,
+          promotion: 'q', // Always promote to queen for simplicity
+        });
+
+        if (move) {
+          setBoard(game.board());
+          onMove?.(selectedSquare, square);
+          setSelectedSquare(null);
+          setLegalMoves([]);
+        } else if (board[row][col] && board[row][col]!.color === game.turn()) {
+          // Select different piece
+          setSelectedSquare(square);
+          const moves = game.moves({square: square as any, verbose: true});
+          setLegalMoves(moves.map((m: any) => m.to));
+        } else {
+          // Deselect
+          setSelectedSquare(null);
+          setLegalMoves([]);
+        }
+      } catch (error) {
+        console.error('Error making move:', error);
+        // If there's an error, try to select the clicked square if it has a piece
+        if (board[row][col] && board[row][col]!.color === game.turn()) {
+          setSelectedSquare(square);
+          const moves = game.moves({square: square as any, verbose: true});
+          setLegalMoves(moves.map((m: any) => m.to));
+        } else {
+          setSelectedSquare(null);
+          setLegalMoves([]);
+        }
       }
     } else {
       // Select a piece (only if it has valid moves)

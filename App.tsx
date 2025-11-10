@@ -36,6 +36,7 @@ function App(): React.JSX.Element {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentFen, setCurrentFen] = useState('');
   const [analysis, setAnalysis] = useState<EngineAnalysis[]>([]);
+  const [analysisTurn, setAnalysisTurn] = useState<'w' | 'b' | null>(null); // Track which turn the analysis is for
   const [setupProgress, setSetupProgress] = useState<SetupProgress | null>(
     null,
   );
@@ -392,6 +393,7 @@ function App(): React.JSX.Element {
   const handleMove = async (from: Square, to: Square) => {
     // Clear analysis immediately to prevent showing stale data during move transition
     setAnalysis([]);
+    setAnalysisTurn(null);
 
     // Apply the move to gameRef
     gameRef.current.move({from, to, promotion: 'q'});
@@ -430,6 +432,7 @@ function App(): React.JSX.Element {
         console.log('Should show suggestions:', newTurn === 'w' ? player2Type === 'human' : player1Type === 'human');
         console.log('====================');
         setAnalysis([moveAnalysis]);
+        setAnalysisTurn(newTurn); // Mark which turn this analysis is for
         setIsAnalyzing(false);
       } catch (error) {
         console.error('Error getting move analysis:', error);
@@ -481,6 +484,7 @@ function App(): React.JSX.Element {
 
       // Clear analysis immediately to prevent showing stale data
       setAnalysis([]);
+      setAnalysisTurn(null);
 
       // Tell engine about current position and get move
       const fen = gameRef.current.fen();
@@ -524,6 +528,7 @@ function App(): React.JSX.Element {
           console.log('Current player type:', newTurn === 'w' ? player2Type : player1Type);
           console.log('==================================');
           setAnalysis([currentAnalysis]);
+          setAnalysisTurn(newTurn); // Mark which turn this analysis is for
           setIsAnalyzing(false);
         } catch (error) {
           console.error('Error getting analysis:', error);
@@ -763,6 +768,7 @@ function App(): React.JSX.Element {
             <View style={styles.analysisContainer}>
               <AnalysisPanel
                 analysis={analysis}
+                analysisTurn={analysisTurn}
                 onSuggestionClick={handleSuggestionClick}
                 onSuggestionHover={setSuggestedMoveHighlight}
                 onContinuationHover={setMoveSequence}

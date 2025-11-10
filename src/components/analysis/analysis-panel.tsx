@@ -5,6 +5,7 @@ import {TermText} from '../ui/tooltip';
 
 interface AnalysisPanelProps {
   analysis?: EngineAnalysis[];
+  analysisTurn?: 'w' | 'b' | null; // Which turn the analysis is for
   isAnalyzing?: boolean;
   onSuggestionClick?: (move: string) => void;
   onSuggestionHover?: (hovering: boolean) => void;
@@ -16,6 +17,7 @@ interface AnalysisPanelProps {
 
 export function AnalysisPanel({
   analysis,
+  analysisTurn,
   isAnalyzing = false,
   onSuggestionClick,
   onSuggestionHover,
@@ -108,9 +110,17 @@ export function AnalysisPanel({
   const isHumanTurn = currentPlayerType === 'human';
   const isAIvsAI = player1Type === 'ai' && player2Type === 'ai';
 
-  // Validate: only show suggestions if it's actually a human player's turn
-  // Never show suggestions during AI vs AI
-  const shouldShowSuggestions = !isAIvsAI && isHumanTurn && mainLine && mainLine.pv.length > 0;
+  // Validate: only show suggestions if:
+  // 1. Not AI vs AI
+  // 2. Current player is human
+  // 3. Analysis exists and has moves
+  // 4. CRITICAL: Analysis is for the current turn (prevents showing stale analysis)
+  const shouldShowSuggestions =
+    !isAIvsAI &&
+    isHumanTurn &&
+    mainLine &&
+    mainLine.pv.length > 0 &&
+    analysisTurn === currentTurn; // Only show if analysis matches current turn!
 
   return (
     <View style={styles.container}>
@@ -154,69 +164,62 @@ export function AnalysisPanel({
         {/* Suggestions (Right Column) - Only show for human players */}
         {shouldShowSuggestions && (
           <View style={styles.rightColumn}>
-            {/* Best Move Suggestion */}
-            <View style={styles.suggestionSection}>
-            <Text style={styles.sectionTitle}>Your Best Move</Text>
-            {mainLine.pv.length > 0 ? (
-              <Pressable
-                style={[
-                  styles.suggestionBox,
-                  isHoveringSuggestion && styles.suggestionBoxHover,
-                ]}
-                onPress={() => onSuggestionClick?.(mainLine.pv[0])}
-                onHoverIn={() => {
-                  setIsHoveringSuggestion(true);
-                  onSuggestionHover?.(true);
-                }}
-                onHoverOut={() => {
-                  setIsHoveringSuggestion(false);
-                  onSuggestionHover?.(false);
-                }}>
-                <Text style={styles.suggestionMove}>{mainLine.pv[0]}</Text>
-                <Text style={styles.suggestionLabel}>
-                  {isHoveringSuggestion ? 'Click to play' : 'Recommended'}
+            {/* Show top 3 moves from PV */}
+            {mainLine.pv.slice(0, 3).map((move, idx) => (
+              <View key={idx} style={styles.suggestionSection}>
+                <Text style={styles.sectionTitle}>
+                  {idx === 0 ? '⭐ Best Move' : `Option ${idx + 1}`}
                 </Text>
-              </Pressable>
-            ) : (
-              <View style={[styles.suggestionBox, styles.suggestionBoxEmpty]}>
-                <Text style={styles.suggestionMove}>--</Text>
-                <Text style={styles.suggestionLabel}>Analyzing...</Text>
+                <Pressable
+                  style={[
+                    styles.suggestionBox,
+                    idx === 0 && styles.bestMoveBox,
+                    isHoveringSuggestion && styles.suggestionBoxHover,
+                  ]}
+                  onPress={() => onSuggestionClick?.(move)}
+                  onHoverIn={() => {
+                    setIsHoveringSuggestion(true);
+                    onSuggestionHover?.(true);
+                  }}
+                  onHoverOut={() => {
+                    setIsHoveringSuggestion(false);
+                    onSuggestionHover?.(false);
+                  }}>
+                  <Text style={styles.suggestionMove}>{move}</Text>
+                  <Text style={styles.suggestionLabel}>
+                    {isHoveringSuggestion ? 'Click to play' : idx === 0 ? 'Recommended' : 'Alternative'}
+                  </Text>
+                </Pressable>
               </View>
-            )}
-          </View>
+            ))}
 
-          {/* Continuation */}
-          <View style={styles.suggestionSection}>
-            <Text style={styles.sectionTitle}>If You Play Best Move</Text>
-            {mainLine.pv.length > 1 ? (
-              <Pressable
-                style={[
-                  styles.continuationBox,
-                  isHoveringContinuation && styles.continuationBoxHover,
-                ]}
-                onHoverIn={() => {
-                  setIsHoveringContinuation(true);
-                  onContinuationHover?.(mainLine.pv.slice(1));
-                }}
-                onHoverOut={() => {
-                  setIsHoveringContinuation(false);
-                  onContinuationHover?.([]);
-                }}>
-                <Text style={styles.continuationText} numberOfLines={3}>
-                  {formatMovePairs(mainLine.pv.slice(1))}
-                </Text>
-                <Text style={styles.continuationLabel}>
-                  {isHoveringContinuation ? 'Hover to preview' : 'Future moves'}
-                </Text>
-              </Pressable>
-            ) : (
-              <View style={[styles.continuationBox, styles.continuationBoxEmpty]}>
-                <Text style={styles.continuationText}>--</Text>
-                <Text style={styles.continuationLabel}>Analyzing...</Text>
+            {/* Continuation preview */}
+            {mainLine.pv.length > 3 && (
+              <View style={styles.suggestionSection}>
+                <Text style={styles.sectionTitle}>Continuation</Text>
+                <Pressable
+                  style={[
+                    styles.continuationBox,
+                    isHoveringContinuation && styles.continuationBoxHover,
+                  ]}
+                  onHoverIn={() => {
+                    setIsHoveringContinuation(true);
+                    onContinuationHover?.(mainLine.pv.slice(1));
+                  }}
+                  onHoverOut={() => {
+                    setIsHoveringContinuation(false);
+                    onContinuationHover?.([]);
+                  }}>
+                  <Text style={styles.continuationText} numberOfLines={2}>
+                    {formatMovePairs(mainLine.pv.slice(3))}
+                  </Text>
+                  <Text style={styles.continuationLabel}>
+                    {isHoveringContinuation ? 'Hover to preview' : 'Future moves'}
+                  </Text>
+                </Pressable>
               </View>
             )}
           </View>
-        </View>
         )}
       </View>
     </View>
@@ -330,6 +333,11 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     cursor: 'pointer',
+  },
+  bestMoveBox: {
+    backgroundColor: '#4CAF50', // Green for best move
+    borderWidth: 2,
+    borderColor: '#FFD700', // Gold border
   },
   suggestionBoxHover: {
     backgroundColor: '#1976D2',
