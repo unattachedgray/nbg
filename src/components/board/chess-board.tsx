@@ -188,15 +188,6 @@ export function ChessBoard({
           </View>
         ))}
       </View>
-      <View style={styles.info}>
-        {game.isCheck() && <Text style={styles.checkText}>Check!</Text>}
-        {game.isCheckmate() && (
-          <Text style={styles.mateText}>Checkmate!</Text>
-        )}
-        {game.isStalemate() && (
-          <Text style={styles.drawText}>Stalemate!</Text>
-        )}
-      </View>
     </View>
   );
 }

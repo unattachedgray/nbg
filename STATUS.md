@@ -1,6 +1,6 @@
 # Chess App - Project Status
 
-**Last Updated**: November 10, 2025, 5:05 AM
+**Last Updated**: November 10, 2025, 5:15 AM
 **Status**: ✅ **Active Development - Core Features Complete**
 
 ---
@@ -282,6 +282,13 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 10, 2025 - 5:15 AM
+- **Removed turn indicator** - "White to move" / "Black to move" text removed
+- **Moved game status to header** - Check!/Checkmate!/Stalemate! now display where turn indicator was
+- **Fixed duplicate status display** - Removed Check!/Checkmate! from under board
+- **Fixed status priority** - Checkmate now replaces Check instead of showing both
+- Debug logging in place to diagnose remaining suggestion bug
 
 ### November 10, 2025 - 5:05 AM
 - **Optimized AI vs AI performance** - Reduced move time from ~2500ms to ~600ms (4x faster!)

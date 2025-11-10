@@ -402,15 +402,15 @@ function App(): React.JSX.Element {
     setCurrentFen(newFen);
     setCurrentTurn(newTurn);
 
-    // Update game status
+    // Update game status (checkmate takes priority over check)
     if (gameRef.current.isCheckmate()) {
       setGameStatus('Checkmate!');
       await recordGameResult();
-    } else if (gameRef.current.isCheck()) {
-      setGameStatus('Check!');
     } else if (gameRef.current.isStalemate()) {
       setGameStatus('Stalemate!');
       await recordGameResult();
+    } else if (gameRef.current.isCheck()) {
+      setGameStatus('Check!');
     } else {
       setGameStatus('');
     }
@@ -494,15 +494,15 @@ function App(): React.JSX.Element {
       setCurrentFen(newFen);
       setCurrentTurn(newTurn);
 
-      // Update game status
+      // Update game status (checkmate takes priority over check)
       if (gameRef.current.isCheckmate()) {
         setGameStatus('Checkmate!');
         await recordGameResult();
-      } else if (gameRef.current.isCheck()) {
-        setGameStatus('Check!');
       } else if (gameRef.current.isStalemate()) {
         setGameStatus('Stalemate!');
         await recordGameResult();
+      } else if (gameRef.current.isCheck()) {
+        setGameStatus('Check!');
       } else {
         setGameStatus('');
       }
@@ -686,18 +686,20 @@ function App(): React.JSX.Element {
             )}
           </View>
 
-          {/* Turn Indicator */}
+          {/* Game Status */}
           <View style={styles.turnContainer}>
-            <Text style={styles.turnIndicator}>
-              {currentTurn === 'w' ? 'White to move' : 'Black to move'}
-            </Text>
-            {gameStatus && (
+            {gameStatus ? (
               <Text style={[
                 styles.gameStatusText,
                 gameStatus === 'Checkmate!' && styles.checkmateText,
                 gameStatus === 'Check!' && styles.checkTextHeader,
               ]}>
                 {gameStatus}
+              </Text>
+            ) : (
+              <Text style={styles.turnIndicator}>
+                {/* Placeholder for consistent spacing */}
+                {'‎ '}
               </Text>
             )}
           </View>
