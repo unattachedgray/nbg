@@ -280,6 +280,14 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 1:30 AM
+- **Fixed controls layout** - Controls section now in topRow and wraps properly with window resize
+- **Fixed mate score formatting** - M90001 now shows as M1 (calculated moves to mate properly)
+- **Added game stats tracking** - Tracks wins/draws, saves to chess-stats.json on mobile
+- **Moved check/checkmate to header** - Now displays next to turn indicator instead of under board
+- **Added stats display** - Shows games played, white wins, black wins, draws in Controls section
+- **Record game results automatically** - Stats update when game ends (checkmate or stalemate)
+
 ### November 10, 2025 - 1:00 AM
 - **Redesigned player selection** - Black and White buttons with stylized colors (black bg with white text, light bg with dark text)
 - **Moved controls section** - Now below topRow instead of inside it, appears under suggestions panel

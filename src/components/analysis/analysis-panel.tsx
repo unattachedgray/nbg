@@ -27,8 +27,11 @@ export function AnalysisPanel({
   const [isHoveringSuggestion, setIsHoveringSuggestion] = useState(false);
   const [isHoveringContinuation, setIsHoveringContinuation] = useState(false);
   const formatScore = (score: number): string => {
+    // Mate scores are typically above 9000
     if (Math.abs(score) > 9000) {
-      const mateIn = score > 0 ? 10000 - score : -10000 - score;
+      // Calculate moves to mate
+      // Positive score = white is winning, negative = black is winning
+      const mateIn = score > 0 ? Math.ceil((10000 - score) / 2) : Math.ceil((-10000 - score) / 2);
       return `M${Math.abs(mateIn)}`;
     }
     return (score / 100).toFixed(2);

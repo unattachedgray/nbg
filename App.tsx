@@ -44,6 +44,13 @@ function App(): React.JSX.Element {
   const [player2Type, setPlayer2Type] = useState<'human' | 'ai'>('human'); // White (bottom)
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [currentTurn, setCurrentTurn] = useState<'w' | 'b'>('w'); // Track whose turn it is
+  const [gameStatus, setGameStatus] = useState<string>(''); // Track check/checkmate/stalemate
+  const [stats, setStats] = useState({
+    whiteWins: 0,
+    blackWins: 0,
+    draws: 0,
+    totalGames: 0,
+  });
 
   const engineRef = useRef<XBoardEngine | null>(null);
   const gameRef = useRef(new Chess());
@@ -65,6 +72,42 @@ function App(): React.JSX.Element {
 
   const dismissAllToasts = () => {
     setToasts([]);
+  };
+
+  const recordGameResult = async () => {
+    if (!gameRef.current.isGameOver()) return;
+
+    const newStats = {...stats};
+    newStats.totalGames += 1;
+
+    if (gameRef.current.isCheckmate()) {
+      // Winner is the opposite of current turn (current turn is the loser)
+      if (currentTurn === 'w') {
+        newStats.blackWins += 1;
+      } else {
+        newStats.whiteWins += 1;
+      }
+    } else {
+      // Draw (stalemate, insufficient material, etc.)
+      newStats.draws += 1;
+    }
+
+    setStats(newStats);
+
+    // Save stats to file (platform-specific - only on platforms that support file system)
+    if (Platform.OS !== 'windows') {
+      try {
+        const RNFS = require('react-native-fs');
+        const statsPath = `${RNFS.DocumentDirectoryPath}/chess-stats.json`;
+        await RNFS.writeFile(statsPath, JSON.stringify(newStats, null, 2), 'utf8');
+        console.log('Stats saved to:', statsPath);
+      } catch (error) {
+        console.error('Failed to save stats:', error);
+      }
+    } else {
+      // For Windows, just log to console (could save to a different location if needed)
+      console.log('Game stats updated:', newStats);
+    }
   };
 
   // Initialize NNUE and engine on mount
@@ -237,6 +280,20 @@ function App(): React.JSX.Element {
     const newTurn = gameRef.current.turn();
     setCurrentFen(newFen);
     setCurrentTurn(newTurn);
+
+    // Update game status
+    if (gameRef.current.isCheckmate()) {
+      setGameStatus('Checkmate!');
+      await recordGameResult();
+    } else if (gameRef.current.isCheck()) {
+      setGameStatus('Check!');
+    } else if (gameRef.current.isStalemate()) {
+      setGameStatus('Stalemate!');
+      await recordGameResult();
+    } else {
+      setGameStatus('');
+    }
+
     console.log('After human move - new turn:', newTurn);
 
     // Analyze position after move
@@ -288,6 +345,20 @@ function App(): React.JSX.Element {
       const newTurn = gameRef.current.turn();
       setCurrentFen(gameRef.current.fen());
       setCurrentTurn(newTurn);
+
+      // Update game status
+      if (gameRef.current.isCheckmate()) {
+        setGameStatus('Checkmate!');
+        await recordGameResult();
+      } else if (gameRef.current.isCheck()) {
+        setGameStatus('Check!');
+      } else if (gameRef.current.isStalemate()) {
+        setGameStatus('Stalemate!');
+        await recordGameResult();
+      } else {
+        setGameStatus('');
+      }
+
       console.log('After engine move - new turn:', newTurn);
 
       // Update analysis after the move (after each complete round)
@@ -324,6 +395,7 @@ function App(): React.JSX.Element {
     gameRef.current.reset();
     setCurrentFen(gameRef.current.fen());
     setCurrentTurn('w'); // White starts
+    setGameStatus('');
     setAnalysis([]);
     setMoveSequence([]);
     setSuggestedMoveHighlight(false);
@@ -458,9 +530,20 @@ function App(): React.JSX.Element {
           </View>
 
           {/* Turn Indicator */}
-          <Text style={styles.turnIndicator}>
-            {currentTurn === 'w' ? 'White to move' : 'Black to move'}
-          </Text>
+          <View style={styles.turnContainer}>
+            <Text style={styles.turnIndicator}>
+              {currentTurn === 'w' ? 'White to move' : 'Black to move'}
+            </Text>
+            {gameStatus && (
+              <Text style={[
+                styles.gameStatusText,
+                gameStatus === 'Checkmate!' && styles.checkmateText,
+                gameStatus === 'Check!' && styles.checkTextHeader,
+              ]}>
+                {gameStatus}
+              </Text>
+            )}
+          </View>
 
           {/* Variant Dropdown */}
           <View style={styles.variantSelector}>
@@ -483,7 +566,7 @@ function App(): React.JSX.Element {
 
       {/* Main Content - Compact Layout */}
       <View style={styles.mainContent}>
-        {/* Top Row: Board + Analysis */}
+        {/* Top Row: Board + Analysis + Controls */}
         <View style={styles.topRow}>
           {/* Chess Board */}
           <View style={styles.boardContainer}>
@@ -512,11 +595,18 @@ function App(): React.JSX.Element {
               player2Type={player2Type}
             />
           </View>
-        </View>
 
-        {/* Controls Section */}
-        <View style={styles.controlsSection}>
+          {/* Controls Section */}
+          <View style={styles.controlsContainer}>
           <Text style={styles.controlsSectionTitle}>Controls</Text>
+
+          {/* Stats Section */}
+          <View style={styles.statsSection}>
+            <Text style={styles.statItem}>Games: {stats.totalGames}</Text>
+            <Text style={styles.statItem}>White: {stats.whiteWins}W</Text>
+            <Text style={styles.statItem}>Black: {stats.blackWins}W</Text>
+            <Text style={styles.statItem}>Draws: {stats.draws}</Text>
+          </View>
 
           {/* Player Selection */}
           <View style={styles.playerSelectionRow}>
@@ -580,6 +670,8 @@ function App(): React.JSX.Element {
             </Pressable>
           </View>
         </View>
+        </View>
+        </View>
       </View>
 
       {/* Toast Notifications */}
@@ -629,11 +721,26 @@ const styles = StyleSheet.create({
     color: '#666666',
     marginLeft: 6,
   },
+  turnContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 12,
+  },
   turnIndicator: {
     fontSize: 13,
     color: '#333333',
     fontWeight: '600',
-    marginHorizontal: 12,
+  },
+  gameStatusText: {
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  checkTextHeader: {
+    color: '#FF9800',
+  },
+  checkmateText: {
+    color: '#F44336',
   },
   variantSelector: {
     flexDirection: 'row',
@@ -691,11 +798,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  controlsSection: {
+  controlsContainer: {
+    flexGrow: 1,
+    flexShrink: 0,
+    flexBasis: 400,
+    minWidth: 300,
+    maxWidth: 600,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
-    marginTop: 16,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
@@ -707,6 +818,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333333',
     marginBottom: 12,
+  },
+  statsSection: {
+    flexDirection: 'row',
+    gap: 12,
+    flexWrap: 'wrap',
+    marginBottom: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333333',
   },
   playerSelectionRow: {
     flexDirection: 'row',
