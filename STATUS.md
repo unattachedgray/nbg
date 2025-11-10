@@ -286,6 +286,17 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 9:45 AM
+- **Optimized AI vs AI performance**
+  - Reduced think time from 100ms to 50ms per move
+  - AI vs AI games now play significantly faster
+- **Implemented Learning Mode**
+  - Sets both players to human (play both sides)
+  - Shows AI suggestions for BOTH white and black
+  - Helps users learn best moves from both perspectives
+  - Perfect for studying openings and tactics
+  - Exit returns to normal player vs AI mode
+
 ### November 10, 2025 - 9:30 AM
 - **Cleaned up debug logging** - Removed all verbose test code
   - Removed all console.log debug messages used for troubleshooting
