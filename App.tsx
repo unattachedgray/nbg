@@ -284,16 +284,14 @@ function App(): React.JSX.Element {
       setCurrentFen(gameRef.current.fen());
 
       // Update analysis after the move (after each complete round)
-      if (showAnalysis || gameMode === 'learning') {
-        try {
-          const currentAnalysis = await engineRef.current.analyze(
-            gameRef.current.fen(),
-            15,
-          );
-          setAnalysis([currentAnalysis]);
-        } catch (error) {
-          console.error('Error getting analysis:', error);
-        }
+      try {
+        const currentAnalysis = await engineRef.current.analyze(
+          gameRef.current.fen(),
+          15,
+        );
+        setAnalysis([currentAnalysis]);
+      } catch (error) {
+        console.error('Error getting analysis:', error);
       }
 
       setIsEngineThinking(false);
@@ -496,37 +494,43 @@ function App(): React.JSX.Element {
               onSuggestionClick={handleSuggestionClick}
               onSuggestionHover={setSuggestedMoveHighlight}
               onContinuationHover={setMoveSequence}
+              currentTurn={gameRef.current.turn()}
+              player1Type={player1Type}
+              player2Type={player2Type}
             />
           </View>
         </View>
 
-        {/* Player Selection */}
-        <View style={styles.playerSelectionRow}>
-          <View style={styles.playerControl}>
-            <Text style={styles.playerLabel}>Player 1 (Black - Top):</Text>
-            <Pressable
-              style={styles.playerButton}
-              onPress={() => setPlayer1Type(player1Type === 'human' ? 'ai' : 'human')}>
-              <Text style={styles.playerButtonText}>
-                {player1Type === 'human' ? 'Human' : 'AI'}
-              </Text>
-            </Pressable>
-          </View>
-          <View style={styles.playerControl}>
-            <Text style={styles.playerLabel}>Player 2 (White - Bottom):</Text>
-            <Pressable
-              style={styles.playerButton}
-              onPress={() => setPlayer2Type(player2Type === 'human' ? 'ai' : 'human')}>
-              <Text style={styles.playerButtonText}>
-                {player2Type === 'human' ? 'Human' : 'AI'}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
+        {/* Controls Section */}
+        <View style={styles.controlsSection}>
+          <Text style={styles.controlsSectionTitle}>Controls</Text>
 
-        {/* Bottom Row: Controls */}
-        <View style={styles.bottomRow}>
-          <View style={styles.controls}>
+          {/* Player Selection */}
+          <View style={styles.playerSelectionRow}>
+            <View style={styles.playerControl}>
+              <Text style={styles.playerLabel}>Player 1 (Black - Top):</Text>
+              <Pressable
+                style={styles.playerButton}
+                onPress={() => setPlayer1Type(player1Type === 'human' ? 'ai' : 'human')}>
+                <Text style={styles.playerButtonText}>
+                  {player1Type === 'human' ? 'Human' : 'AI'}
+                </Text>
+              </Pressable>
+            </View>
+            <View style={styles.playerControl}>
+              <Text style={styles.playerLabel}>Player 2 (White - Bottom):</Text>
+              <Pressable
+                style={styles.playerButton}
+                onPress={() => setPlayer2Type(player2Type === 'human' ? 'ai' : 'human')}>
+                <Text style={styles.playerButtonText}>
+                  {player2Type === 'human' ? 'Human' : 'AI'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Game Control Buttons */}
+          <View style={styles.gameControls}>
             <Pressable style={styles.controlButton} onPress={handleNewGame}>
               <Text style={styles.controlButtonText}>New Game</Text>
             </Pressable>
@@ -659,19 +663,28 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  playerSelectionRow: {
+  controlsSection: {
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
     marginTop: 16,
-    flexDirection: 'row',
-    gap: 16,
-    flexWrap: 'wrap',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  controlsSectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 12,
+  },
+  playerSelectionRow: {
+    flexDirection: 'row',
+    gap: 16,
+    flexWrap: 'wrap',
+    marginBottom: 12,
   },
   playerControl: {
     flex: 1,
@@ -698,12 +711,10 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '600',
   },
-  bottomRow: {
-    paddingTop: 16,
-  },
-  controls: {
+  gameControls: {
     flexDirection: 'row',
     gap: 12,
+    flexWrap: 'wrap',
     justifyContent: 'center',
   },
   controlButton: {

@@ -11,7 +11,7 @@ This file contains persistent instructions for Claude Code sessions working on t
 
 ## 🔐 GitHub Credentials
 
-**IMPORTANT**: For all git operations, read credentials from `/mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json`
+**IMPORTANT**: For all git operations, read credentials from `/mnt/c/Users/unatt/OneDrive/dev/nbg/ChessApp/credentials.json`
 
 **credentials.json structure** (now fixed):
 ```json
@@ -26,8 +26,8 @@ This file contains persistent instructions for Claude Code sessions working on t
 **Usage Pattern**:
 ```bash
 # With python (recommended):
-GITHUB_USER=$(python3 -c "import json; print(json.load(open('/mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json'))['github']['username'])")
-GITHUB_TOKEN=$(python3 -c "import json; print(json.load(open('/mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json'))['github']['token'])")
+GITHUB_USER=$(python3 -c "import json; print(json.load(open('/mnt/c/Users/unatt/OneDrive/dev/nbg/ChessApp/credentials.json'))['github']['username'])")
+GITHUB_TOKEN=$(python3 -c "import json; print(json.load(open('/mnt/c/Users/unatt/OneDrive/dev/nbg/ChessApp/credentials.json'))['github']['token'])")
 
 # Set remote and push
 git remote set-url origin https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/nbg.git
@@ -36,8 +36,8 @@ git push
 
 **Alternative with jq** (if installed):
 ```bash
-GITHUB_USER=$(jq -r '.github.username' /mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json)
-GITHUB_TOKEN=$(jq -r '.github.token' /mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json)
+GITHUB_USER=$(jq -r '.github.username' /mnt/c/Users/unatt/OneDrive/dev/nbg/ChessApp/credentials.json)
+GITHUB_TOKEN=$(jq -r '.github.token' /mnt/c/Users/unatt/OneDrive/dev/nbg/ChessApp/credentials.json)
 ```
 
 ## 📝 STATUS.md Update Protocol
@@ -79,8 +79,8 @@ git commit -m "feat: <brief description of changes>
 - Detail 3"
 
 # 4. Push using credentials
-GITHUB_USER=$(jq -r '.github.username' /mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json)
-GITHUB_TOKEN=$(jq -r '.github.token' /mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json)
+GITHUB_USER=$(python3 -c "import json; print(json.load(open('/mnt/c/Users/unatt/OneDrive/dev/nbg/ChessApp/credentials.json'))['github']['username'])")
+GITHUB_TOKEN=$(python3 -c "import json; print(json.load(open('/mnt/c/Users/unatt/OneDrive/dev/nbg/ChessApp/credentials.json'))['github']['token'])")
 git remote set-url origin https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/nbg.git
 git push
 ```

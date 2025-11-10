@@ -9,6 +9,9 @@ interface AnalysisPanelProps {
   onSuggestionClick?: (move: string) => void;
   onSuggestionHover?: (hovering: boolean) => void;
   onContinuationHover?: (moves: string[]) => void;
+  currentTurn?: 'w' | 'b';
+  player1Type?: 'human' | 'ai'; // black
+  player2Type?: 'human' | 'ai'; // white
 }
 
 export function AnalysisPanel({
@@ -17,6 +20,9 @@ export function AnalysisPanel({
   onSuggestionClick,
   onSuggestionHover,
   onContinuationHover,
+  currentTurn,
+  player1Type,
+  player2Type,
 }: AnalysisPanelProps): React.JSX.Element {
   const [isHoveringSuggestion, setIsHoveringSuggestion] = useState(false);
   const [isHoveringContinuation, setIsHoveringContinuation] = useState(false);
@@ -86,6 +92,10 @@ export function AnalysisPanel({
 
   const mainLine = analysis[0];
 
+  // Determine if current player is human
+  const currentPlayerType = currentTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
+  const isHumanTurn = currentPlayerType === 'human';
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Analysis</Text>
@@ -125,10 +135,11 @@ export function AnalysisPanel({
           </View>
         </View>
 
-        {/* Suggestions (Right Column) */}
-        <View style={styles.rightColumn}>
-          {/* Best Move Suggestion */}
-          <View style={styles.suggestionSection}>
+        {/* Suggestions (Right Column) - Only show for human players */}
+        {isHumanTurn && (
+          <View style={styles.rightColumn}>
+            {/* Best Move Suggestion */}
+            <View style={styles.suggestionSection}>
             <Text style={styles.sectionTitle}>Your Best Move</Text>
             {mainLine.pv.length > 0 ? (
               <Pressable
@@ -190,6 +201,7 @@ export function AnalysisPanel({
             )}
           </View>
         </View>
+        )}
       </View>
     </View>
   );

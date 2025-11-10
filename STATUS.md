@@ -280,6 +280,14 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 12:15 AM
+- **Fixed wrong player suggestions** - Analysis panel now only shows "Your Best Move" when it's a human player's turn
+- **Reorganized layout** - Moved player selection and game buttons into new "Controls" section right under analysis
+- **Consolidated controls** - New Game, Start/Stop (conditional), and Learning Mode buttons now in Controls section
+- **Made layout more compact** - Controls section takes up less space, responsive with flexWrap
+- **Moved credentials.json** - Now located in ChessApp folder instead of parent nbg folder
+- **Updated CLAUDE.md** - All git credential references now point to new credentials.json location
+
 ### November 9, 2025 - 11:45 PM
 - **Created toast notification system** - Non-blocking error/info messages at bottom of screen
 - **Replaced Alert.alert with toasts** - Errors, warnings, and game over messages now show as toasts
