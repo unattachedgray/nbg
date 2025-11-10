@@ -521,9 +521,12 @@ function App(): React.JSX.Element {
       // For Janggi, we can't use chess.js (doesn't support Janggi)
       // Use manual FEN manipulation
       console.log(`Janggi move: ${from}${to}`);
+      console.log('Current FEN before move:', currentFen);
       newFen = applyMoveToFEN(currentFen, `${from}${to}`);
-      console.log('Updated Janggi FEN:', newFen);
+      console.log('Updated Janggi FEN after applyMoveToFEN:', newFen);
+      console.log('FEN validation check - split length:', newFen.split('/').length);
       setCurrentFen(newFen);
+      console.log('State updated - setCurrentFen called with:', newFen);
       newTurn = currentTurn === 'w' ? 'b' : 'w';
       setCurrentTurn(newTurn);
       // Skip game status checks for Janggi (need engine to determine)
@@ -636,7 +639,10 @@ function App(): React.JSX.Element {
       if (selectedVariant === 'janggi') {
         // For Janggi, apply move manually to FEN
         console.log(`Janggi AI move: ${engineMove}`);
+        console.log('Current FEN before AI move:', currentFen);
         newFen = applyMoveToFEN(currentFen, engineMove);
+        console.log('Updated Janggi FEN after AI move:', newFen);
+        console.log('FEN validation check - split length:', newFen.split('/').length);
         newTurn = currentTurn === 'w' ? 'b' : 'w';
       } else {
         // For Chess, use chess.js

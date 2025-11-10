@@ -102,6 +102,8 @@ export function positionToFEN(position: JanggiPosition): string {
  * @returns Updated FEN
  */
 export function applyMoveToFEN(fen: string, move: string): string {
+  console.log('applyMoveToFEN called with FEN:', fen, 'move:', move);
+
   if (move.length < 4) {
     console.error('Invalid move notation:', move);
     return fen;
@@ -109,6 +111,7 @@ export function applyMoveToFEN(fen: string, move: string): string {
 
   const from = move.substring(0, 2);
   const to = move.substring(2, 4);
+  console.log('From:', from, 'To:', to);
 
   // Parse coordinates
   const fromFile = from.charCodeAt(0) - 'a'.charCodeAt(0);

@@ -109,10 +109,13 @@ export function JanggiBoard({
 
   // Parse Janggi FEN to board array when it changes
   useEffect(() => {
-    console.log('JanggiBoard: FEN prop changed:', fen);
+    console.log('JanggiBoard: useEffect triggered - FEN prop changed:', fen);
+    console.log('JanggiBoard: FEN validation - split length:', fen ? fen.split('/').length : 'no FEN');
     if (fen) {
       const parsedBoard = parseFEN(fen);
+      console.log('JanggiBoard: Parsed board, length:', parsedBoard.length);
       setBoard(parsedBoard);
+      console.log('JanggiBoard: Board state updated');
     }
   }, [fen]);
 
