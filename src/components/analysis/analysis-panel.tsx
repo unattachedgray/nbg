@@ -8,7 +8,7 @@ interface AnalysisPanelProps {
   analysisTurn?: 'w' | 'b' | null; // Which turn the analysis is for
   isAnalyzing?: boolean;
   onSuggestionClick?: (move: string) => void;
-  onSuggestionHover?: (hovering: boolean) => void;
+  onSuggestionHover?: (move: string | null) => void; // Pass the move string, not just boolean
   onContinuationHover?: (moves: string[]) => void;
   currentTurn?: 'w' | 'b';
   player1Type?: 'human' | 'ai'; // black
@@ -164,59 +164,36 @@ export function AnalysisPanel({
         {/* Suggestions (Right Column) - Only show for human players */}
         {shouldShowSuggestions && (
           <View style={styles.rightColumn}>
-            {/* Show top 3 moves from PV */}
-            {mainLine.pv.slice(0, 3).map((move, idx) => (
-              <View key={idx} style={styles.suggestionSection}>
-                <Text style={styles.sectionTitle}>
-                  {idx === 0 ? '⭐ Best Move' : `Option ${idx + 1}`}
-                </Text>
+            {/* Compact suggestion buttons */}
+            <View style={styles.compactSuggestionsRow}>
+              {mainLine.pv.slice(0, 3).map((move, idx) => (
                 <Pressable
+                  key={idx}
                   style={[
-                    styles.suggestionBox,
-                    idx === 0 && styles.bestMoveBox,
-                    isHoveringSuggestion && styles.suggestionBoxHover,
+                    styles.compactSuggestionButton,
+                    idx === 0 && styles.bestMoveButton,
                   ]}
                   onPress={() => onSuggestionClick?.(move)}
                   onHoverIn={() => {
-                    setIsHoveringSuggestion(true);
-                    onSuggestionHover?.(true);
+                    onSuggestionHover?.(move); // Pass the actual move being hovered
                   }}
                   onHoverOut={() => {
-                    setIsHoveringSuggestion(false);
-                    onSuggestionHover?.(false);
+                    onSuggestionHover?.(null); // Clear highlight when hover ends
                   }}>
-                  <Text style={styles.suggestionMove}>{move}</Text>
-                  <Text style={styles.suggestionLabel}>
-                    {isHoveringSuggestion ? 'Click to play' : idx === 0 ? 'Recommended' : 'Alternative'}
+                  <Text style={styles.compactMoveText}>
+                    {idx === 0 && '⭐ '}
+                    {move}
                   </Text>
                 </Pressable>
-              </View>
-            ))}
+              ))}
+            </View>
 
-            {/* Continuation preview */}
+            {/* Continuation preview - keep for context */}
             {mainLine.pv.length > 3 && (
-              <View style={styles.suggestionSection}>
-                <Text style={styles.sectionTitle}>Continuation</Text>
-                <Pressable
-                  style={[
-                    styles.continuationBox,
-                    isHoveringContinuation && styles.continuationBoxHover,
-                  ]}
-                  onHoverIn={() => {
-                    setIsHoveringContinuation(true);
-                    onContinuationHover?.(mainLine.pv.slice(1));
-                  }}
-                  onHoverOut={() => {
-                    setIsHoveringContinuation(false);
-                    onContinuationHover?.([]);
-                  }}>
-                  <Text style={styles.continuationText} numberOfLines={2}>
-                    {formatMovePairs(mainLine.pv.slice(3))}
-                  </Text>
-                  <Text style={styles.continuationLabel}>
-                    {isHoveringContinuation ? 'Hover to preview' : 'Future moves'}
-                  </Text>
-                </Pressable>
+              <View style={styles.continuationPreview}>
+                <Text style={styles.continuationText} numberOfLines={2}>
+                  {formatMovePairs(mainLine.pv.slice(3))}
+                </Text>
               </View>
             )}
           </View>
@@ -264,6 +241,34 @@ const styles = StyleSheet.create({
     minWidth: 150,
     maxWidth: 250,
     gap: 12,
+  },
+  compactSuggestionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  compactSuggestionButton: {
+    backgroundColor: '#2196F3',
+    borderRadius: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    cursor: 'pointer',
+  },
+  bestMoveButton: {
+    backgroundColor: '#4CAF50',
+    borderWidth: 2,
+    borderColor: '#FFD700',
+  },
+  compactMoveText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  continuationPreview: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 6,
+    padding: 8,
+    marginTop: 4,
   },
   evalSection: {
     backgroundColor: '#f5f5f5',

@@ -40,7 +40,7 @@ function App(): React.JSX.Element {
   const [setupProgress, setSetupProgress] = useState<SetupProgress | null>(
     null,
   );
-  const [suggestedMoveHighlight, setSuggestedMoveHighlight] = useState(false);
+  const [hoveredMove, setHoveredMove] = useState<string | null>(null);
   const [moveSequence, setMoveSequence] = useState<string[]>([]);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [player1Type, setPlayer1Type] = useState<'human' | 'ai'>('ai'); // Black (top)
@@ -563,7 +563,7 @@ function App(): React.JSX.Element {
     setGameStatus('');
     setAnalysis([]);
     setMoveSequence([]);
-    setSuggestedMoveHighlight(false);
+    setHoveredMove(null);
 
     // Reset engine
     if (engineRef.current && engineReady) {
@@ -756,11 +756,7 @@ function App(): React.JSX.Element {
                 variant={selectedVariant}
                 onMove={handleMove}
                 fen={currentFen || undefined}
-                suggestedMove={
-                  analysis.length > 0 && analysis[0].pv.length > 0 && suggestedMoveHighlight
-                    ? analysis[0].pv[0]
-                    : undefined
-                }
+                suggestedMove={hoveredMove || undefined}
                 moveSequence={moveSequence}
               />
             </View>
@@ -774,7 +770,7 @@ function App(): React.JSX.Element {
                 analysis={analysis}
                 analysisTurn={analysisTurn}
                 onSuggestionClick={handleSuggestionClick}
-                onSuggestionHover={setSuggestedMoveHighlight}
+                onSuggestionHover={setHoveredMove}
                 onContinuationHover={setMoveSequence}
                 currentTurn={currentTurn}
                 player1Type={player1Type}

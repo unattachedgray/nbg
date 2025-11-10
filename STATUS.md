@@ -1,6 +1,6 @@
 # Chess App - Project Status
 
-**Last Updated**: November 10, 2025, 5:40 AM
+**Last Updated**: November 10, 2025, 5:50 AM
 **Status**: ✅ **Active Development - Core Features Complete**
 
 ---
@@ -282,6 +282,12 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 10, 2025 - 5:50 AM
+- **Compact suggestions** - Buttons now only show move notation (e.g., "⭐ e2e4") without extra text
+- **Removed clutter** - No more "click to play", "option 2", "option 3" labels
+- **Fixed hover highlighting** - Hovering each button now correctly highlights that specific move on board
+- **Cleaner UI** - Suggestions take minimal space, just 3 compact buttons in a row
 
 ### November 10, 2025 - 5:40 AM
 - **FIXED: Suggestions back and working** - Set analysisTurn in initial analysis (was null, causing check to fail)
