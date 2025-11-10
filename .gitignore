@@ -60,3 +60,4 @@ credentials.json
 # Temp files
 *.tmp
 *.temp
+msbuild.binlog

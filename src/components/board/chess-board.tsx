@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Pressable, Dimensions} from 'react-native';
 import {Chess} from 'chess.js';
 import {GameVariant, Square} from '../../types/game';
+import {ChessPiece} from './chess-piece';
 
 interface ChessBoardProps {
   variant?: GameVariant;
@@ -11,20 +12,7 @@ interface ChessBoardProps {
   moveSequence?: string[]; // Array of moves to overlay (e.g., ["e2e4", "e7e5"])
 }
 
-const PIECE_SYMBOLS: Record<string, string> = {
-  p: '♟',
-  n: '♞',
-  b: '♝',
-  r: '♜',
-  q: '♛',
-  k: '♚',
-  P: '♙',
-  N: '♘',
-  B: '♗',
-  R: '♖',
-  Q: '♕',
-  K: '♔',
-};
+// Removed PIECE_SYMBOLS - now using SVG assets via ChessPiece component
 
 export function ChessBoard({
   variant = 'chess',
@@ -157,13 +145,11 @@ export function ChessBoard({
         ]}
         onPress={() => handleSquarePress(row, col)}>
         {piece && (
-          <Text
-            style={[
-              styles.piece,
-              piece.color === 'w' ? styles.whitePiece : styles.blackPiece,
-            ]}>
-            {PIECE_SYMBOLS[piece.type.toUpperCase()]}
-          </Text>
+          <ChessPiece
+            type={piece.type}
+            color={piece.color}
+            size={squareSize * 0.8}
+          />
         )}
         {/* Show coordinates on edge squares */}
         {col === 0 && (
@@ -236,18 +222,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-  },
-  piece: {
-    fontSize: squareSize * 0.7,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: {width: 1, height: 1},
-    textShadowRadius: 2,
-  },
-  whitePiece: {
-    color: '#ffffff',
-  },
-  blackPiece: {
-    color: '#000000',
   },
   rankLabel: {
     position: 'absolute',

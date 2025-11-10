@@ -468,9 +468,17 @@ function App(): React.JSX.Element {
           console.error('❌ ERROR: Could not validate suggested move:', err);
         }
         console.log('====================');
-        setAnalysis([moveAnalysis]);
-        setAnalysisTurn(newTurn); // Mark which turn this analysis is for
-        setAnalysisFen(newFen); // Store the FEN this analysis is for
+
+        // GUARD: Only set analysis if position hasn't changed
+        // This prevents race condition where AI makes a move while analysis is pending
+        if (gameRef.current.fen() === newFen) {
+          console.log('✅ Position still matches, updating analysis');
+          setAnalysis([moveAnalysis]);
+          setAnalysisTurn(newTurn);
+          setAnalysisFen(newFen);
+        } else {
+          console.log('⚠️ Position changed while analysis was running, discarding stale analysis');
+        }
         setIsAnalyzing(false);
       } catch (error) {
         console.error('Error getting move analysis:', error);
