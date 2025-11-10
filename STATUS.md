@@ -286,6 +286,19 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 3:45 PM
+- **Added Wooden Janggi Pieces and Board Styling**
+  - Downloaded authentic wooden Janggi SVG pieces from Kadagaden/chess-pieces repo
+  - Created JanggiPiece component (similar architecture to ChessPiece)
+  - Replaced Korean text characters with high-quality wooden SVG graphics
+  - Implemented wood-themed board design:
+    - Natural tan/wood background (#D2B48C)
+    - Dark brown border (#5D4037)
+    - Camel brown for palace squares (#C19A6B)
+    - Burlywood for river ranks (#DEB887)
+  - All 14 piece types properly mapped: red/blue king, advisor, chariot, horse, elephant, cannon, pawn
+  - Board now visually matches traditional wooden Janggi boards
+
 ### November 10, 2025 - 3:00 PM
 - **Fixed Janggi Crash and XBoard Protocol Errors**
   - Problem 1: `Error (unknown command): setoption` - wrong protocol command
