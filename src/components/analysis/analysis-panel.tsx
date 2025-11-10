@@ -96,15 +96,13 @@ export function AnalysisPanel({
   const mainLine = analysis[0];
 
   // Determine if current player is human
-  const currentPlayerType = currentTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
+  // player1Type = black (top), player2Type = white (bottom)
+  // currentTurn 'w' means white to move, 'b' means black to move
+  const currentPlayerType = currentTurn === 'w' ? player2Type : player1Type;
   const isHumanTurn = currentPlayerType === 'human';
 
-  // Debug logging
-  console.log('AnalysisPanel - currentTurn:', currentTurn);
-  console.log('AnalysisPanel - player1Type (black):', player1Type);
-  console.log('AnalysisPanel - player2Type (white):', player2Type);
-  console.log('AnalysisPanel - currentPlayerType:', currentPlayerType);
-  console.log('AnalysisPanel - isHumanTurn:', isHumanTurn);
+  // Validate: only show suggestions if it's actually a human player's turn
+  const shouldShowSuggestions = isHumanTurn && mainLine && mainLine.pv.length > 0;
 
   return (
     <View style={styles.container}>
@@ -146,7 +144,7 @@ export function AnalysisPanel({
         </View>
 
         {/* Suggestions (Right Column) - Only show for human players */}
-        {isHumanTurn && (
+        {shouldShowSuggestions && (
           <View style={styles.rightColumn}>
             {/* Best Move Suggestion */}
             <View style={styles.suggestionSection}>

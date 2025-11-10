@@ -391,6 +391,9 @@ function App(): React.JSX.Element {
   const handleMove = async (from: Square, to: Square) => {
     console.log(`Move: ${from} -> ${to}`);
 
+    // Clear analysis immediately to prevent showing stale suggestions
+    setAnalysis([]);
+
     // Apply the move to gameRef
     gameRef.current.move({from, to, promotion: 'q'});
 
@@ -458,6 +461,9 @@ function App(): React.JSX.Element {
       const engineMove = await engineRef.current.getBestMove(fen, 2000);
 
       console.log(`Engine move: ${engineMove}`);
+
+      // Clear analysis before making the move
+      setAnalysis([]);
 
       // Make the engine's move on the board
       gameRef.current.move(engineMove as any);

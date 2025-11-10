@@ -304,6 +304,12 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 4:15 AM
+- **Fixed suggestion display bug** - Suggestions now correctly show only for the human player's turn
+- **Clear analysis on move** - Analysis cleared immediately when move is made to prevent stale suggestions
+- **Added validation** - Only show suggestions when it's a human player's turn AND valid moves exist
+- **Removed debug logging** - Cleaned up console output from AnalysisPanel
+
 ### November 10, 2025 - 4:00 AM
 - **MAJOR: Redesigned layout system** - Replaced absolute positioning with flex-based layout
 - **Removed DraggableSection component** - No longer needed with flex layout
