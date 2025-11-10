@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Pressable, Dimensions} from 'react-native';
-import {GameVariant, Square} from '../../types/game';
+import {GameVariant} from '../../types/game';
 
 interface JanggiBoardProps {
   variant?: GameVariant;
@@ -37,19 +37,8 @@ export function JanggiBoard({
   suggestedMove,
   legalMoves = [],
 }: JanggiBoardProps): React.JSX.Element {
-  const [board, setBoard] = useState<(string | null)[][]>([]);
-  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
-  const [availableMoves, setAvailableMoves] = useState<string[]>([]);
-
-  // Parse Janggi FEN to board array
-  useEffect(() => {
-    if (fen) {
-      const parsedBoard = parseFEN(fen);
-      setBoard(parsedBoard);
-    }
-  }, [fen]);
-
   const parseFEN = (fenString: string): (string | null)[][] => {
+    console.log('JanggiBoard: Parsing FEN:', fenString);
     // Janggi FEN format: board is 10 ranks, 9 files
     // Example: rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR
     const [boardPart] = fenString.split(' ');
@@ -81,8 +70,29 @@ export function JanggiBoard({
       newBoard.push(row);
     }
 
+    console.log('JanggiBoard: Parsed board has', newBoard.length, 'ranks');
     return newBoard;
   };
+
+  const [board, setBoard] = useState<(string | null)[][]>(() => {
+    // Initialize with starting position if fen is provided
+    if (fen) {
+      return parseFEN(fen);
+    }
+    // Default empty 10x9 board
+    return Array.from({length: 10}, () => Array(9).fill(null));
+  });
+  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [availableMoves, setAvailableMoves] = useState<string[]>([]);
+
+  // Parse Janggi FEN to board array when it changes
+  useEffect(() => {
+    console.log('JanggiBoard: FEN prop changed:', fen);
+    if (fen) {
+      const parsedBoard = parseFEN(fen);
+      setBoard(parsedBoard);
+    }
+  }, [fen]);
 
   const getSquareNotation = (rank: number, file: number): string => {
     // Janggi notation: file (a-i) + rank (0-9)
@@ -205,14 +215,21 @@ export function JanggiBoard({
     );
   };
 
+  console.log('JanggiBoard: Rendering with board length:', board.length);
+  console.log('JanggiBoard: FEN prop:', fen);
+
   return (
     <View style={styles.container}>
       <View style={styles.board}>
-        {Array.from({length: 10}, (_, rank) => (
-          <View key={rank} style={styles.rank}>
-            {Array.from({length: 9}, (_, file) => renderSquare(rank, file))}
-          </View>
-        ))}
+        {board.length === 0 ? (
+          <Text style={{color: 'white', fontSize: 20}}>Loading board...</Text>
+        ) : (
+          Array.from({length: 10}, (_, rank) => (
+            <View key={rank} style={styles.rank}>
+              {Array.from({length: 9}, (_, file) => renderSquare(rank, file))}
+            </View>
+          ))
+        )}
       </View>
     </View>
   );
