@@ -9,6 +9,10 @@ interface AnalysisPanelProps {
   onSuggestionClick?: (move: string) => void;
   onSuggestionHover?: (hovering: boolean) => void;
   onContinuationHover?: (moves: string[]) => void;
+  player1Type?: 'human' | 'ai';
+  player2Type?: 'human' | 'ai';
+  onPlayer1TypeChange?: (type: 'human' | 'ai') => void;
+  onPlayer2TypeChange?: (type: 'human' | 'ai') => void;
 }
 
 export function AnalysisPanel({
@@ -17,6 +21,10 @@ export function AnalysisPanel({
   onSuggestionClick,
   onSuggestionHover,
   onContinuationHover,
+  player1Type = 'human',
+  player2Type = 'ai',
+  onPlayer1TypeChange,
+  onPlayer2TypeChange,
 }: AnalysisPanelProps): React.JSX.Element {
   const [isHoveringSuggestion, setIsHoveringSuggestion] = useState(false);
   const [isHoveringContinuation, setIsHoveringContinuation] = useState(false);
@@ -89,6 +97,30 @@ export function AnalysisPanel({
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Analysis</Text>
+
+      {/* Player Selection */}
+      <View style={styles.playerSelection}>
+        <View style={styles.playerRow}>
+          <Text style={styles.playerLabel}>Player 1 (White):</Text>
+          <Pressable
+            style={styles.playerButton}
+            onPress={() => onPlayer1TypeChange?.(player1Type === 'human' ? 'ai' : 'human')}>
+            <Text style={styles.playerButtonText}>
+              {player1Type === 'human' ? 'Human' : 'AI'}
+            </Text>
+          </Pressable>
+        </View>
+        <View style={styles.playerRow}>
+          <Text style={styles.playerLabel}>Player 2 (Black):</Text>
+          <Pressable
+            style={styles.playerButton}
+            onPress={() => onPlayer2TypeChange?.(player2Type === 'human' ? 'ai' : 'human')}>
+            <Text style={styles.playerButtonText}>
+              {player2Type === 'human' ? 'Human' : 'AI'}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
 
       {/* Compact layout - All sections visible without scrolling */}
       <View style={styles.contentGrid}>
@@ -205,7 +237,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333333',
+    marginBottom: 8,
+  },
+  playerSelection: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 10,
     marginBottom: 12,
+    gap: 8,
+  },
+  playerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  playerLabel: {
+    fontSize: 12,
+    color: '#555555',
+    fontWeight: '600',
+  },
+  playerButton: {
+    backgroundColor: '#2196F3',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    minWidth: 70,
+    alignItems: 'center',
+  },
+  playerButtonText: {
+    fontSize: 12,
+    color: '#ffffff',
+    fontWeight: '600',
   },
   placeholder: {
     justifyContent: 'center',

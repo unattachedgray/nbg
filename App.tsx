@@ -29,7 +29,6 @@ function App(): React.JSX.Element {
   const [selectedVariant, setSelectedVariant] =
     useState<GameVariant>('chess');
   const [gameMode, setGameMode] = useState<GameMode>('player-vs-ai');
-  const [showAnalysis, setShowAnalysis] = useState(true);
   const [engineReady, setEngineReady] = useState(false);
   const [isEngineThinking, setIsEngineThinking] = useState(false);
   const [currentFen, setCurrentFen] = useState('');
@@ -39,11 +38,13 @@ function App(): React.JSX.Element {
   );
   const [suggestedMoveHighlight, setSuggestedMoveHighlight] = useState(false);
   const [moveSequence, setMoveSequence] = useState<string[]>([]);
-  const [aiVsAiRunning, setAiVsAiRunning] = useState(false);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const [player1Type, setPlayer1Type] = useState<'human' | 'ai'>('human'); // White
+  const [player2Type, setPlayer2Type] = useState<'human' | 'ai'>('ai'); // Black
 
   const engineRef = useRef<XBoardEngine | null>(null);
   const gameRef = useRef(new Chess());
-  const aiVsAiStopRef = useRef(false);
+  const autoPlayStopRef = useRef(false);
 
   // Initialize NNUE and engine on mount
   useEffect(() => {
@@ -187,15 +188,13 @@ function App(): React.JSX.Element {
       console.log('✅ Engine ready!');
 
       // Get initial analysis of starting position
-      if (showAnalysis) {
-        try {
-          const startingFen = gameRef.current.fen();
-          const initialAnalysis = await engine.analyze(startingFen, 15);
-          setAnalysis([initialAnalysis]);
-          console.log('✅ Initial analysis complete');
-        } catch (error) {
-          console.error('Error getting initial analysis:', error);
-        }
+      try {
+        const startingFen = gameRef.current.fen();
+        const initialAnalysis = await engine.analyze(startingFen, 15);
+        setAnalysis([initialAnalysis]);
+        console.log('✅ Initial analysis complete');
+      } catch (error) {
+        console.error('Error getting initial analysis:', error);
       }
     } catch (error) {
       console.error('Failed to initialize engine:', error);
@@ -207,7 +206,7 @@ function App(): React.JSX.Element {
   };
 
   const handleMove = async (from: Square, to: Square) => {
-    console.log(`Player move: ${from} -> ${to}`);
+    console.log(`Move: ${from} -> ${to}`);
 
     // Apply the move to gameRef
     gameRef.current.move({from, to, promotion: 'q'});
@@ -216,8 +215,8 @@ function App(): React.JSX.Element {
     const newFen = gameRef.current.fen();
     setCurrentFen(newFen);
 
-    // Analyze position after player move
-    if ((showAnalysis || gameMode === 'learning') && engineRef.current && engineReady) {
+    // Analyze position after move
+    if (engineRef.current && engineReady) {
       try {
         const moveAnalysis = await engineRef.current.analyze(newFen, 15);
         setAnalysis([moveAnalysis]);
@@ -226,9 +225,13 @@ function App(): React.JSX.Element {
       }
     }
 
-    if (gameMode === 'player-vs-ai' && engineRef.current && engineReady) {
-      // Get AI response
-      await getEngineMove();
+    // Check if next player is AI and should auto-move
+    const currentTurn = gameRef.current.turn();
+    const currentPlayerType = currentTurn === 'w' ? player1Type : player2Type;
+
+    if (currentPlayerType === 'ai' && !gameRef.current.isGameOver()) {
+      // Next player is AI, auto-trigger their move
+      setTimeout(() => getEngineMove(), 500);
     }
   };
 
@@ -283,10 +286,10 @@ function App(): React.JSX.Element {
   const handleNewGame = async () => {
     console.log('Starting new game');
 
-    // Stop AI vs AI if running
-    if (aiVsAiRunning) {
-      aiVsAiStopRef.current = true;
-      setAiVsAiRunning(false);
+    // Stop auto-play if running
+    if (isAutoPlaying) {
+      autoPlayStopRef.current = true;
+      setIsAutoPlaying(false);
     }
 
     // Reset game mode to player vs AI
@@ -304,48 +307,56 @@ function App(): React.JSX.Element {
       await engineRef.current.newGame();
 
       // Get initial analysis of starting position
-      if (showAnalysis) {
-        try {
-          const startingFen = gameRef.current.fen();
-          const initialAnalysis = await engineRef.current.analyze(startingFen, 15);
-          setAnalysis([initialAnalysis]);
-          console.log('✅ Initial analysis complete');
-        } catch (error) {
-          console.error('Error getting initial analysis:', error);
-        }
+      try {
+        const startingFen = gameRef.current.fen();
+        const initialAnalysis = await engineRef.current.analyze(startingFen, 15);
+        setAnalysis([initialAnalysis]);
+        console.log('✅ Initial analysis complete');
+      } catch (error) {
+        console.error('Error getting initial analysis:', error);
+      }
+
+      // If player 1 (white) is AI, make first move
+      if (player1Type === 'ai') {
+        setTimeout(() => getEngineMove(), 1000);
       }
     }
   };
 
-  const handleAIvsAI = async () => {
-    if (aiVsAiRunning) {
-      // Stop AI vs AI
-      aiVsAiStopRef.current = true;
-      setAiVsAiRunning(false);
-      setGameMode('player-vs-ai');
-      console.log('Stopping AI vs AI mode');
+  const handleStartStop = async () => {
+    if (isAutoPlaying) {
+      // Stop auto-play
+      autoPlayStopRef.current = true;
+      setIsAutoPlaying(false);
+      console.log('Stopping auto-play');
       return;
     }
 
-    setGameMode('ai-vs-ai');
-    setAiVsAiRunning(true);
-    aiVsAiStopRef.current = false;
-    console.log('Starting AI vs AI mode');
+    setIsAutoPlaying(true);
+    autoPlayStopRef.current = false;
+    console.log('Starting auto-play');
 
     if (!engineRef.current || !engineReady) {
-      Alert.alert('AI vs AI', 'Engine not ready');
-      setAiVsAiRunning(false);
-      setGameMode('player-vs-ai');
+      Alert.alert('Auto-Play', 'Engine not ready');
+      setIsAutoPlaying(false);
       return;
     }
 
-    // AI vs AI game loop
-    while (!gameRef.current.isGameOver() && !aiVsAiStopRef.current) {
-      await getEngineMove();
-      await new Promise<void>(resolve => setTimeout(resolve, 1000)); // 1 second delay
+    // Continuous play loop
+    while (!gameRef.current.isGameOver() && !autoPlayStopRef.current) {
+      const currentTurn = gameRef.current.turn();
+      const currentPlayerType = currentTurn === 'w' ? player1Type : player2Type;
+
+      if (currentPlayerType === 'ai') {
+        await getEngineMove();
+        await new Promise<void>(resolve => setTimeout(resolve, 1000));
+      } else {
+        // Current player is human, wait for their move
+        break;
+      }
     }
 
-    setAiVsAiRunning(false);
+    setIsAutoPlaying(false);
 
     if (gameRef.current.isGameOver()) {
       console.log('Game over!', gameRef.current.isCheckmate() ? 'Checkmate' : 'Draw');
@@ -356,10 +367,8 @@ function App(): React.JSX.Element {
           : 'Draw - ' + (gameRef.current.isStalemate() ? 'Stalemate' : 'Draw')
       );
     } else {
-      console.log('AI vs AI stopped by user');
+      console.log('Auto-play stopped');
     }
-
-    setGameMode('player-vs-ai');
   };
 
   const handleLearningMode = () => {
@@ -370,11 +379,10 @@ function App(): React.JSX.Element {
     } else {
       // Enter learning mode
       setGameMode('learning');
-      setShowAnalysis(true);
       console.log('Starting learning mode');
 
       // Learning mode shows analysis but doesn't auto-play
-      // Analysis is already shown after each move in handleMove()
+      // Analysis is always shown after each move in handleMove()
     }
   };
 
@@ -462,16 +470,18 @@ function App(): React.JSX.Element {
           </View>
 
           {/* Analysis Panel */}
-          {showAnalysis && (
-            <View style={styles.analysisContainer}>
-              <AnalysisPanel
-                analysis={analysis}
-                onSuggestionClick={handleSuggestionClick}
-                onSuggestionHover={setSuggestedMoveHighlight}
-                onContinuationHover={setMoveSequence}
-              />
-            </View>
-          )}
+          <View style={styles.analysisContainer}>
+            <AnalysisPanel
+              analysis={analysis}
+              onSuggestionClick={handleSuggestionClick}
+              onSuggestionHover={setSuggestedMoveHighlight}
+              onContinuationHover={setMoveSequence}
+              player1Type={player1Type}
+              player2Type={player2Type}
+              onPlayer1TypeChange={setPlayer1Type}
+              onPlayer2TypeChange={setPlayer2Type}
+            />
+          </View>
         </View>
 
         {/* Bottom Row: Controls */}
@@ -483,11 +493,11 @@ function App(): React.JSX.Element {
             <Pressable
               style={[
                 styles.controlButton,
-                aiVsAiRunning && styles.stopButton,
+                isAutoPlaying && styles.stopButton,
               ]}
-              onPress={handleAIvsAI}>
+              onPress={handleStartStop}>
               <Text style={styles.controlButtonText}>
-                {aiVsAiRunning ? 'Stop AI vs AI' : 'AI vs AI'}
+                {isAutoPlaying ? 'Stop' : 'Start'}
               </Text>
             </Pressable>
             <Pressable
@@ -498,13 +508,6 @@ function App(): React.JSX.Element {
               onPress={handleLearningMode}>
               <Text style={styles.controlButtonText}>
                 {gameMode === 'learning' ? 'Exit Learning' : 'Learning Mode'}
-              </Text>
-            </Pressable>
-            <Pressable
-              style={[styles.controlButton, styles.toggleButton]}
-              onPress={() => setShowAnalysis(!showAnalysis)}>
-              <Text style={styles.controlButtonText}>
-                {showAnalysis ? 'Hide' : 'Show'} Analysis
               </Text>
             </Pressable>
           </View>

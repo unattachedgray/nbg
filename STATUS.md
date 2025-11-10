@@ -41,8 +41,8 @@
 
 ### 🔨 Currently Working On
 
-- Testing game mode controls (AI vs AI stop, Learning mode toggle)
-- Verifying new game reset functionality
+- Testing player selection controls and auto-move logic
+- Verifying Start/Stop button functionality
 
 ---
 
@@ -279,6 +279,14 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 9, 2025 - 11:30 PM
+- **Added player selection controls** - Choose Human/AI for Player 1 (White) and Player 2 (Black) in analysis panel
+- **Replaced "AI vs AI" with "Start/Stop"** - Generic button for continuous auto-play based on player settings
+- **Removed "Hide Analysis" button** - Analysis panel now always visible
+- **Fixed player turn logic** - Game now correctly identifies which player should move based on turn
+- **Auto-move after human move** - If next player is AI, automatically triggers their move
+- **Fixed suggestions showing for wrong player** - Analysis always shown but logic respects player types
 
 ### November 9, 2025 - 11:00 PM
 - **Created CLAUDE.md** - Persistent instructions for future sessions with git credentials, STATUS.md protocol, architecture notes
