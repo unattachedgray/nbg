@@ -280,6 +280,14 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 2:30 AM
+- **Enhanced drag-and-drop with grid snapping** - Sections now snap to 20px grid when dragged
+- **Improved space validation** - Sections provide visual feedback when they don't fit in available space
+- **Added window resize responsiveness** - Sections automatically adjust positions when window resizes
+- **Optimized section sizing** - Fixed widths with min/max constraints, added maxHeight to prevent overflow
+- **Enhanced internal responsiveness** - Analysis panel columns now wrap better at smaller sizes
+- **Improved animation feedback** - Different spring tension based on whether section fits or is clamped
+
 ### November 10, 2025 - 2:00 AM
 - **Added drag-and-drop functionality** - All main sections (board, analysis, controls) are now draggable
 - **Created DraggableSection component** - Reusable wrapper using PanResponder for drag behavior

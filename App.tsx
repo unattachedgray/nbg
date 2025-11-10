@@ -53,9 +53,9 @@ function App(): React.JSX.Element {
     totalGames: 0,
   });
   const [sectionPositions, setSectionPositions] = useState({
-    board: {x: 0, y: 0},
-    analysis: {x: 0, y: 0},
-    controls: {x: 0, y: 0},
+    board: {x: 0, y: 0}, // Board on the left
+    analysis: {x: 420, y: 0}, // Suggestions to the right of board
+    controls: {x: 420, y: 420}, // Controls under suggestions
   });
 
   const engineRef = useRef<XBoardEngine | null>(null);
@@ -790,20 +790,17 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   boardContainer: {
-    flexGrow: 1,
-    flexShrink: 0,
-    flexBasis: 400,
+    width: 400,
     minWidth: 350,
     maxWidth: 600,
     justifyContent: 'center',
     alignItems: 'center',
   },
   analysisContainer: {
-    flexGrow: 1,
-    flexShrink: 0,
-    flexBasis: 400,
+    width: 380,
     minWidth: 300,
-    maxWidth: 600,
+    maxWidth: 500,
+    maxHeight: 400,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     shadowColor: '#000',
@@ -811,13 +808,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    overflow: 'hidden',
   },
   controlsContainer: {
-    flexGrow: 1,
-    flexShrink: 0,
-    flexBasis: 400,
+    width: 380,
     minWidth: 300,
-    maxWidth: 600,
+    maxWidth: 500,
+    maxHeight: 350,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
@@ -826,6 +823,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    overflow: 'hidden',
   },
   controlsSectionTitle: {
     fontSize: 14,

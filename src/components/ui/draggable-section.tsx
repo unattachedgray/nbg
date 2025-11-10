@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, useEffect} from 'react';
 import {
   View,
   StyleSheet,
@@ -6,6 +6,7 @@ import {
   Animated,
   ViewStyle,
   LayoutChangeEvent,
+  Dimensions,
 } from 'react-native';
 
 interface DraggableSectionProps {
@@ -14,7 +15,10 @@ interface DraggableSectionProps {
   initialPosition?: {x: number; y: number};
   style?: ViewStyle;
   sectionId: string;
+  gridSize?: number;
 }
+
+const GRID_SIZE = 20; // Snap to 20px grid
 
 export function DraggableSection({
   children,
@@ -22,10 +26,66 @@ export function DraggableSection({
   initialPosition = {x: 0, y: 0},
   style,
   sectionId,
+  gridSize = GRID_SIZE,
 }: DraggableSectionProps): React.JSX.Element {
   const [isDragging, setIsDragging] = useState(false);
   const pan = useRef(new Animated.ValueXY(initialPosition)).current;
   const [layout, setLayout] = useState({width: 0, height: 0});
+  const [containerSize, setContainerSize] = useState(Dimensions.get('window'));
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({window}) => {
+      setContainerSize(window);
+    });
+    return () => subscription?.remove();
+  }, []);
+
+  // Recalculate position when container size changes to keep sections in bounds
+  useEffect(() => {
+    if (layout.width === 0 || layout.height === 0) return;
+
+    const currentX = (pan.x as any)._value;
+    const currentY = (pan.y as any)._value;
+
+    const {x: finalX, y: finalY} = clampPosition(currentX, currentY);
+
+    // Only update if position needs adjustment
+    if (currentX !== finalX || currentY !== finalY) {
+      Animated.spring(pan, {
+        toValue: {x: finalX, y: finalY},
+        useNativeDriver: false,
+        friction: 8,
+        tension: 35,
+      }).start();
+
+      onPositionChange?.(finalX, finalY);
+    }
+  }, [containerSize, layout]);
+
+  const snapToGrid = (value: number) => {
+    return Math.round(value / gridSize) * gridSize;
+  };
+
+  const clampPosition = (x: number, y: number) => {
+    // Calculate available space
+    const maxX = containerSize.width - layout.width - 32; // 32px margin
+    const maxY = containerSize.height - layout.height - 100; // 100px margin for header
+
+    // Snap first, then clamp
+    const snappedX = snapToGrid(x);
+    const snappedY = snapToGrid(y);
+
+    // Ensure section fits in available space
+    const clampedX = Math.max(0, Math.min(snappedX, maxX));
+    const clampedY = Math.max(0, Math.min(snappedY, maxY));
+
+    return {
+      x: clampedX,
+      y: clampedY,
+      fitsHorizontally: snappedX >= 0 && snappedX <= maxX,
+      fitsVertically: snappedY >= 0 && snappedY <= maxY,
+    };
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -44,8 +104,23 @@ export function DraggableSection({
       onPanResponderRelease: (_, gesture) => {
         setIsDragging(false);
         pan.flattenOffset();
-        const finalX = (pan.x as any)._value;
-        const finalY = (pan.y as any)._value;
+
+        const rawX = (pan.x as any)._value;
+        const rawY = (pan.y as any)._value;
+
+        const {x: finalX, y: finalY, fitsHorizontally, fitsVertically} = clampPosition(rawX, rawY);
+
+        // Provide visual feedback if section doesn't fit
+        const fits = fitsHorizontally && fitsVertically;
+
+        // Animate to snapped/clamped position with appropriate tension
+        Animated.spring(pan, {
+          toValue: {x: finalX, y: finalY},
+          useNativeDriver: false,
+          friction: fits ? 7 : 10, // More friction if forced to clamp
+          tension: fits ? 40 : 50, // More tension for "snap back" feel
+        }).start();
+
         onPositionChange?.(finalX, finalY);
       },
     }),
