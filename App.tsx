@@ -43,6 +43,7 @@ function App(): React.JSX.Element {
   const [player1Type, setPlayer1Type] = useState<'human' | 'ai'>('ai'); // Black (top)
   const [player2Type, setPlayer2Type] = useState<'human' | 'ai'>('human'); // White (bottom)
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [currentTurn, setCurrentTurn] = useState<'w' | 'b'>('w'); // Track whose turn it is
 
   const engineRef = useRef<XBoardEngine | null>(null);
   const gameRef = useRef(new Chess());
@@ -231,9 +232,10 @@ function App(): React.JSX.Element {
     // Apply the move to gameRef
     gameRef.current.move({from, to, promotion: 'q'});
 
-    // Update FEN
+    // Update FEN and turn
     const newFen = gameRef.current.fen();
     setCurrentFen(newFen);
+    setCurrentTurn(gameRef.current.turn());
 
     // Analyze position after move
     if (engineRef.current && engineReady) {
@@ -246,8 +248,8 @@ function App(): React.JSX.Element {
     }
 
     // Check if next player is AI and should auto-move
-    const currentTurn = gameRef.current.turn();
-    const currentPlayerType = currentTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
+    const nextTurn = gameRef.current.turn();
+    const currentPlayerType = nextTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
 
     if (currentPlayerType === 'ai' && !gameRef.current.isGameOver()) {
       // Next player is AI, auto-trigger their move
@@ -282,6 +284,7 @@ function App(): React.JSX.Element {
       // Make the engine's move on the board
       gameRef.current.move(engineMove as any);
       setCurrentFen(gameRef.current.fen());
+      setCurrentTurn(gameRef.current.turn());
 
       // Update analysis after the move (after each complete round)
       try {
@@ -316,6 +319,7 @@ function App(): React.JSX.Element {
     // Reset game state
     gameRef.current.reset();
     setCurrentFen(gameRef.current.fen());
+    setCurrentTurn('w'); // White starts
     setAnalysis([]);
     setMoveSequence([]);
     setSuggestedMoveHighlight(false);
@@ -362,8 +366,8 @@ function App(): React.JSX.Element {
 
     // Continuous play loop
     while (!gameRef.current.isGameOver() && !autoPlayStopRef.current) {
-      const currentTurn = gameRef.current.turn();
-      const currentPlayerType = currentTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
+      const turn = gameRef.current.turn();
+      const currentPlayerType = turn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
 
       if (currentPlayerType === 'ai') {
         await getEngineMove();
@@ -449,6 +453,11 @@ function App(): React.JSX.Element {
             )}
           </View>
 
+          {/* Turn Indicator */}
+          <Text style={styles.turnIndicator}>
+            {currentTurn === 'w' ? 'White to move' : 'Black to move'}
+          </Text>
+
           {/* Variant Dropdown */}
           <View style={styles.variantSelector}>
             <Text style={styles.variantLabel}>Game: </Text>
@@ -494,15 +503,14 @@ function App(): React.JSX.Element {
               onSuggestionClick={handleSuggestionClick}
               onSuggestionHover={setSuggestedMoveHighlight}
               onContinuationHover={setMoveSequence}
-              currentTurn={gameRef.current.turn()}
+              currentTurn={currentTurn}
               player1Type={player1Type}
               player2Type={player2Type}
             />
           </View>
-        </View>
 
-        {/* Controls Section */}
-        <View style={styles.controlsSection}>
+          {/* Controls Section */}
+          <View style={styles.controlsSection}>
           <Text style={styles.controlsSectionTitle}>Controls</Text>
 
           {/* Player Selection */}
@@ -558,6 +566,7 @@ function App(): React.JSX.Element {
             </Pressable>
           </View>
         </View>
+        </View>
       </View>
 
       {/* Toast Notifications */}
@@ -606,6 +615,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666666',
     marginLeft: 6,
+  },
+  turnIndicator: {
+    fontSize: 13,
+    color: '#333333',
+    fontWeight: '600',
+    marginHorizontal: 12,
   },
   variantSelector: {
     flexDirection: 'row',
@@ -664,10 +679,14 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   controlsSection: {
+    flexGrow: 1,
+    flexShrink: 0,
+    flexBasis: 400,
+    minWidth: 300,
+    maxWidth: 600,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
-    marginTop: 16,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,

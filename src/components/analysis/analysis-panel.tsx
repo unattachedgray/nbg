@@ -98,7 +98,7 @@ export function AnalysisPanel({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Analysis</Text>
+      <Text style={styles.title}>Suggestions</Text>
 
       {/* Compact layout - All sections visible without scrolling */}
       <View style={styles.contentGrid}>

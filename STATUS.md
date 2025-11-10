@@ -280,6 +280,14 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 10, 2025 - 12:45 AM
+- **Added turn tracking state** - currentTurn state now properly tracks whose turn it is (w/b)
+- **Fixed suggestion display** - Now uses currentTurn state instead of ref, ensuring suggestions update correctly
+- **Renamed Analysis to Suggestions** - Changed panel title to be more user-friendly
+- **Added turn indicator** - "White to move" / "Black to move" text in header between status and variant selector
+- **Reorganized layout** - Controls section now appears in topRow with analysis, wrapping responsively
+- **Fixed variable shadowing** - Renamed local currentTurn variables to avoid shadowing state
+
 ### November 10, 2025 - 12:15 AM
 - **Fixed wrong player suggestions** - Analysis panel now only shows "Your Best Move" when it's a human player's turn
 - **Reorganized layout** - Moved player selection and game buttons into new "Controls" section right under analysis
