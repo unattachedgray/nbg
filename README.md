@@ -2,7 +2,7 @@
 
 A feature-rich chess application built with React Native, supporting multiple chess variants (Chess, Janggi, and more), with advanced features like engine analysis, learning mode, and AI vs AI gameplay.
 
-⚠️ **Note**: NNUE neural network file (~46MB) is automatically downloaded on first run. You can also run the setup script manually if needed.
+✨ **Smart Setup**: NNUE neural network (~46MB) is intelligently downloaded on first run. The app automatically searches for the latest files and handles setup for you!
 
 ## Features
 
@@ -76,24 +76,34 @@ ChessApp/
    npm install
    ```
 
-3. **NNUE Neural Network** (Automatically Downloaded):
+3. **NNUE Neural Network** (Intelligent Auto-Download):
 
-   The NNUE neural network file (~46 MB) will be **automatically downloaded** on first run of the app.
+   The NNUE neural network file (~46 MB) is **intelligently downloaded** on first run:
 
-   **Optional - Manual Setup**: If you prefer to download it beforehand, run:
+   **Automatic Process:**
+   1. App checks if NNUE file exists
+   2. If missing, tries default download URL
+   3. If that fails, searches https://fairy-stockfish.github.io/nnue/ for latest files
+   4. If files found, presents selection dialog
+   5. If search fails, prompts for manual URL input
+
+   **You don't need to do anything** - the app handles it automatically!
+
+   **Optional - Manual Setup**: If you prefer to download beforehand:
 
    **PowerShell (Windows)**:
    ```powershell
    .\setup-engines.ps1
    ```
 
+   **Manual URL Input**: If automatic search fails, the app will:
+   - Show instructions on how to find NNUE files
+   - Provide a dialog to paste the download URL
+   - Download and install the file automatically
+
    **Note**: Engine binaries are included in the repository (custom compiled).
 
    **Configuration** is in `engine.config.json` if you need to update URLs or filenames.
-
-   **Manual Download** (if needed):
-   - NNUE: https://tests.stockfishchess.org/api/nn/nn-46832cfbead3.nnue
-   - Place in: `windows/chessapp/Assets/engines/` and `src/assets/engines/`
 
 4. **✅ Fairy-Stockfish Engine Details**:
 
