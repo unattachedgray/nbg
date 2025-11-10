@@ -132,6 +132,18 @@ App.tsx (state management)
 
 ## 🐛 Known Issues to Remember
 
+### CRITICAL ISSUES (As of Nov 10, 2025)
+1. **Drag-and-Drop Layout System Broken**
+   - Sections won't move next to each other despite available space
+   - Absolute positioning in ScrollView causing conflicts
+   - Controls section not visible/accessible
+   - Position clamping too restrictive
+   - **NEEDS COMPLETE REDESIGN**: Consider flex-based or grid-based layout
+   - Current approach: DraggableSection with absolute positioning - NOT WORKING
+   - User cannot see Controls section at all
+   - Reset Layout button exists but doesn't solve the core issue
+
+### Other Known Issues
 1. **react-native-fs doesn't work on Windows UWP**
    - Solution: Platform check, skip on Windows
    - Windows uses PowerShell setup script

@@ -41,8 +41,10 @@
 
 ### 🔨 Currently Working On
 
-- Testing toast notification system
-- Verifying all error messages appear as dismissible toasts
+- **CRITICAL: Fix section positioning system** - Sections won't move next to each other despite available space
+- **CRITICAL: Controls section visibility** - Controls section not visible/accessible even with scrolling
+- Need to redesign drag-and-drop positioning to allow proper side-by-side layout
+- Consider alternative to absolute positioning (flex-based or grid-based layout)
 
 ---
 
@@ -100,6 +102,21 @@
 
 ## 🚧 Known Issues & Limitations
 
+### Critical Issues (IN PROGRESS)
+1. **Drag-and-Drop Positioning System Broken**
+   - Sections won't move to positions next to board despite available space
+   - Position clamping is too restrictive
+   - Absolute positioning in ScrollView causing conflicts
+   - Controls section not visible even with scrolling enabled
+   - Reset Layout button doesn't fully solve the issue
+   - **NEEDS REDESIGN**: Consider flex-based or grid-based layout instead of absolute positioning
+
+2. **Section Visibility Problems**
+   - Controls section disappears and can't be reached
+   - Scrolling added but doesn't make hidden sections accessible
+   - Window resize doesn't properly reposition sections into view
+   - Need better visibility guarantees and layout flow
+
 ### Minor Issues
 1. **XBoard Protocol Limitation**
    - No multi-PV support (can't show alternative lines)
@@ -126,6 +143,13 @@
 ---
 
 ## 📋 Next Steps (Prioritized)
+
+### URGENT - Layout System Fix
+- [ ] **Redesign section layout system** - Replace absolute positioning with flex-based or grid-based layout
+- [ ] **Fix section visibility** - Ensure all sections always visible or properly accessible via scroll
+- [ ] **Improve drag-and-drop** - Allow sections to be positioned next to each other when space available
+- [ ] **Test on different window sizes** - Verify layout works from small to large windows
+- [ ] **Ensure Controls section always accessible** - Critical UI element cannot disappear
 
 ### High Priority
 - [ ] Move history with undo/redo
@@ -279,6 +303,14 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 10, 2025 - 3:45 AM
+- **DOCUMENTATION UPDATE** - Updated STATUS.md to reflect current critical issues
+- **Known Issues**: Drag-and-drop positioning system not working correctly
+- **Known Issues**: Controls section not visible/accessible
+- **Next Steps**: Layout system needs complete redesign
+- **Problem**: Absolute positioning in ScrollView causing conflicts and restrictions
+- **Solution Needed**: Flex-based or grid-based layout for proper section arrangement
 
 ### November 10, 2025 - 3:30 AM
 - **Added Reset Layout button** - Purple button in header (left of Game selector) to reset layout to default
