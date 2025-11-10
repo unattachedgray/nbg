@@ -11,28 +11,33 @@ This file contains persistent instructions for Claude Code sessions working on t
 
 ## 🔐 GitHub Credentials
 
-**IMPORTANT**: For all git operations, read credentials from `credentials.json`:
+**IMPORTANT**: For all git operations, read credentials from `/mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json`
 
-```bash
-# Location: /mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json
-# Structure:
+**credentials.json structure** (now fixed):
+```json
 {
   "github": {
     "username": "unattachedgray",
-    "token": "<personal_access_token>"
+    "token": "<github_personal_access_token>"
   }
 }
 ```
 
 **Usage Pattern**:
 ```bash
-# Read credentials
-GITHUB_USER=$(jq -r '.github.username' /mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json)
-GITHUB_TOKEN=$(jq -r '.github.token' /mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json)
+# With python (recommended):
+GITHUB_USER=$(python3 -c "import json; print(json.load(open('/mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json'))['github']['username'])")
+GITHUB_TOKEN=$(python3 -c "import json; print(json.load(open('/mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json'))['github']['token'])")
 
-# Use in git operations
+# Set remote and push
 git remote set-url origin https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/nbg.git
 git push
+```
+
+**Alternative with jq** (if installed):
+```bash
+GITHUB_USER=$(jq -r '.github.username' /mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json)
+GITHUB_TOKEN=$(jq -r '.github.token' /mnt/c/Users/unatt/OneDrive/dev/nbg/credentials.json)
 ```
 
 ## 📝 STATUS.md Update Protocol
