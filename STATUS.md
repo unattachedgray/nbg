@@ -280,6 +280,14 @@ npm run windows
 
 ## 📝 Recent Changes Log
 
+### November 9, 2025 - 9:30 PM
+- Fixed XBoard parsing to filter out numeric fields from move list
+- Changed "Best Line" to "If You Play Best Move" (shows continuation)
+- Changed "Suggested Move" to "Your Best Move" (clearer for human player)
+- Improved responsive layout with flexBasis and flexShrink
+- Added maxWidth constraints to columns (400px each) and container (600px)
+- Better horizontal resize handling with alignItems: stretch
+
 ### November 9, 2025 - 9:00 PM
 - Fixed suggestions not displaying (now shows "Analyzing..." when empty)
 - Improved responsive layout with flexWrap

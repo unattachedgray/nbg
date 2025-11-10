@@ -102,11 +102,11 @@ export function AnalysisPanel({
             </TermText>
           </View>
 
-          {/* Best Line */}
+          {/* Continuation */}
           <View style={styles.pvSection}>
-            <Text style={styles.sectionTitle}>Best Line</Text>
+            <Text style={styles.sectionTitle}>If You Play Best Move</Text>
             <Text style={styles.pvText} numberOfLines={3}>
-              {formatMovePairs(mainLine.pv)}
+              {mainLine.pv.length > 1 ? formatMovePairs(mainLine.pv.slice(1)) : 'Analyzing...'}
             </Text>
           </View>
         </View>
@@ -129,11 +129,11 @@ export function AnalysisPanel({
 
           {/* Best Move Suggestion */}
           <View style={styles.suggestionSection}>
-            <Text style={styles.sectionTitle}>Suggested Move</Text>
+            <Text style={styles.sectionTitle}>Your Best Move</Text>
             {mainLine.pv.length > 0 ? (
               <View style={styles.suggestionBox}>
                 <Text style={styles.suggestionMove}>{mainLine.pv[0]}</Text>
-                <Text style={styles.suggestionLabel}>Best move</Text>
+                <Text style={styles.suggestionLabel}>Recommended</Text>
               </View>
             ) : (
               <View style={[styles.suggestionBox, styles.suggestionBoxEmpty]}>
@@ -173,15 +173,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+    alignItems: 'stretch',
   },
   leftColumn: {
     flex: 1,
+    flexShrink: 1,
+    flexBasis: 200,
     minWidth: 200,
+    maxWidth: 400,
     gap: 12,
   },
   rightColumn: {
     flex: 1,
+    flexShrink: 1,
+    flexBasis: 200,
     minWidth: 200,
+    maxWidth: 400,
     gap: 12,
   },
   evalSection: {

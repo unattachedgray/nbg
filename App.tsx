@@ -502,8 +502,10 @@ const styles = StyleSheet.create({
   },
   analysisContainer: {
     flex: 1,
+    flexShrink: 1,
+    flexBasis: 400,
     minWidth: 300,
-    maxWidth: 500,
+    maxWidth: 600,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     shadowColor: '#000',

@@ -177,15 +177,20 @@ export class XBoardEngine {
         // Example: 12 +145 1234 567890 e2e4 e7e5 g1f3
 
         if (data.match(/^\d+\s+[+-]?\d+/)) {
-          const parts = data.split(/\s+/);
+          const parts = data.split(/\s+/).filter(p => p.length > 0);
           if (parts.length >= 4) {
             currentAnalysis.depth = parseInt(parts[0], 10);
             currentAnalysis.score = parseInt(parts[1], 10);
             currentAnalysis.time = parseInt(parts[2], 10) * 10; // Convert to ms
             currentAnalysis.nodes = parseInt(parts[3], 10);
             currentAnalysis.nps = currentAnalysis.nodes / (currentAnalysis.time / 1000);
-            currentAnalysis.pv = parts.slice(4);
-            currentAnalysis.bestMove = currentAnalysis.pv[0] || '';
+
+            // Filter out numeric fields, keep only moves (format: e2e4, g1f3, etc.)
+            const moves = parts.slice(4).filter(move =>
+              /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(move)
+            );
+            currentAnalysis.pv = moves;
+            currentAnalysis.bestMove = moves[0] || '';
           }
         }
 
