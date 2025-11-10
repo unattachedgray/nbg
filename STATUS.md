@@ -1,181 +1,152 @@
 # Chess App - Project Status
 
-**Last Updated**: November 9, 2025
-**Status**: ✅ **Foundation Complete + Engine Compiled**
+**Last Updated**: November 9, 2025, 8:45 PM
+**Status**: ✅ **Active Development - Core Features Complete**
 
 ---
 
-## 🎉 What's Working Now
+## 🎯 Current Sprint: UI & Analysis Improvements
 
-### ✅ Fully Functional Features
+### ✅ Recently Completed (November 9, 2025)
 
-1. **Interactive Chess Board**
-   - Drag-and-drop piece movement
-   - Legal move validation
-   - Move highlighting
-   - Check/checkmate/stalemate detection
-   - Clean visual design with coordinates
+1. **Intelligent NNUE Download System**
+   - Auto-downloads from https://fairy-stockfish.github.io/nnue/
+   - Web scraping to find latest NNUE files
+   - File selection dialog for multiple options
+   - Manual URL input fallback
+   - Platform-specific handling (Windows vs mobile)
 
-2. **Chess Engine (Fairy-Stockfish)**
-   - ✅ **COMPILED AND TESTED**
-   - Version: 091125 (built today)
-   - Size: 983KB
-   - Supports 50+ chess variants
-   - NNUE neural network enabled
-   - UCI protocol verified working
+2. **Platform-Specific NNUE Setup**
+   - Windows: Uses setup-engines.ps1 before build (avoids react-native-fs UWP issues)
+   - Android/iOS: Automatic runtime download with intelligent search
+   - Proper error handling and user feedback
 
-3. **Learning System**
-   - 40+ chess terms with definitions
-   - Interactive tooltips on hover
-   - Examples for each term
-   - Covers tactics, strategy, endgames
+3. **Analysis Panel Redesign**
+   - Compact two-column layout without scrolling
+   - Fixed move notation (now shows "1. e4 e5" instead of separate numbers)
+   - Suggested best move highlighted
+   - Initial analysis on startup (no longer waits for first move)
+   - Depth and nodes statistics
 
-4. **User Interface**
-   - Game variant selector (Chess/Janggi)
-   - Game mode buttons (Player vs AI, AI vs AI, Learning)
-   - Analysis panel (UI ready)
-   - Responsive layout
-   - Clean, modern design
+4. **Responsive Layout Improvements**
+   - Added minWidth/maxWidth constraints to prevent breaking
+   - Board: minWidth 350px, maxWidth 600px
+   - Analysis: minWidth 300px
+   - Content stays visible during window resize
 
-5. **Cross-Platform Support**
-   - React Native 0.75.4 base
-   - Windows UWP project configured
-   - Android/iOS ready
-   - TypeScript throughout
+5. **Automated Run Script**
+   - `run-app.ps1` kills processes and cleans locked directories
+   - Automatic Metro bundler startup if needed
+   - One-command launch experience
 
----
+### 🔨 Currently Working On
 
-## 🧪 Testing & Verification
-
-### Test Scripts Created
-
-1. **test-engine.sh** - Quick engine verification
-   ```bash
-   ./test-engine.sh
-   ```
-   Verifies:
-   - UCI protocol
-   - Chess variant
-   - Janggi variant
-   - Available variants list
-
-2. **demo-engine.js** - Full integration demo
-   ```bash
-   node demo-engine.js
-   ```
-   Demonstrates:
-   - Engine initialization
-   - Position analysis
-   - Best move calculation
-   - Multi-variant support
-   - UCI communication pattern
-
-### What You Can Do Right Now
-
-1. **Play Chess** (human vs human)
-   ```bash
-   npm start
-   npm run windows
-   ```
-   - Move pieces on the board
-   - Get move validation
-   - See check/checkmate alerts
-
-2. **Test the Engine**
-   ```bash
-   ./test-engine.sh
-   node demo-engine.js
-   ```
-   - Analyze positions
-   - Get best moves
-   - Test different variants
-
-3. **Learn Chess Terms**
-   - Hover over terms like "checkmate", "fork", "pin"
-   - Get instant definitions with examples
+- Documentation cleanup (removing obsolete files)
+- Progress tracking system (this file!)
 
 ---
 
-## 🚧 What's Not Working Yet
+## 🎉 Fully Functional Features
 
-### Engine Integration (Main TODO)
+### ✅ Core Gameplay
+- **Interactive Chess Board**
+  - Drag-and-drop piece movement
+  - Legal move validation via chess.js
+  - Move highlighting
+  - Check/checkmate/stalemate detection
+  - Clean visual design with coordinates
 
-The engine is compiled and works perfectly via command line, but needs to be integrated into the React Native app:
+### ✅ Chess Engine Integration
+- **Fairy-Stockfish Engine**
+  - Windows native module (C++ bridge)
+  - XBoard protocol communication
+  - Player vs AI mode working
+  - AI vs AI mode implemented
+  - Position analysis (depth 15)
+  - Best move calculation
+  - Multi-variant support (Chess, Janggi)
 
-**Missing Components:**
-1. Native module bridge (C++/Windows UWP)
-2. Process spawning from React Native
-3. UCI communication from app to engine
-4. Real-time move analysis in UI
+### ✅ Analysis System
+- **Real-time Engine Analysis**
+  - Evaluation score (+/- centipawns, mate detection)
+  - Best line (principal variation up to 10 moves)
+  - Suggested move highlighted
+  - Depth and nodes searched
+  - Position evaluation (winning/advantage/equal)
+  - Analysis on startup position
 
-**Why This Matters:**
-Without this, the "Player vs AI" and "AI vs AI" modes won't work. Currently, you can only play human vs human.
+### ✅ Learning Features
+- **Interactive Chess Terminology**
+  - 40+ chess terms with definitions
+  - Hover tooltips with examples
+  - Covers tactics, strategy, endgames
+  - TermText component for automatic term detection
 
-### Other Missing Features
+### ✅ User Interface
+- Game variant selector (Chess/Janggi dropdown)
+- Game mode buttons (Player vs AI, AI vs AI, Learning)
+- Engine status indicator (Initializing/Ready/Thinking)
+- Analysis panel with compact layout
+- Responsive design
+- Show/Hide analysis toggle
 
-- **Game State Persistence**: No save/load games yet
-- **Move History**: Can't undo/replay moves
-- **Sound Effects**: No audio feedback
-- **Animations**: Pieces move instantly
-- **Opening Book**: No opening database
-- **Puzzles**: No puzzle mode
+### ✅ Cross-Platform Support
+- React Native 0.75.4
+- Windows UWP (primary target)
+- Android/iOS ready
+- TypeScript throughout
 
 ---
 
-## 🎯 Next Steps (Prioritized)
+## 🚧 Known Issues & Limitations
 
-### Phase 1: Engine Integration (HIGH PRIORITY)
+### Minor Issues
+1. **XBoard Protocol Limitation**
+   - No multi-PV support (can't show alternative lines)
+   - Single best move only
+   - Could upgrade to UCI for multi-PV in future
 
-**Goal**: Make AI moves work
+2. **No Janggi Board Rendering**
+   - Janggi engine works but board layout is standard chess
+   - Needs custom component for Korean chess piece positions
 
-**Tasks**:
-1. Create native module for Windows UWP
-   - Spawn engine process
-   - Send UCI commands
-   - Receive engine output
-   - Handle errors
+3. **Analysis Panel Layout**
+   - Alternative lines section removed (XBoard doesn't support)
+   - Could be re-added if switching to UCI protocol
 
-2. Update `src/services/uci-engine.ts`
-   - Replace console.log with native calls
-   - Implement async/await properly
-   - Add error handling
+### Platform-Specific
+1. **react-native-fs** doesn't work on Windows UWP
+   - Solution: Platform check to skip on Windows
+   - Windows uses PowerShell setup script instead
 
-3. Connect to Chess Board
-   - Call engine after player move
-   - Parse engine response
-   - Make engine's move on board
-   - Update analysis panel
+2. **Build Access Denied Errors**
+   - Solution: run-app.ps1 kills processes and cleans directories
+   - Must run from PowerShell, not WSL
 
-**Estimated Time**: 4-6 hours
-**Difficulty**: Medium (requires C++ knowledge)
+---
 
-### Phase 2: Game Features (MEDIUM PRIORITY)
+## 📋 Next Steps (Prioritized)
 
-**Goal**: Complete gameplay experience
+### High Priority
+- [ ] Move history with undo/redo
+- [ ] Save/load games (PGN format)
+- [ ] AI vs AI speed control
+- [ ] Learning mode with continuous hints
+- [ ] Position setup/editor
 
-**Tasks**:
-1. Move history with navigation
-2. Save/load games (PGN format)
-3. AI vs AI mode with speed control
-4. Learning mode with hints
-5. Position setup/editor
+### Medium Priority
+- [ ] Piece move animations
+- [ ] Sound effects for moves
+- [ ] Multiple board themes
+- [ ] Opening book integration
+- [ ] Game statistics tracking
 
-**Estimated Time**: 6-8 hours
-**Difficulty**: Easy-Medium
-
-### Phase 3: Polish (LOW PRIORITY)
-
-**Goal**: Professional look and feel
-
-**Tasks**:
-1. Piece move animations
-2. Sound effects
-3. Multiple board themes
-4. Opening book integration
-5. Game statistics
-
-**Estimated Time**: 4-6 hours
-**Difficulty**: Easy
+### Low Priority
+- [ ] Janggi-specific board rendering
+- [ ] Puzzle mode
+- [ ] Online multiplayer
+- [ ] Tutorial mode for beginners
+- [ ] Blunder detection and analysis
 
 ---
 
@@ -188,274 +159,253 @@ ChessApp/
 │   │   ├── board/
 │   │   │   └── chess-board.tsx          ✅ Interactive board
 │   │   ├── analysis/
-│   │   │   └── analysis-panel.tsx       ✅ Analysis UI
+│   │   │   └── analysis-panel.tsx       ✅ Compact two-column layout
 │   │   └── ui/
 │   │       └── tooltip.tsx              ✅ Learning tooltips
 │   ├── services/
-│   │   └── uci-engine.ts                ⚠️ Needs native bridge
+│   │   ├── xboard-engine.ts             ✅ XBoard protocol
+│   │   └── native-engine-bridge.ts      ✅ C++ bridge
 │   ├── types/
 │   │   └── game.ts                      ✅ TypeScript types
 │   ├── utils/
-│   │   └── chess-terms.ts               ✅ 40+ terms
+│   │   ├── chess-terms.ts               ✅ 40+ terms
+│   │   └── setup-nnue.ts                ✅ Intelligent download
 │   └── assets/
 │       └── engines/
-│           ├── fairy-stockfish          ✅ Compiled (983KB)
-│           └── nn-46832cfbead3.nnue     ✅ Neural net (46MB)
-├── windows/                             ✅ UWP project
-├── App.tsx                              ✅ Main app
-├── test-engine.sh                       ✅ Quick test
-├── demo-engine.js                       ✅ Full demo
-├── README.md                            ✅ Complete docs
-├── STATUS.md                            ✅ This file
-└── package.json                         ✅ Dependencies
+│           ├── fairy-stockfish-largeboard_x86-64-bmi2.exe  ✅ Windows (1.8MB)
+│           ├── fairy-stockfish                              ✅ Linux (983KB)
+│           └── nn-46832cfbead3.nnue                        ⬇️ Downloaded via script (46MB)
+├── windows/
+│   └── chessapp/
+│       ├── EngineModule.h/.cpp          ✅ Native module
+│       └── ...                          ✅ UWP project
+├── App.tsx                              ✅ Main app component
+├── run-app.ps1                          ✅ Automated launcher
+├── setup-engines.ps1                    ✅ NNUE downloader
+├── test-engine.sh                       ✅ Engine test
+├── demo-engine.js                       ✅ Integration demo
+├── README.md                            ✅ Main documentation
+├── ARCHITECTURE.md                      ✅ Technical details
+├── BUILD.md                             ✅ Build instructions
+├── DEBUGGING.md                         ✅ Troubleshooting
+└── STATUS.md                            ✅ This file (progress tracking)
 ```
 
 ---
 
-## 💻 Technical Details
+## 💻 Technical Stack
 
-### Dependencies Installed
+### Frontend
+- React Native 0.75.4
+- TypeScript 5.9
+- chess.js 1.0.0-beta.8
+- react-native-windows 0.75.4
+- react-native-fs 2.20.0 (mobile only)
 
-```json
-{
-  "dependencies": {
-    "react": "18.3.1",
-    "react-native": "0.75.4",
-    "react-native-windows": "0.75.4",
-    "chess.js": "1.0.0-beta.8",
-    "react-native-fs": "2.20.0"
-  },
-  "devDependencies": {
-    "typescript": "5.9.3",
-    "@types/react": "18.3.26",
-    "@types/react-native": "0.72.8",
-    // ... and more
-  }
-}
-```
+### Engine
+- Fairy-Stockfish 091125
+- NNUE neural network (nn-46832cfbead3.nnue)
+- XBoard protocol
+- Windows native module (C++)
 
-### Engine Specifications
-
-**Primary (Windows Native):**
-- **Name**: Fairy-Stockfish (largeboard)
-- **File**: `fairy-stockfish-largeboard_x86-64-bmi2.exe`
-- **Size**: 1.8MB
-- **Architecture**: x86-64 with BMI2 instructions
-- **Platform**: Windows 10/11 native executable
-- **Protocol**: XBoard (primary), UCI (alternative)
-
-**Secondary (Linux/WSL):**
-- **File**: `fairy-stockfish`
-- **Size**: 983KB (optimized)
-- **Architecture**: x86-64 modern
-- **Platform**: Linux ELF (WSL compatible)
-- **Compiler**: GCC 13.3.0
-- **Optimization**: -O3 with LTO
-
-**Common Features (Both):**
-- NNUE neural network evaluation
-- Multi-threading support (1-512 threads)
-- Hash tables (16MB-32GB)
-- MultiPV (1-500 lines)
-- Skill Level (-20 to 20)
-- 50+ chess variants
-
-### Supported Variants
-
-**Standard Chess Variants:**
-- Chess (standard)
-- Chess960 (Fischer Random)
-- Antichess / Giveaway
-- Atomic Chess
-- Horde
-- King of the Hill
-- Three-Check
-- Crazyhouse
-
-**Asian Chess Variants:**
-- **Janggi** (Korean Chess) 🇰🇷
-- **Xiangqi** (Chinese Chess) 🇨🇳
-- **Shogi** (Japanese Chess) 🇯🇵
-- Makruk (Thai Chess) 🇹🇭
-- Sittuyin (Burmese Chess) 🇲🇲
-
-**40+ More Variants Available!**
+### Platform
+- Windows 10/11 (UWP)
+- Visual Studio 2022 (v143 toolset)
+- Windows SDK 10.0
+- Node.js 20+, npm 10+
 
 ---
 
-## 📊 Code Quality
+## 🎯 Quick Start Guide
 
-### TypeScript Coverage
-- ✅ 100% TypeScript
-- ✅ No `any` types
-- ✅ Strict mode enabled
-- ✅ Full type definitions
+### First Time Setup
+```powershell
+# 1. Install dependencies
+npm install
 
-### Component Organization
-- ✅ Atomic design pattern
-- ✅ Reusable components
-- ✅ Single responsibility
-- ✅ Well-documented
+# 2. Download NNUE file (Windows only)
+.\setup-engines.ps1
+
+# 3. Build and run
+.\run-app.ps1
+```
+
+### Regular Development
+```powershell
+# Terminal 1: Metro bundler
+npm start
+
+# Terminal 2: Run app
+.\run-app.ps1
+```
 
 ### Testing
+```bash
+# Test engine
+./test-engine.sh
+node demo-engine.js
+
+# Test app
+npm run windows
+```
+
+---
+
+## 📊 Progress Metrics
+
+### Code Quality
+- ✅ 100% TypeScript
+- ✅ No `any` types in public APIs
+- ✅ Atomic design pattern
+- ✅ Full error handling
+- ✅ Resource cleanup on unmount
 - ⚠️ Unit tests TODO
-- ✅ Manual testing complete
-- ✅ Engine verified working
+
+### Features Complete
+- ✅ Chess board (100%)
+- ✅ Engine integration (100%)
+- ✅ Analysis panel (100%)
+- ✅ Learning system (100%)
+- ✅ NNUE setup (100%)
+- ⚠️ Move history (0%)
+- ⚠️ Save/load games (0%)
+- ⚠️ Animations (0%)
+
+### Platform Support
+- ✅ Windows Desktop (100%)
+- 🔄 Android (ready, not tested)
+- 🔄 iOS (ready, not tested)
 
 ---
 
-## 🐛 Known Issues
+## 📝 Recent Changes Log
 
-1. **Engine requires native bridge** (see Phase 1)
-2. **No error boundaries** - should add React error boundaries
-3. **No loading states** - should show spinners during engine think
-4. **Janggi board rendering** - needs custom layout for Korean chess
-5. **No network error handling** - for future multiplayer
+### November 9, 2025 - 8:45 PM
+- Removed obsolete documentation (BUILD-WORKAROUND.md, IMPLEMENTATION.md, RUN-APP.md)
+- Updated STATUS.md to track current progress
+- Established this file as the progress tracking system
+
+### November 9, 2025 - 8:00 PM
+- Fixed responsive layout issues
+- Prevented content from being hidden during resize
+- Added minWidth/maxWidth constraints
+
+### November 9, 2025 - 7:30 PM
+- Redesigned analysis panel with compact two-column layout
+- Fixed move notation display (proper move pairs)
+- Added suggested move section
+- Removed alternative lines (XBoard limitation)
+
+### November 9, 2025 - 5:00 PM
+- Implemented initial analysis on startup
+- Added Platform.OS check for Windows NNUE setup
+- Created run-app.ps1 automated launcher
+
+### November 9, 2025 - 2:00 PM
+- Implemented intelligent NNUE download system
+- Web scraping from Fairy-Stockfish website
+- File selection dialog and manual URL input
 
 ---
 
-## 📚 Documentation
+## 🎓 Documentation Files
 
-### Files Created
-
-1. **README.md** - Complete installation and usage guide
-2. **STATUS.md** - This file, project status overview
-3. **claude.md** - Updated with progress tracking
-4. **test-engine.sh** - Quick engine test script
-5. **demo-engine.js** - Full engine demo with analysis
-
-### Key Sections
-
+### README.md
 - Installation instructions
+- Quick start guide
 - Running the app
-- Engine compilation
-- Testing procedures
-- Troubleshooting guide
-- Next steps roadmap
+- Engine setup
+- Troubleshooting
+- Feature list
+- Next steps
+
+### ARCHITECTURE.md
+- System architecture overview
+- XBoard protocol details
+- NNUE explanation
+- Data flow diagrams
+- Component design
+- Performance metrics
+
+### BUILD.md
+- Build prerequisites
+- Visual Studio setup
+- Command line builds
+- Configuration details
+- Troubleshooting build errors
+- Clean build procedures
+
+### DEBUGGING.md
+- Log collection
+- Common issues and fixes
+- Verbose logging
+- Engine status checking
+- Success indicators
+- Critical errors
+
+### STATUS.md (This File)
+- Current sprint status
+- Recently completed features
+- Currently working on
+- Known issues
+- Next steps
+- Progress metrics
+- Recent changes log
 
 ---
 
-## 🎓 Learning Resources
+## 🚀 Success Indicators
 
-### For Understanding the Codebase
+When everything is working correctly:
 
-1. **Chess Logic**: `src/components/board/chess-board.tsx`
-   - Uses chess.js for move validation
-   - React hooks for state management
-   - Touch/click handling
+### App Startup
+- ✅ App window opens (~5 seconds)
+- ✅ "Engine ready" with green dot
+- ✅ Chess board displayed
+- ✅ Initial analysis shown
 
-2. **Engine Communication**: `src/services/uci-engine.ts`
-   - UCI protocol implementation
-   - Promise-based async API
-   - Command parsing
+### During Gameplay
+- ✅ Can drag pieces
+- ✅ Moves validated in real-time
+- ✅ "Engine thinking..." appears after player move
+- ✅ AI responds within 2 seconds
+- ✅ Analysis updates after each move
 
-3. **UI Components**: `src/components/ui/tooltip.tsx`
-   - Modal implementation
-   - Chess term lookup
-   - Interactive learning
-
-### External Resources
-
-- [UCI Protocol](https://www.chessprogramming.org/UCI)
-- [React Native Windows Docs](https://microsoft.github.io/react-native-windows/)
-- [Fairy-Stockfish GitHub](https://github.com/fairy-stockfish/Fairy-Stockfish)
-- [chess.js Documentation](https://github.com/jhlywa/chess.js)
+### Analysis Panel
+- ✅ Evaluation score shown
+- ✅ Position evaluation text
+- ✅ Best line displayed (up to 10 moves)
+- ✅ Suggested move highlighted
+- ✅ Depth and nodes statistics
 
 ---
 
-## 🚀 Quick Start Guide
+## 📞 Support & Resources
 
-### For Development
+### Documentation
+- Check README.md for general usage
+- Check BUILD.md for build issues
+- Check DEBUGGING.md for troubleshooting
+- Check ARCHITECTURE.md for technical details
 
-1. **Start Metro Bundler**:
-   ```bash
-   npm start
-   ```
-
-2. **Run on Windows**:
-   ```bash
-   npm run windows
-   ```
-
-3. **Test Engine**:
-   ```bash
-   ./test-engine.sh
-   node demo-engine.js
-   ```
-
-### For Testing
-
-1. **Play human vs human** - Works now!
-2. **Check tooltips** - Hover over chess terms
-3. **Test variants** - Switch between Chess/Janggi
-4. **Verify engine** - Run test scripts
+### External Links
+- [Fairy-Stockfish](https://github.com/fairy-stockfish/Fairy-Stockfish)
+- [React Native Windows](https://microsoft.github.io/react-native-windows/)
+- [XBoard Protocol](http://hgm.nubati.net/CECP.html)
+- [chess.js](https://github.com/jhlywa/chess.js)
 
 ---
 
-## 💡 Implementation Notes
+**🎉 Congratulations! The app has a solid foundation with working AI and analysis! 🎉**
 
-### Why These Choices?
+**What's Working:**
+- Full gameplay (Player vs AI, AI vs AI)
+- Real-time engine analysis
+- Learning tooltips
+- Responsive UI
+- Cross-platform ready
 
-**React Native 0.75.4**
-- Latest stable with Windows support
-- Matches react-native-windows version
-- Good TypeScript support
-
-**Fairy-Stockfish**
-- Only engine supporting 50+ variants
-- Strong AI with NNUE
-- Active development
-- UCI standard protocol
-
-**chess.js**
-- Battle-tested move validation
-- PGN import/export
-- Well-maintained
-- Good TypeScript types
-
----
-
-## 🔮 Future Possibilities
-
-### Short-term (Next Month)
-- Complete Phase 1 (Engine Integration)
-- Add move history
-- Implement save/load
-- Create AI vs AI mode
-
-### Medium-term (3-6 Months)
-- Online multiplayer
-- Puzzle database
-- Opening book
-- Game analysis tools
-- Tutorial mode
-
-### Long-term (6+ Months)
-- Mobile app release (Android/iOS)
-- Cloud game storage
-- Player ratings
-- Tournaments
-- Social features
-
----
-
-## 📞 Support
-
-If you encounter issues:
-
-1. Check `README.md` troubleshooting section
-2. Run `./test-engine.sh` to verify engine
-3. Check React Native Windows logs
-4. Review `demo-engine.js` for integration patterns
-
----
-
-**Congratulations! You have a solid foundation for a professional chess application! 🎉**
-
-The hardest parts are done:
-- ✅ Project structure
-- ✅ Core components
-- ✅ Engine compiled
-- ✅ Testing framework
-
-Next: Connect the engine to make AI work!
+**Next Focus:**
+- Move history and navigation
+- Save/load games
+- Polish and animations
