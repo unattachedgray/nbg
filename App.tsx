@@ -16,7 +16,6 @@ import {ChessBoard} from './src/components/board/chess-board';
 import {AnalysisPanel} from './src/components/analysis/analysis-panel';
 import {TermText} from './src/components/ui/tooltip';
 import {ToastNotification, Toast} from './src/components/ui/toast-notification';
-import {DraggableSection} from './src/components/ui/draggable-section';
 import {GameVariant, GameMode, Square, EngineAnalysis} from './src/types/game';
 import {createXBoardEngine, XBoardEngine} from './src/services/xboard-engine';
 import {Chess} from 'chess.js';
@@ -95,6 +94,17 @@ function App(): React.JSX.Element {
     };
     setSectionPositions(defaultPositions);
     showToast('Layout reset to default', 'info');
+  };
+
+  const resetStats = () => {
+    const emptyStats = {
+      whiteWins: 0,
+      blackWins: 0,
+      draws: 0,
+      totalGames: 0,
+    };
+    setStats(emptyStats);
+    showToast('Statistics reset', 'info');
   };
 
   const loadSavedData = async () => {
@@ -654,12 +664,19 @@ function App(): React.JSX.Element {
             )}
           </View>
 
-          {/* Reset Layout Button */}
-          <Pressable
-            style={styles.resetLayoutButton}
-            onPress={resetLayout}>
-            <Text style={styles.resetLayoutText}>Reset Layout</Text>
-          </Pressable>
+          {/* Reset Buttons */}
+          <View style={styles.resetButtonsContainer}>
+            <Pressable
+              style={styles.resetLayoutButton}
+              onPress={resetLayout}>
+              <Text style={styles.resetButtonText}>Reset Layout</Text>
+            </Pressable>
+            <Pressable
+              style={styles.resetStatsButton}
+              onPress={resetStats}>
+              <Text style={styles.resetButtonText}>Reset Stats</Text>
+            </Pressable>
+          </View>
 
           {/* Variant Dropdown */}
           <View style={styles.variantSelector}>
@@ -680,131 +697,118 @@ function App(): React.JSX.Element {
         </View>
       </View>
 
-      {/* Main Content - Draggable Layout */}
-      <ScrollView
-        style={styles.mainContent}
-        contentContainerStyle={styles.scrollContent}>
-        {/* Chess Board - Draggable */}
-        <DraggableSection
-          sectionId="board"
-          initialPosition={sectionPositions.board}
-          onPositionChange={(x, y) =>
-            setSectionPositions(prev => ({...prev, board: {x, y}}))
-          }
-          style={styles.boardContainer}>
-          <ChessBoard
-            variant={selectedVariant}
-            onMove={handleMove}
-            fen={currentFen || undefined}
-            suggestedMove={
-              analysis.length > 0 && analysis[0].pv.length > 0 && suggestedMoveHighlight
-                ? analysis[0].pv[0]
-                : undefined
-            }
-            moveSequence={moveSequence}
-          />
-        </DraggableSection>
-
-        {/* Analysis Panel - Draggable */}
-        <DraggableSection
-          sectionId="analysis"
-          initialPosition={sectionPositions.analysis}
-          onPositionChange={(x, y) =>
-            setSectionPositions(prev => ({...prev, analysis: {x, y}}))
-          }
-          style={styles.analysisContainer}>
-          <AnalysisPanel
-            analysis={analysis}
-            onSuggestionClick={handleSuggestionClick}
-            onSuggestionHover={setSuggestedMoveHighlight}
-            onContinuationHover={setMoveSequence}
-            currentTurn={currentTurn}
-            player1Type={player1Type}
-            player2Type={player2Type}
-          />
-        </DraggableSection>
-
-        {/* Controls Section - Draggable */}
-        <DraggableSection
-          sectionId="controls"
-          initialPosition={sectionPositions.controls}
-          onPositionChange={(x, y) =>
-            setSectionPositions(prev => ({...prev, controls: {x, y}}))
-          }
-          style={styles.controlsContainer}>
-          <Text style={styles.controlsSectionTitle}>Controls</Text>
-
-          {/* Stats Section */}
-          <View style={styles.statsSection}>
-            <Text style={styles.statItem}>Games: {stats.totalGames}</Text>
-            <Text style={styles.statItem}>White: {stats.whiteWins}W</Text>
-            <Text style={styles.statItem}>Black: {stats.blackWins}W</Text>
-            <Text style={styles.statItem}>Draws: {stats.draws}</Text>
+      {/* Main Content - Flex Layout */}
+      <View style={styles.mainContent}>
+        <View style={styles.flexContainer}>
+          {/* Left Column - Board */}
+          <View style={styles.leftColumn}>
+            <View style={styles.boardContainer}>
+              <ChessBoard
+                variant={selectedVariant}
+                onMove={handleMove}
+                fen={currentFen || undefined}
+                suggestedMove={
+                  analysis.length > 0 && analysis[0].pv.length > 0 && suggestedMoveHighlight
+                    ? analysis[0].pv[0]
+                    : undefined
+                }
+                moveSequence={moveSequence}
+              />
+            </View>
           </View>
 
-          {/* Player Selection */}
-          <View style={styles.playerSelectionRow}>
-            <Pressable
-              style={[
-                styles.playerColorButton,
-                styles.blackButton,
-                player1Type === 'ai' && styles.playerButtonAI,
-              ]}
-              onPress={() => setPlayer1Type(player1Type === 'human' ? 'ai' : 'human')}>
-              <Text style={[styles.playerColorButtonText, styles.blackButtonText]}>
-                Black
-              </Text>
-              <Text style={[styles.playerTypeText, styles.blackButtonText]}>
-                {player1Type === 'human' ? 'Human' : 'AI'}
-              </Text>
-            </Pressable>
+          {/* Right Column - Suggestions and Controls */}
+          <View style={styles.rightColumn}>
+            {/* Analysis Panel */}
+            <View style={styles.analysisContainer}>
+              <AnalysisPanel
+                analysis={analysis}
+                onSuggestionClick={handleSuggestionClick}
+                onSuggestionHover={setSuggestedMoveHighlight}
+                onContinuationHover={setMoveSequence}
+                currentTurn={currentTurn}
+                player1Type={player1Type}
+                player2Type={player2Type}
+              />
+            </View>
 
-            <Pressable
-              style={[
-                styles.playerColorButton,
-                styles.whiteButton,
-                player2Type === 'ai' && styles.playerButtonAI,
-              ]}
-              onPress={() => setPlayer2Type(player2Type === 'human' ? 'ai' : 'human')}>
-              <Text style={[styles.playerColorButtonText, styles.whiteButtonText]}>
-                White
-              </Text>
-              <Text style={[styles.playerTypeText, styles.whiteButtonText]}>
-                {player2Type === 'human' ? 'Human' : 'AI'}
-              </Text>
-            </Pressable>
-          </View>
+            {/* Controls Section */}
+            <View style={styles.controlsContainer}>
+              <Text style={styles.controlsSectionTitle}>Controls</Text>
 
-          {/* Game Control Buttons */}
-          <View style={styles.gameControls}>
-            <Pressable style={styles.controlButton} onPress={handleNewGame}>
-              <Text style={styles.controlButtonText}>New Game</Text>
-            </Pressable>
-            {player1Type === 'ai' && player2Type === 'ai' && (
-              <Pressable
-                style={[
-                  styles.controlButton,
-                  isAutoPlaying && styles.stopButton,
-                ]}
-                onPress={handleStartStop}>
-                <Text style={styles.controlButtonText}>
-                  {isAutoPlaying ? 'Stop' : 'Start'}
-                </Text>
-              </Pressable>
-            )}
-            <Pressable
-              style={[
-                styles.controlButton,
-                gameMode === 'learning' && styles.activeButton,
-              ]}
-              onPress={handleLearningMode}>
-              <Text style={styles.controlButtonText}>
-                {gameMode === 'learning' ? 'Exit Learning' : 'Learning Mode'}
-              </Text>
-            </Pressable>
+              {/* Stats Section */}
+              <View style={styles.statsSection}>
+                <Text style={styles.statItem}>Games: {stats.totalGames}</Text>
+                <Text style={styles.statItem}>White: {stats.whiteWins}W</Text>
+                <Text style={styles.statItem}>Black: {stats.blackWins}W</Text>
+                <Text style={styles.statItem}>Draws: {stats.draws}</Text>
+              </View>
+
+              {/* Player Selection */}
+              <View style={styles.playerSelectionRow}>
+                <Pressable
+                  style={[
+                    styles.playerColorButton,
+                    styles.blackButton,
+                    player1Type === 'ai' && styles.playerButtonAI,
+                  ]}
+                  onPress={() => setPlayer1Type(player1Type === 'human' ? 'ai' : 'human')}>
+                  <Text style={[styles.playerColorButtonText, styles.blackButtonText]}>
+                    Black
+                  </Text>
+                  <Text style={[styles.playerTypeText, styles.blackButtonText]}>
+                    {player1Type === 'human' ? 'Human' : 'AI'}
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  style={[
+                    styles.playerColorButton,
+                    styles.whiteButton,
+                    player2Type === 'ai' && styles.playerButtonAI,
+                  ]}
+                  onPress={() => setPlayer2Type(player2Type === 'human' ? 'ai' : 'human')}>
+                  <Text style={[styles.playerColorButtonText, styles.whiteButtonText]}>
+                    White
+                  </Text>
+                  <Text style={[styles.playerTypeText, styles.whiteButtonText]}>
+                    {player2Type === 'human' ? 'Human' : 'AI'}
+                  </Text>
+                </Pressable>
+              </View>
+
+              {/* Game Control Buttons */}
+              <View style={styles.gameControls}>
+                <Pressable style={styles.controlButton} onPress={handleNewGame}>
+                  <Text style={styles.controlButtonText}>New Game</Text>
+                </Pressable>
+                {player1Type === 'ai' && player2Type === 'ai' && (
+                  <Pressable
+                    style={[
+                      styles.controlButton,
+                      isAutoPlaying && styles.stopButton,
+                    ]}
+                    onPress={handleStartStop}>
+                    <Text style={styles.controlButtonText}>
+                      {isAutoPlaying ? 'Stop' : 'Start'}
+                    </Text>
+                  </Pressable>
+                )}
+                <Pressable
+                  style={[
+                    styles.controlButton,
+                    gameMode === 'learning' && styles.activeButton,
+                  ]}
+                  onPress={handleLearningMode}>
+                  <Text style={styles.controlButtonText}>
+                    {gameMode === 'learning' ? 'Exit Learning' : 'Learning Mode'}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
           </View>
-        </DraggableSection>
-      </ScrollView>
+        </View>
+      </View>
 
       {/* Toast Notifications */}
       <ToastNotification
@@ -874,14 +878,24 @@ const styles = StyleSheet.create({
   checkmateText: {
     color: '#F44336',
   },
+  resetButtonsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginRight: 12,
+  },
   resetLayoutButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
     backgroundColor: '#9C27B0',
-    marginRight: 12,
   },
-  resetLayoutText: {
+  resetStatsButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#FF5722',
+  },
+  resetButtonText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#ffffff',
@@ -910,24 +924,27 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-  },
-  scrollContent: {
     padding: 16,
-    minHeight: 900, // Ensure enough space for draggable sections
-    position: 'relative',
+  },
+  flexContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    flex: 1,
+  },
+  leftColumn: {
+    flexShrink: 0,
+  },
+  rightColumn: {
+    flex: 1,
+    gap: 16,
+    minWidth: 320,
+    maxWidth: 500,
   },
   boardContainer: {
-    width: 400,
-    minWidth: 350,
-    maxWidth: 600,
     justifyContent: 'center',
     alignItems: 'center',
   },
   analysisContainer: {
-    width: 380,
-    minWidth: 300,
-    maxWidth: 500,
-    maxHeight: 300,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     shadowColor: '#000',
@@ -935,13 +952,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    overflow: 'hidden',
+    overflow: 'scroll',
   },
   controlsContainer: {
-    width: 380,
-    minWidth: 300,
-    maxWidth: 500,
-    maxHeight: 280,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
@@ -950,7 +963,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    overflow: 'hidden',
   },
   controlsSectionTitle: {
     fontSize: 14,
