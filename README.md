@@ -4,6 +4,22 @@ A feature-rich chess application built with React Native, supporting multiple ch
 
 ✨ **Smart Setup**: NNUE neural network (~46MB) is intelligently downloaded on first run. The app automatically searches for the latest files and handles setup for you!
 
+## Quick Start
+
+```powershell
+# Clone the repository
+git clone https://github.com/unattachedgray/nbg.git
+cd nbg/ChessApp
+
+# Install dependencies
+npm install
+
+# Run the app (Windows)
+.\run-app.ps1
+```
+
+That's it! The NNUE file downloads automatically on first run.
+
 ## Features
 
 - ✅ **Multiple Chess Variants**: Chess, Janggi (Korean Chess), with support for more variants via Fairy-Stockfish
@@ -133,16 +149,25 @@ ChessApp/
 
 ### Windows (Desktop):
 
+**Recommended - Use the launcher script:**
+```powershell
+.\run-app.ps1
+```
+
+This script automatically:
+1. Stops any running instances
+2. Cleans up locked directories
+3. Starts Metro bundler if needed
+4. Builds and launches the app
+
+**Alternative - Direct npm command:**
 ```bash
 npm run windows
 ```
 
-This will:
-1. Start the Metro bundler
-2. Build the Windows UWP project
-3. Deploy and launch the app
-
-**Note**: The first build may take 10-20 minutes as it compiles all dependencies.
+**Note**:
+- The first build may take 10-20 minutes as it compiles all dependencies
+- If you get "Access denied" errors, close the app window and use the `run-app.ps1` script
 
 ### Android:
 
