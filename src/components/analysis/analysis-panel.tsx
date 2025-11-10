@@ -76,6 +76,8 @@ export function AnalysisPanel({
     return formatted.trim();
   };
 
+  const isAIvsAIMode = player1Type === 'ai' && player2Type === 'ai';
+
   if (!analysis || analysis.length === 0) {
     return (
       <View style={styles.container}>
@@ -83,6 +85,10 @@ export function AnalysisPanel({
         <View style={styles.placeholder}>
           {isAnalyzing ? (
             <Text style={styles.placeholderText}>Analyzing...</Text>
+          ) : isAIvsAIMode ? (
+            <Text style={styles.placeholderText}>
+              Watching AI vs AI game
+            </Text>
           ) : (
             <Text style={styles.placeholderText}>
               Make a move to see analysis
@@ -100,9 +106,11 @@ export function AnalysisPanel({
   // currentTurn 'w' means white to move, 'b' means black to move
   const currentPlayerType = currentTurn === 'w' ? player2Type : player1Type;
   const isHumanTurn = currentPlayerType === 'human';
+  const isAIvsAI = player1Type === 'ai' && player2Type === 'ai';
 
   // Validate: only show suggestions if it's actually a human player's turn
-  const shouldShowSuggestions = isHumanTurn && mainLine && mainLine.pv.length > 0;
+  // Never show suggestions during AI vs AI
+  const shouldShowSuggestions = !isAIvsAI && isHumanTurn && mainLine && mainLine.pv.length > 0;
 
   return (
     <View style={styles.container}>

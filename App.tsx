@@ -420,6 +420,15 @@ function App(): React.JSX.Element {
       try {
         setIsAnalyzing(true);
         const moveAnalysis = await engineRef.current.analyze(newFen, 15);
+        console.log('=== ANALYSIS DEBUG ===');
+        console.log('Position FEN:', newFen);
+        console.log('Turn after move (newTurn):', newTurn);
+        console.log('Suggested move:', moveAnalysis.pv[0]);
+        console.log('player1Type (black/top):', player1Type);
+        console.log('player2Type (white/bottom):', player2Type);
+        console.log('Current player type:', newTurn === 'w' ? player2Type : player1Type);
+        console.log('Should show suggestions:', newTurn === 'w' ? player2Type === 'human' : player1Type === 'human');
+        console.log('====================');
         setAnalysis([moveAnalysis]);
         setIsAnalyzing(false);
       } catch (error) {
@@ -433,8 +442,8 @@ function App(): React.JSX.Element {
     const currentPlayerType = nextTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
 
     if (currentPlayerType === 'ai' && !gameRef.current.isGameOver()) {
-      // Next player is AI, auto-trigger their move
-      setTimeout(() => getEngineMove(), 500);
+      // Next player is AI, auto-trigger their move with minimal delay
+      setTimeout(() => getEngineMove(), 100);
     }
   };
 
@@ -475,7 +484,8 @@ function App(): React.JSX.Element {
 
       // Tell engine about current position and get move
       const fen = gameRef.current.fen();
-      const engineMove = await engineRef.current.getBestMove(fen, 2000);
+      // Reduce thinking time from 2000ms to 500ms for faster AI vs AI
+      const engineMove = await engineRef.current.getBestMove(fen, 500);
 
       // Make the engine's move on the board
       gameRef.current.move(engineMove as any);
@@ -499,16 +509,26 @@ function App(): React.JSX.Element {
 
       setIsEngineThinking(false);
 
-      // Update analysis after the move (after each complete round)
-      try {
-        setIsAnalyzing(true);
-        const currentAnalysis = await engineRef.current.analyze(newFen, 15);
-        setAnalysis([currentAnalysis]);
-        setIsAnalyzing(false);
-        console.log('Analysis complete for', newTurn, 'to move, suggested:', currentAnalysis.pv[0]);
-      } catch (error) {
-        console.error('Error getting analysis:', error);
-        setIsAnalyzing(false);
+      // Skip analysis during AI vs AI for better performance
+      // Only analyze if at least one player is human
+      if (player1Type === 'human' || player2Type === 'human') {
+        try {
+          setIsAnalyzing(true);
+          const currentAnalysis = await engineRef.current.analyze(newFen, 15);
+          console.log('=== ENGINE MOVE ANALYSIS DEBUG ===');
+          console.log('Position FEN:', newFen);
+          console.log('Turn after engine move:', newTurn);
+          console.log('Suggested move:', currentAnalysis.pv[0]);
+          console.log('player1Type (black/top):', player1Type);
+          console.log('player2Type (white/bottom):', player2Type);
+          console.log('Current player type:', newTurn === 'w' ? player2Type : player1Type);
+          console.log('==================================');
+          setAnalysis([currentAnalysis]);
+          setIsAnalyzing(false);
+        } catch (error) {
+          console.error('Error getting analysis:', error);
+          setIsAnalyzing(false);
+        }
       }
     } catch (error) {
       console.error('Error getting engine move:', error);
@@ -553,7 +573,7 @@ function App(): React.JSX.Element {
 
       // If player 2 (white/bottom) is AI, make first move
       if (player2Type === 'ai') {
-        setTimeout(() => getEngineMove(), 1000);
+        setTimeout(() => getEngineMove(), 100);
       }
     }
   };

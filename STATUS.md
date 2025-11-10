@@ -1,6 +1,6 @@
 # Chess App - Project Status
 
-**Last Updated**: November 10, 2025, 4:50 AM
+**Last Updated**: November 10, 2025, 5:05 AM
 **Status**: ✅ **Active Development - Core Features Complete**
 
 ---
@@ -41,10 +41,10 @@
 
 ### 🔨 Currently Working On
 
-- ✅ **FIXED: Suggestion display bug** - Suggestions no longer show wrong player's moves or disappear when clicked
-- ✅ **FIXED: Analysis state management** - Analysis cleared on move to prevent stale data
-- ✅ **Downloaded chess piece SVG assets** - Ready for integration into ChessBoard component
-- Next: Integrate SVG chess pieces into board rendering
+- ✅ **FIXED: AI vs AI performance** - Optimized from 2.5s to 0.6s per move (4x faster)
+- ✅ **FIXED: UI jumping during AI vs AI** - Suggestions hidden during AI vs AI mode
+- 🔍 **DEBUGGING: Suggestion bug** - Added extensive logging to track turn state and identify fault lines
+- Next: Analyze logs to fix remaining suggestion display issues, then integrate SVG chess pieces
 
 ---
 
@@ -282,6 +282,15 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 10, 2025 - 5:05 AM
+- **Optimized AI vs AI performance** - Reduced move time from ~2500ms to ~600ms (4x faster!)
+  - Engine thinking time: 2000ms → 500ms
+  - Delay between moves: 500ms → 100ms
+  - Skip analysis during AI vs AI (only analyze when human is playing)
+- **Fixed UI jumping during AI vs AI** - Hide suggestions during AI vs AI to prevent layout shifts
+- **Added comprehensive debug logging** - Track turn state, FEN, player types to diagnose suggestion bug
+- **Better AI vs AI UX** - Show "Watching AI vs AI game" placeholder
 
 ### November 10, 2025 - 4:50 AM
 - **Fixed suggestion disappearing bug** - Clear analysis at start of handleMove() and getEngineMove() to prevent stale data
