@@ -189,9 +189,6 @@ export function ChessBoard({
         ))}
       </View>
       <View style={styles.info}>
-        <Text style={styles.turnText}>
-          {game.turn() === 'w' ? 'White' : 'Black'} to move
-        </Text>
         {game.isCheck() && <Text style={styles.checkText}>Check!</Text>}
         {game.isCheckmate() && (
           <Text style={styles.mateText}>Checkmate!</Text>
