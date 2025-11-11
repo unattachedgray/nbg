@@ -213,7 +213,7 @@ export function JanggiBoard({
         {piece && (
           <JanggiPiece
             piece={piece}
-            size={Math.min(intersectionWidth * 0.6, intersectionHeight * 0.6)}
+            size={Math.min(intersectionWidth * 0.8, intersectionHeight * 0.8)}
           />
         )}
 
