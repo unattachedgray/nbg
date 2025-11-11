@@ -204,12 +204,15 @@ export function JanggiBoard({
     const piece = board[rank]?.[file];
     const square = getSquareNotation(rank, file);
 
-    // Calculate position for this intersection (add padding offset)
-    const left = padding + file * cellWidth - cellWidth / 2;
-    const top = padding + rank * cellHeight - cellHeight / 2;
+    // Position at exact intersection point
+    const left = padding + file * cellWidth;
+    const top = padding + rank * cellHeight;
 
-    // Make pieces larger and more visible
-    const pieceSize = Math.min(cellWidth, cellHeight) * 0.9;
+    // Smaller pieces that clearly sit ON intersections
+    const pieceSize = Math.min(cellWidth, cellHeight) * 0.7;
+
+    // Clickable area size (smaller than full cell)
+    const hitSize = Math.min(cellWidth, cellHeight) * 0.8;
 
     return (
       <Pressable
@@ -217,10 +220,10 @@ export function JanggiBoard({
         style={[
           styles.intersection,
           {
-            left,
-            top,
-            width: cellWidth,
-            height: cellHeight,
+            left: left - hitSize / 2,
+            top: top - hitSize / 2,
+            width: hitSize,
+            height: hitSize,
           },
         ]}
         onPress={() => handleSquarePress(rank, file)}>
@@ -390,25 +393,33 @@ const styles = StyleSheet.create({
   },
   selectionHighlight: {
     position: 'absolute',
-    width: cellWidth * 0.9,
-    height: cellHeight * 0.9,
-    borderRadius: cellWidth * 0.45,
+    width: '90%',
+    height: '90%',
+    borderRadius: 1000,
     backgroundColor: 'rgba(255, 224, 130, 0.4)',
     borderWidth: 2,
     borderColor: '#FFD700',
   },
   fileLabel: {
     position: 'absolute',
-    top: -18,
-    fontSize: 11,
+    top: -24,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#4A4A4A',
+    color: '#000000',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 3,
   },
   rankLabel: {
     position: 'absolute',
-    left: -18,
-    fontSize: 11,
+    left: -26,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#4A4A4A',
+    color: '#000000',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 3,
   },
 });
