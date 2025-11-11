@@ -198,11 +198,12 @@ export function JanggiBoard({
   const renderIntersection = (rank: number, file: number) => {
     const piece = board[rank]?.[file];
     const square = getSquareNotation(rank, file);
-    const inPalace = isInPalace(rank, file);
 
-    // Calculate position for this intersection
-    const left = file * cellWidth;
-    const top = rank * cellHeight;
+    // Calculate position for this intersection (center of clickable area on the line intersection)
+    const left = file * cellWidth - cellWidth / 2;
+    const top = rank * cellHeight - cellHeight / 2;
+
+    const pieceSize = Math.min(cellWidth * 0.85, cellHeight * 0.85);
 
     return (
       <Pressable
@@ -214,18 +215,20 @@ export function JanggiBoard({
             top,
             width: cellWidth,
             height: cellHeight,
-            backgroundColor: selectedSquare === square ? 'rgba(255, 224, 130, 0.5)' : 'transparent',
           },
         ]}
         onPress={() => handleSquarePress(rank, file)}>
+        {/* Selection highlight */}
+        {selectedSquare === square && (
+          <View style={styles.selectionHighlight} />
+        )}
+
         {/* Render piece centered on intersection */}
         {piece && (
-          <View style={styles.pieceContainer}>
-            <JanggiPiece
-              piece={piece}
-              size={Math.min(cellWidth * 0.9, cellHeight * 0.9)}
-            />
-          </View>
+          <JanggiPiece
+            piece={piece}
+            size={pieceSize}
+          />
         )}
 
         {/* File labels (top row) */}
@@ -246,7 +249,7 @@ export function JanggiBoard({
   return (
     <View style={styles.container}>
       <View style={styles.board}>
-        {/* Grid lines */}
+        {/* Horizontal lines (10 lines for 10 ranks) */}
         {Array.from({length: 10}, (_, i) => (
           <View
             key={`hline-${i}`}
@@ -259,6 +262,8 @@ export function JanggiBoard({
             ]}
           />
         ))}
+
+        {/* Vertical lines (9 lines for 9 files) */}
         {Array.from({length: 9}, (_, i) => (
           <View
             key={`vline-${i}`}
@@ -272,14 +277,73 @@ export function JanggiBoard({
           />
         ))}
 
-        {/* Palace diagonal lines */}
-        {/* Red palace diagonals */}
-        <View style={[styles.diagonalLine, {top: 0, left: 3 * cellWidth, width: 2 * cellWidth * 1.41, transform: [{rotate: '45deg'}]}]} />
-        <View style={[styles.diagonalLine, {top: 0, left: 3 * cellWidth, width: 2 * cellWidth * 1.41, transform: [{rotate: '-45deg'}]}]} />
+        {/* Palace diagonal lines - Red (top) palace */}
+        {/* Top-left to bottom-right diagonal */}
+        <View
+          style={[
+            styles.diagonalLine,
+            {
+              position: 'absolute',
+              left: 3 * cellWidth,
+              top: 0 * cellHeight,
+              width: Math.sqrt(2) * 2 * cellWidth,
+              height: 2,
+              backgroundColor: '#3E2723',
+              transform: [{rotate: '45deg'}],
+              transformOrigin: 'left center',
+            },
+          ]}
+        />
+        {/* Top-right to bottom-left diagonal */}
+        <View
+          style={[
+            styles.diagonalLine,
+            {
+              position: 'absolute',
+              left: 5 * cellWidth,
+              top: 0 * cellHeight,
+              width: Math.sqrt(2) * 2 * cellWidth,
+              height: 2,
+              backgroundColor: '#3E2723',
+              transform: [{rotate: '-45deg'}],
+              transformOrigin: 'left center',
+            },
+          ]}
+        />
 
-        {/* Blue palace diagonals */}
-        <View style={[styles.diagonalLine, {top: 7 * cellHeight, left: 3 * cellWidth, width: 2 * cellWidth * 1.41, transform: [{rotate: '45deg'}]}]} />
-        <View style={[styles.diagonalLine, {top: 7 * cellHeight, left: 3 * cellWidth, width: 2 * cellWidth * 1.41, transform: [{rotate: '-45deg'}]}]} />
+        {/* Palace diagonal lines - Blue (bottom) palace */}
+        {/* Top-left to bottom-right diagonal */}
+        <View
+          style={[
+            styles.diagonalLine,
+            {
+              position: 'absolute',
+              left: 3 * cellWidth,
+              top: 7 * cellHeight,
+              width: Math.sqrt(2) * 2 * cellWidth,
+              height: 2,
+              backgroundColor: '#3E2723',
+              transform: [{rotate: '45deg'}],
+              transformOrigin: 'left center',
+            },
+          ]}
+        />
+        {/* Top-right to bottom-left diagonal */}
+        <View
+          style={[
+            styles.diagonalLine,
+            {
+              position: 'absolute',
+              left: 5 * cellWidth,
+              top: 7 * cellHeight,
+              width: Math.sqrt(2) * 2 * cellWidth,
+              height: 2,
+              backgroundColor: '#3E2723',
+              transform: [{rotate: '-45deg'}],
+              transformOrigin: 'left center',
+            },
+          ]}
+        />
 
         {/* Intersections with pieces */}
         {board.length === 0 ? (
@@ -304,7 +368,7 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#5D4037', // Dark brown border
     borderRadius: 4,
-    backgroundColor: '#D2B48C', // Tan/wood color
+    backgroundColor: '#E8D4B0', // Light wood color
     position: 'relative',
   },
   horizontalLine: {
@@ -328,23 +392,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pieceContainer: {
+  selectionHighlight: {
     position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: cellWidth * 0.9,
+    height: cellHeight * 0.9,
+    borderRadius: cellWidth * 0.45,
+    backgroundColor: 'rgba(255, 224, 130, 0.4)',
+    borderWidth: 2,
+    borderColor: '#FFD700',
   },
   fileLabel: {
     position: 'absolute',
-    top: -15,
-    fontSize: 10,
+    top: -18,
+    fontSize: 11,
     fontWeight: 'bold',
-    color: 'rgba(0, 0, 0, 0.6)',
+    color: '#4A4A4A',
   },
   rankLabel: {
     position: 'absolute',
-    left: -15,
-    fontSize: 10,
+    left: -18,
+    fontSize: 11,
     fontWeight: 'bold',
-    color: 'rgba(0, 0, 0, 0.6)',
+    color: '#4A4A4A',
   },
 });
