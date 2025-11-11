@@ -31,6 +31,14 @@ const PIECE_SYMBOLS: Record<string, string> = {
   bp: '兵', // Soldier (Byeong)
 };
 
+// Board dimensions - defined before component
+const windowWidth = Dimensions.get('window').width;
+const boardHeight = Math.min(windowWidth - 40, 500); // 9x10 intersection grid
+const boardWidth = boardHeight * 0.9;
+// 9 files (a-i) means 8 spaces between them, 10 ranks (0-9) means 9 spaces
+const cellWidth = boardWidth / 8; // Distance between vertical lines
+const cellHeight = boardHeight / 9; // Distance between horizontal lines
+
 export function JanggiBoard({
   variant = 'janggi',
   onMove,
@@ -285,13 +293,6 @@ export function JanggiBoard({
     </View>
   );
 }
-
-const windowWidth = Dimensions.get('window').width;
-const boardHeight = Math.min(windowWidth - 40, 500); // 9x10 intersection grid
-const boardWidth = boardHeight * 0.9;
-// 9 files (a-i) means 8 spaces between them, 10 ranks (0-9) means 9 spaces
-const cellWidth = boardWidth / 8; // Distance between vertical lines
-const cellHeight = boardHeight / 9; // Distance between horizontal lines
 
 const styles = StyleSheet.create({
   container: {
