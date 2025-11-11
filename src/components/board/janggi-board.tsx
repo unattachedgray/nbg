@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Pressable, Dimensions} from 'react-native';
-import Svg, {Line} from 'react-native-svg';
 import {GameVariant} from '../../types/game';
 import {JanggiPiece} from './janggi-piece';
 
@@ -307,54 +306,61 @@ export function JanggiBoard({
           </Text>
         ))}
 
-        {/* Palace diagonal lines using SVG */}
-        <Svg
+        {/* Palace diagonal lines - Red (top) palace */}
+        {/* d1 to f3 diagonal */}
+        <View
           style={{
             position: 'absolute',
-            left: 0,
-            top: 0,
-            width: boardWidth,
-            height: boardHeight,
-          }}>
-          {/* Red palace diagonals */}
-          {/* d1 to f3 */}
-          <Line
-            x1={padding + 3 * cellWidth}
-            y1={padding + 0 * cellHeight}
-            x2={padding + 5 * cellWidth}
-            y2={padding + 2 * cellHeight}
-            stroke="#3E2723"
-            strokeWidth="2"
-          />
-          {/* f1 to d3 */}
-          <Line
-            x1={padding + 5 * cellWidth}
-            y1={padding + 0 * cellHeight}
-            x2={padding + 3 * cellWidth}
-            y2={padding + 2 * cellHeight}
-            stroke="#3E2723"
-            strokeWidth="2"
-          />
-          {/* Blue palace diagonals */}
-          {/* d8 to f10 */}
-          <Line
-            x1={padding + 3 * cellWidth}
-            y1={padding + 7 * cellHeight}
-            x2={padding + 5 * cellWidth}
-            y2={padding + 9 * cellHeight}
-            stroke="#3E2723"
-            strokeWidth="2"
-          />
-          {/* f8 to d10 */}
-          <Line
-            x1={padding + 5 * cellWidth}
-            y1={padding + 7 * cellHeight}
-            x2={padding + 3 * cellWidth}
-            y2={padding + 9 * cellHeight}
-            stroke="#3E2723"
-            strokeWidth="2"
-          />
-        </Svg>
+            left: padding + 3 * cellWidth,
+            top: padding + 0 * cellHeight,
+            width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
+            height: 2,
+            backgroundColor: '#3E2723',
+            transform: [{rotate: `${Math.atan2(2 * cellHeight, 2 * cellWidth) * (180 / Math.PI)}deg`}],
+            transformOrigin: 'top left',
+          }}
+        />
+        {/* f1 to d3 diagonal */}
+        <View
+          style={{
+            position: 'absolute',
+            left: padding + 5 * cellWidth,
+            top: padding + 0 * cellHeight,
+            width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
+            height: 2,
+            backgroundColor: '#3E2723',
+            transform: [{rotate: `${Math.atan2(2 * cellHeight, -2 * cellWidth) * (180 / Math.PI)}deg`}],
+            transformOrigin: 'top left',
+          }}
+        />
+
+        {/* Palace diagonal lines - Blue (bottom) palace */}
+        {/* d8 to f10 diagonal */}
+        <View
+          style={{
+            position: 'absolute',
+            left: padding + 3 * cellWidth,
+            top: padding + 7 * cellHeight,
+            width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
+            height: 2,
+            backgroundColor: '#3E2723',
+            transform: [{rotate: `${Math.atan2(2 * cellHeight, 2 * cellWidth) * (180 / Math.PI)}deg`}],
+            transformOrigin: 'top left',
+          }}
+        />
+        {/* f8 to d10 diagonal */}
+        <View
+          style={{
+            position: 'absolute',
+            left: padding + 5 * cellWidth,
+            top: padding + 7 * cellHeight,
+            width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
+            height: 2,
+            backgroundColor: '#3E2723',
+            transform: [{rotate: `${Math.atan2(2 * cellHeight, -2 * cellWidth) * (180 / Math.PI)}deg`}],
+            transformOrigin: 'top left',
+          }}
+        />
 
         {/* Intersections with pieces */}
         {board.length === 0 ? (
