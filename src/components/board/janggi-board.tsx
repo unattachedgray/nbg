@@ -33,11 +33,15 @@ const PIECE_SYMBOLS: Record<string, string> = {
 
 // Board dimensions - defined before component
 const windowWidth = Dimensions.get('window').width;
-const boardHeight = Math.min(windowWidth - 40, 500); // 9x10 intersection grid
+const boardHeight = Math.min(windowWidth - 100, 600); // Larger board with more padding
 const boardWidth = boardHeight * 0.9;
+// Add padding so pieces don't clip at edges
+const padding = 30;
+const innerWidth = boardWidth - (padding * 2);
+const innerHeight = boardHeight - (padding * 2);
 // 9 files (a-i) means 8 spaces between them, 10 ranks (0-9) means 9 spaces
-const cellWidth = boardWidth / 8; // Distance between vertical lines
-const cellHeight = boardHeight / 9; // Distance between horizontal lines
+const cellWidth = innerWidth / 8; // Distance between vertical lines
+const cellHeight = innerHeight / 9; // Distance between horizontal lines
 
 export function JanggiBoard({
   variant = 'janggi',
@@ -200,11 +204,12 @@ export function JanggiBoard({
     const piece = board[rank]?.[file];
     const square = getSquareNotation(rank, file);
 
-    // Calculate position for this intersection (center of clickable area on the line intersection)
-    const left = file * cellWidth - cellWidth / 2;
-    const top = rank * cellHeight - cellHeight / 2;
+    // Calculate position for this intersection (add padding offset)
+    const left = padding + file * cellWidth - cellWidth / 2;
+    const top = padding + rank * cellHeight - cellHeight / 2;
 
-    const pieceSize = Math.min(cellWidth * 0.85, cellHeight * 0.85);
+    // Make pieces larger and more visible
+    const pieceSize = Math.min(cellWidth, cellHeight) * 0.9;
 
     return (
       <Pressable
@@ -257,8 +262,9 @@ export function JanggiBoard({
             style={[
               styles.horizontalLine,
               {
-                top: i * cellHeight,
-                width: boardWidth,
+                top: padding + i * cellHeight,
+                left: padding,
+                width: innerWidth,
               },
             ]}
           />
@@ -271,8 +277,9 @@ export function JanggiBoard({
             style={[
               styles.verticalLine,
               {
-                left: i * cellWidth,
-                height: boardHeight,
+                left: padding + i * cellWidth,
+                top: padding,
+                height: innerHeight,
               },
             ]}
           />
@@ -285,8 +292,8 @@ export function JanggiBoard({
             styles.diagonalLine,
             {
               position: 'absolute',
-              left: 3 * cellWidth,
-              top: 0 * cellHeight,
+              left: padding + 3 * cellWidth,
+              top: padding + 0 * cellHeight,
               width: Math.sqrt(2) * 2 * cellWidth,
               height: 2,
               backgroundColor: '#3E2723',
@@ -301,8 +308,8 @@ export function JanggiBoard({
             styles.diagonalLine,
             {
               position: 'absolute',
-              left: 5 * cellWidth,
-              top: 0 * cellHeight,
+              left: padding + 5 * cellWidth,
+              top: padding + 0 * cellHeight,
               width: Math.sqrt(2) * 2 * cellWidth,
               height: 2,
               backgroundColor: '#3E2723',
@@ -319,8 +326,8 @@ export function JanggiBoard({
             styles.diagonalLine,
             {
               position: 'absolute',
-              left: 3 * cellWidth,
-              top: 7 * cellHeight,
+              left: padding + 3 * cellWidth,
+              top: padding + 7 * cellHeight,
               width: Math.sqrt(2) * 2 * cellWidth,
               height: 2,
               backgroundColor: '#3E2723',
@@ -335,8 +342,8 @@ export function JanggiBoard({
             styles.diagonalLine,
             {
               position: 'absolute',
-              left: 5 * cellWidth,
-              top: 7 * cellHeight,
+              left: padding + 5 * cellWidth,
+              top: padding + 7 * cellHeight,
               width: Math.sqrt(2) * 2 * cellWidth,
               height: 2,
               backgroundColor: '#3E2723',
