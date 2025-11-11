@@ -1,6 +1,6 @@
 # Chess App - Project Status
 
-**Last Updated**: November 10, 2025, 6:00 AM
+**Last Updated**: November 11, 2025, 11:15 PM
 **Status**: ✅ **Active Development - Core Features Complete**
 
 ---
@@ -41,13 +41,17 @@
 
 ### 🔨 Currently Working On
 
-- ✅ **FIXED: Suggestions disappearing** - Guard prevents stale analysis from overwriting current analysis
-- ✅ **FIXED: Race condition bug** - FEN tracking prevents showing black moves when it's white's turn
-- ✅ **FIXED: Suggestion display bug** - analysisTurn tracking prevents showing wrong player's moves
-- ✅ **FIXED: UI crashes** - Click same square, invalid move errors all handled
-- ✅ **Added 3 suggestions** - Shows best move + 2 alternatives with visual distinction
-- ✅ **Integrated SVG chess pieces** - Replaced Unicode symbols with high-quality SVG graphics
-- Next: Move history with undo/redo functionality
+- ✅ **Janggi Board Implementation** - Added intersection-based board layout with palace diagonals
+  - Downloaded and integrated Kakao-style Janggi SVG pieces (14 files)
+  - Fixed SVG scaling issues by adding viewBox attributes
+  - Redesigned board from square-based to intersection-based grid (9×10)
+  - Corrected starting position with generals in palace centers
+  - Fixed piece sizing and board padding for proper visibility
+- ✅ **TypeScript Type Safety** - Fixed all compilation errors
+  - Changed NodeJS.Timeout to ReturnType<typeof setTimeout> for React Native compatibility
+  - Removed web-only cursor properties from StyleSheet
+  - Added missing xiangqi and shogi NNUE entries to GameVariant record
+- Next: Janggi legal move validation and engine integration
 
 ---
 
