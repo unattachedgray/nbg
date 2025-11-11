@@ -239,18 +239,6 @@ export function JanggiBoard({
             size={pieceSize}
           />
         )}
-
-        {/* File labels (top row) */}
-        {rank === 0 && (
-          <Text style={styles.fileLabel}>
-            {'abcdefghi'[file]}
-          </Text>
-        )}
-
-        {/* Rank labels (left column) */}
-        {file === 0 && (
-          <Text style={styles.rankLabel}>{rank + 1}</Text>
-        )}
       </Pressable>
     );
   };
@@ -288,6 +276,36 @@ export function JanggiBoard({
           />
         ))}
 
+        {/* File labels (a-i) */}
+        {Array.from({length: 9}, (_, i) => (
+          <Text
+            key={`flabel-${i}`}
+            style={[
+              styles.fileLabel,
+              {
+                left: padding + i * cellWidth - 7,
+                top: padding - 22,
+              },
+            ]}>
+            {'abcdefghi'[i]}
+          </Text>
+        ))}
+
+        {/* Rank labels (1-10) */}
+        {Array.from({length: 10}, (_, i) => (
+          <Text
+            key={`rlabel-${i}`}
+            style={[
+              styles.rankLabel,
+              {
+                left: padding - 24,
+                top: padding + i * cellHeight - 10,
+              },
+            ]}>
+            {i + 1}
+          </Text>
+        ))}
+
         {/* Palace diagonal lines - Red (top) palace */}
         {/* d1 to f3 diagonal (top-left to bottom-right) */}
         <View
@@ -298,8 +316,8 @@ export function JanggiBoard({
             width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
             height: 2,
             backgroundColor: '#3E2723',
-            transformOrigin: 'top left',
-            transform: [{rotate: Math.atan2(2 * cellHeight, 2 * cellWidth) + 'rad'}],
+            transformOrigin: '0 0',
+            transform: [{rotate: `${(Math.atan2(2 * cellHeight, 2 * cellWidth) * 180 / Math.PI)}deg`}],
           }}
         />
         {/* f1 to d3 diagonal (top-right to bottom-left) */}
@@ -311,8 +329,8 @@ export function JanggiBoard({
             width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
             height: 2,
             backgroundColor: '#3E2723',
-            transformOrigin: 'top left',
-            transform: [{rotate: Math.atan2(2 * cellHeight, -2 * cellWidth) + 'rad'}],
+            transformOrigin: '0 0',
+            transform: [{rotate: `${(Math.atan2(2 * cellHeight, -2 * cellWidth) * 180 / Math.PI)}deg`}],
           }}
         />
 
@@ -326,8 +344,8 @@ export function JanggiBoard({
             width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
             height: 2,
             backgroundColor: '#3E2723',
-            transformOrigin: 'top left',
-            transform: [{rotate: Math.atan2(2 * cellHeight, 2 * cellWidth) + 'rad'}],
+            transformOrigin: '0 0',
+            transform: [{rotate: `${(Math.atan2(2 * cellHeight, 2 * cellWidth) * 180 / Math.PI)}deg`}],
           }}
         />
         {/* f8 to d10 diagonal (top-right to bottom-left) */}
@@ -339,8 +357,8 @@ export function JanggiBoard({
             width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
             height: 2,
             backgroundColor: '#3E2723',
-            transformOrigin: 'top left',
-            transform: [{rotate: Math.atan2(2 * cellHeight, -2 * cellWidth) + 'rad'}],
+            transformOrigin: '0 0',
+            transform: [{rotate: `${(Math.atan2(2 * cellHeight, -2 * cellWidth) * 180 / Math.PI)}deg`}],
           }}
         />
 
