@@ -1,6 +1,15 @@
 /**
  * Janggi FEN utilities
  * Since chess.js doesn't support Janggi, we need manual FEN manipulation
+ *
+ * Janggi starting position:
+ * rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1
+ *
+ * Key differences from chess:
+ * - 9x10 board (9 files, 10 ranks)
+ * - Generals (k/K) start in CENTER of palace (rank 1 and 8, file 4)
+ * - Advisors on files 3 and 5
+ * - Pieces sit on intersections, not in squares
  */
 
 export interface JanggiPosition {
@@ -11,6 +20,7 @@ export interface JanggiPosition {
 
 /**
  * Parse Janggi FEN into a position object
+ * Example: rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1
  */
 export function parseJanggiFEN(fen: string): JanggiPosition {
   const parts = fen.split(' ');

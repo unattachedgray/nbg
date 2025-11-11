@@ -48,7 +48,8 @@ export function JanggiBoard({
 }: JanggiBoardProps): React.JSX.Element {
   const parseFEN = (fenString: string): (string | null)[][] => {
     // Janggi FEN format: board is 10 ranks, 9 files
-    // Example: rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR
+    // Correct starting position: rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR
+    // Generals (k/K) start in palace center (rank 1 and 8, file 4)
     const [boardPart] = fenString.split(' ');
     const ranks = boardPart.split('/');
 
