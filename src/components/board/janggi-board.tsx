@@ -39,7 +39,6 @@ export function JanggiBoard({
   legalMoves = [],
 }: JanggiBoardProps): React.JSX.Element {
   const parseFEN = (fenString: string): (string | null)[][] => {
-    console.log('JanggiBoard: Parsing FEN:', fenString);
     // Janggi FEN format: board is 10 ranks, 9 files
     // Example: rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR
     const [boardPart] = fenString.split(' ');
@@ -47,8 +46,6 @@ export function JanggiBoard({
 
     // Validate that we have a Janggi FEN (10 ranks)
     if (ranks.length !== 10) {
-      console.error('JanggiBoard: Invalid FEN - expected 10 ranks, got', ranks.length);
-      console.error('JanggiBoard: This looks like a chess FEN, not Janggi');
       // Return empty 10x9 board instead of crashing
       return Array.from({length: 10}, () => Array(9).fill(null));
     }
@@ -58,7 +55,6 @@ export function JanggiBoard({
     for (let rank = 0; rank < 10; rank++) {
       const rankData = ranks[rank];
       if (!rankData) {
-        console.error('JanggiBoard: Missing rank data for rank', rank);
         newBoard.push(Array(9).fill(null));
         continue;
       }
@@ -92,7 +88,6 @@ export function JanggiBoard({
       newBoard.push(row);
     }
 
-    console.log('JanggiBoard: Parsed board has', newBoard.length, 'ranks');
     return newBoard;
   };
 
@@ -109,13 +104,9 @@ export function JanggiBoard({
 
   // Parse Janggi FEN to board array when it changes
   useEffect(() => {
-    console.log('JanggiBoard: useEffect triggered - FEN prop changed:', fen);
-    console.log('JanggiBoard: FEN validation - split length:', fen ? fen.split('/').length : 'no FEN');
     if (fen) {
       const parsedBoard = parseFEN(fen);
-      console.log('JanggiBoard: Parsed board, length:', parsedBoard.length);
       setBoard(parsedBoard);
-      console.log('JanggiBoard: Board state updated');
     }
   }, [fen]);
 
@@ -196,25 +187,37 @@ export function JanggiBoard({
     return '#D2B48C'; // Tan
   };
 
-  const renderSquare = (rank: number, file: number) => {
+  const renderIntersection = (rank: number, file: number) => {
     const piece = board[rank]?.[file];
     const square = getSquareNotation(rank, file);
     const inPalace = isInPalace(rank, file);
+
+    // Calculate position for this intersection
+    const left = file * cellWidth;
+    const top = rank * cellHeight;
 
     return (
       <Pressable
         key={`${rank}-${file}`}
         style={[
           styles.intersection,
-          {backgroundColor: getSquareColor(rank, file)},
+          {
+            left,
+            top,
+            width: cellWidth,
+            height: cellHeight,
+            backgroundColor: selectedSquare === square ? 'rgba(255, 224, 130, 0.5)' : 'transparent',
+          },
         ]}
         onPress={() => handleSquarePress(rank, file)}>
-        {/* Render piece */}
+        {/* Render piece centered on intersection */}
         {piece && (
-          <JanggiPiece
-            piece={piece}
-            size={Math.min(intersectionWidth * 0.8, intersectionHeight * 0.8)}
-          />
+          <View style={styles.pieceContainer}>
+            <JanggiPiece
+              piece={piece}
+              size={Math.min(cellWidth * 0.9, cellHeight * 0.9)}
+            />
+          </View>
         )}
 
         {/* File labels (top row) */}
@@ -228,29 +231,55 @@ export function JanggiBoard({
         {file === 0 && (
           <Text style={styles.rankLabel}>{rank}</Text>
         )}
-
-        {/* Palace diagonal markers */}
-        {inPalace && (rank % 2 === file % 2 || (rank === 1 && file === 4) || (rank === 8 && file === 4)) && (
-          <View style={styles.palaceMark} />
-        )}
       </Pressable>
     );
   };
 
-  console.log('JanggiBoard: Rendering with board length:', board.length);
-  console.log('JanggiBoard: FEN prop:', fen);
-
   return (
     <View style={styles.container}>
       <View style={styles.board}>
+        {/* Grid lines */}
+        {Array.from({length: 10}, (_, i) => (
+          <View
+            key={`hline-${i}`}
+            style={[
+              styles.horizontalLine,
+              {
+                top: i * cellHeight,
+                width: boardWidth,
+              },
+            ]}
+          />
+        ))}
+        {Array.from({length: 9}, (_, i) => (
+          <View
+            key={`vline-${i}`}
+            style={[
+              styles.verticalLine,
+              {
+                left: i * cellWidth,
+                height: boardHeight,
+              },
+            ]}
+          />
+        ))}
+
+        {/* Palace diagonal lines */}
+        {/* Red palace diagonals */}
+        <View style={[styles.diagonalLine, {top: 0, left: 3 * cellWidth, width: 2 * cellWidth * 1.41, transform: [{rotate: '45deg'}]}]} />
+        <View style={[styles.diagonalLine, {top: 0, left: 3 * cellWidth, width: 2 * cellWidth * 1.41, transform: [{rotate: '-45deg'}]}]} />
+
+        {/* Blue palace diagonals */}
+        <View style={[styles.diagonalLine, {top: 7 * cellHeight, left: 3 * cellWidth, width: 2 * cellWidth * 1.41, transform: [{rotate: '45deg'}]}]} />
+        <View style={[styles.diagonalLine, {top: 7 * cellHeight, left: 3 * cellWidth, width: 2 * cellWidth * 1.41, transform: [{rotate: '-45deg'}]}]} />
+
+        {/* Intersections with pieces */}
         {board.length === 0 ? (
           <Text style={{color: 'white', fontSize: 20}}>Loading board...</Text>
         ) : (
-          Array.from({length: 10}, (_, rank) => (
-            <View key={rank} style={styles.rank}>
-              {Array.from({length: 9}, (_, file) => renderSquare(rank, file))}
-            </View>
-          ))
+          Array.from({length: 10}, (_, rank) =>
+            Array.from({length: 9}, (_, file) => renderIntersection(rank, file))
+          )
         )}
       </View>
     </View>
@@ -258,10 +287,11 @@ export function JanggiBoard({
 }
 
 const windowWidth = Dimensions.get('window').width;
-const boardHeight = Math.min(windowWidth - 40, 540); // 9x10 aspect ratio
+const boardHeight = Math.min(windowWidth - 40, 500); // 9x10 intersection grid
 const boardWidth = boardHeight * 0.9;
-const intersectionWidth = boardWidth / 9;
-const intersectionHeight = boardHeight / 10;
+// 9 files (a-i) means 8 spaces between them, 10 ranks (0-9) means 9 spaces
+const cellWidth = boardWidth / 8; // Distance between vertical lines
+const cellHeight = boardHeight / 9; // Distance between horizontal lines
 
 const styles = StyleSheet.create({
   container: {
@@ -274,40 +304,46 @@ const styles = StyleSheet.create({
     borderColor: '#5D4037', // Dark brown border
     borderRadius: 4,
     backgroundColor: '#D2B48C', // Tan/wood color
+    position: 'relative',
   },
-  rank: {
-    flexDirection: 'row',
+  horizontalLine: {
+    position: 'absolute',
+    height: 2,
+    backgroundColor: '#3E2723', // Dark brown
+  },
+  verticalLine: {
+    position: 'absolute',
+    width: 2,
+    backgroundColor: '#3E2723', // Dark brown
+  },
+  diagonalLine: {
+    position: 'absolute',
+    height: 2,
+    backgroundColor: '#3E2723', // Dark brown
+    transformOrigin: 'left center',
   },
   intersection: {
-    width: intersectionWidth,
-    height: intersectionHeight,
+    position: 'absolute',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
-    borderWidth: 0.5,
-    borderColor: '#8B4513', // Saddle brown
+  },
+  pieceContainer: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   fileLabel: {
     position: 'absolute',
-    top: 2,
-    left: 2,
+    top: -15,
     fontSize: 10,
     fontWeight: 'bold',
-    color: 'rgba(0, 0, 0, 0.4)',
+    color: 'rgba(0, 0, 0, 0.6)',
   },
   rankLabel: {
     position: 'absolute',
-    top: 2,
-    right: 2,
+    left: -15,
     fontSize: 10,
     fontWeight: 'bold',
-    color: 'rgba(0, 0, 0, 0.4)',
-  },
-  palaceMark: {
-    position: 'absolute',
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#6D4C41',
+    color: 'rgba(0, 0, 0, 0.6)',
   },
 });
