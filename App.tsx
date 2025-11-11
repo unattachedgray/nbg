@@ -468,8 +468,9 @@ function App(): React.JSX.Element {
         }
       } else if (variant === 'janggi') {
         // Janggi starting position (9x10 board)
+        // Generals (k/K) are in the CENTER of their palaces (rank 1 and 8, file 4)
         const janggiStartingFen =
-          'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1';
+          'rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1';
         setCurrentFen(janggiStartingFen);
 
         // Get initial analysis for Janggi
@@ -965,7 +966,7 @@ function App(): React.JSX.Element {
                     currentFen &&
                     currentFen.split('/').length === 10
                       ? currentFen
-                      : 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1'
+                      : 'rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1'
                   }
                   suggestedMove={hoveredMove || undefined}
                   legalMoves={analysis[0]?.pv || []}
