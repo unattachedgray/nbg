@@ -246,7 +246,7 @@ export function JanggiBoard({
 
         {/* Rank labels (left column) */}
         {file === 0 && (
-          <Text style={styles.rankLabel}>{rank}</Text>
+          <Text style={styles.rankLabel}>{rank + 1}</Text>
         )}
       </Pressable>
     );
@@ -286,7 +286,7 @@ export function JanggiBoard({
         ))}
 
         {/* Palace diagonal lines - Red (top) palace */}
-        {/* Top-left to bottom-right diagonal - connects (file 3, rank 0) to (file 5, rank 2) */}
+        {/* d1 to f3 diagonal (top-left to bottom-right) */}
         <View
           style={{
             position: 'absolute',
@@ -299,7 +299,7 @@ export function JanggiBoard({
             transform: [{rotate: Math.atan2(2 * cellHeight, 2 * cellWidth) + 'rad'}],
           }}
         />
-        {/* Top-right to bottom-left diagonal - connects (file 5, rank 0) to (file 3, rank 2) */}
+        {/* f1 to d3 diagonal (top-right to bottom-left) */}
         <View
           style={{
             position: 'absolute',
@@ -314,7 +314,7 @@ export function JanggiBoard({
         />
 
         {/* Palace diagonal lines - Blue (bottom) palace */}
-        {/* Top-left to bottom-right diagonal - connects (file 3, rank 7) to (file 5, rank 9) */}
+        {/* d8 to f10 diagonal (top-left to bottom-right) */}
         <View
           style={{
             position: 'absolute',
@@ -327,7 +327,7 @@ export function JanggiBoard({
             transform: [{rotate: Math.atan2(2 * cellHeight, 2 * cellWidth) + 'rad'}],
           }}
         />
-        {/* Top-right to bottom-left diagonal - connects (file 5, rank 7) to (file 3, rank 9) */}
+        {/* f8 to d10 diagonal (top-right to bottom-left) */}
         <View
           style={{
             position: 'absolute',
