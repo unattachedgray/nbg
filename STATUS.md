@@ -1,6 +1,6 @@
 # Chess App - Project Status
 
-**Last Updated**: November 11, 2025, 11:15 PM
+**Last Updated**: November 12, 2025, 12:00 AM
 **Status**: ✅ **Active Development - Core Features Complete**
 
 ---
@@ -41,17 +41,19 @@
 
 ### 🔨 Currently Working On
 
-- ✅ **Janggi Board Implementation** - Added intersection-based board layout with palace diagonals
-  - Downloaded and integrated Kakao-style Janggi SVG pieces (14 files)
-  - Fixed SVG scaling issues by adding viewBox attributes
-  - Redesigned board from square-based to intersection-based grid (9×10)
-  - Corrected starting position with generals in palace centers
-  - Fixed piece sizing and board padding for proper visibility
-- ✅ **TypeScript Type Safety** - Fixed all compilation errors
-  - Changed NodeJS.Timeout to ReturnType<typeof setTimeout> for React Native compatibility
-  - Removed web-only cursor properties from StyleSheet
-  - Added missing xiangqi and shogi NNUE entries to GameVariant record
-- Next: Janggi legal move validation and engine integration
+- ✅ **Janggi Board Implementation** - Intersection-based board layout (90% complete)
+  - ✅ Downloaded and integrated Kakao-style Janggi SVG pieces (14 files)
+  - ✅ Fixed SVG scaling issues by adding viewBox attributes
+  - ✅ Redesigned board from square-based to intersection-based grid (9×10)
+  - ✅ Corrected starting position with generals in palace centers
+  - ✅ Fixed piece sizing and positioning - pieces centered on intersections
+  - ✅ Increased board padding (30px → 40px) for label visibility
+  - ✅ Fixed rank labels to show 1-10 correctly
+  - ⚠️ **Palace diagonal lines** - Still troubleshooting React Native transform rendering
+    - Attempted: rotated View elements, react-native-svg (dependency issues), segmented approach
+    - Issue: Transform rotation not rendering correctly on Windows UWP
+    - Coordinates are correct (d1-f3, f1-d3, d8-f10, f8-d10) but visual rendering needs fix
+- Next: Complete palace diagonals, then implement Janggi legal move validation and engine integration
 
 ---
 
