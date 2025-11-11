@@ -75,7 +75,7 @@ function App(): React.JSX.Element {
   const engineRef = useRef<XBoardEngine | null>(null);
   const gameRef = useRef(new Chess());
   const autoPlayStopRef = useRef(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const analysisRequestIdRef = useRef(0); // Track which analysis request is current
 
   const showToast = (message: string, type: Toast['type'] = 'info') => {

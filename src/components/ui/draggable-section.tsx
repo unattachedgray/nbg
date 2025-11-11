@@ -165,10 +165,10 @@ export function DraggableSection({
 
 const styles = StyleSheet.create({
   draggableContainer: {
-    cursor: 'grab',
+    // cursor is web-only, removed for React Native compatibility
   },
   dragging: {
-    cursor: 'grabbing',
+    // cursor is web-only, removed for React Native compatibility
     opacity: 0.9,
     zIndex: 1000,
   },
