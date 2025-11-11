@@ -298,69 +298,85 @@ export function JanggiBoard({
             style={[
               styles.rankLabel,
               {
-                left: padding - 24,
+                left: padding - 28,
                 top: padding + i * cellHeight - 10,
+                minWidth: 20,
               },
             ]}>
-            {i + 1}
+            {i === 9 ? '10' : `${i + 1}`}
           </Text>
         ))}
 
-        {/* Palace diagonal lines - Red (top) palace */}
-        {/* d1 to f3 diagonal */}
-        <View
-          style={{
-            position: 'absolute',
-            left: padding + 3 * cellWidth,
-            top: padding + 0 * cellHeight,
-            width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
-            height: 2,
-            backgroundColor: '#3E2723',
-            transform: [{rotate: `${Math.atan2(2 * cellHeight, 2 * cellWidth) * (180 / Math.PI)}deg`}],
-            transformOrigin: 'top left',
-          }}
-        />
-        {/* f1 to d3 diagonal */}
-        <View
-          style={{
-            position: 'absolute',
-            left: padding + 5 * cellWidth,
-            top: padding + 0 * cellHeight,
-            width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
-            height: 2,
-            backgroundColor: '#3E2723',
-            transform: [{rotate: `${Math.atan2(2 * cellHeight, -2 * cellWidth) * (180 / Math.PI)}deg`}],
-            transformOrigin: 'top left',
-          }}
-        />
+        {/* Palace diagonal lines - Using borderBottom trick */}
+        {/* Red palace (top) - d1 to f3 */}
+        {Array.from({length: 3}, (_, i) => (
+          <View
+            key={`red-diag1-${i}`}
+            style={{
+              position: 'absolute',
+              left: padding + (3 + i) * cellWidth - 1,
+              top: padding + i * cellHeight,
+              width: cellWidth + 2,
+              height: cellHeight,
+              borderBottomWidth: 2,
+              borderBottomColor: '#3E2723',
+              transform: [{rotate: `${Math.atan(cellHeight / cellWidth) * (180 / Math.PI)}deg`}],
+              transformOrigin: 'top left',
+            }}
+          />
+        ))}
+        {/* Red palace (top) - f1 to d3 */}
+        {Array.from({length: 3}, (_, i) => (
+          <View
+            key={`red-diag2-${i}`}
+            style={{
+              position: 'absolute',
+              left: padding + (5 - i) * cellWidth - 1,
+              top: padding + i * cellHeight,
+              width: cellWidth + 2,
+              height: cellHeight,
+              borderBottomWidth: 2,
+              borderBottomColor: '#3E2723',
+              transform: [{rotate: `${-Math.atan(cellHeight / cellWidth) * (180 / Math.PI)}deg`}],
+              transformOrigin: 'top right',
+            }}
+          />
+        ))}
 
-        {/* Palace diagonal lines - Blue (bottom) palace */}
-        {/* d8 to f10 diagonal */}
-        <View
-          style={{
-            position: 'absolute',
-            left: padding + 3 * cellWidth,
-            top: padding + 7 * cellHeight,
-            width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
-            height: 2,
-            backgroundColor: '#3E2723',
-            transform: [{rotate: `${Math.atan2(2 * cellHeight, 2 * cellWidth) * (180 / Math.PI)}deg`}],
-            transformOrigin: 'top left',
-          }}
-        />
-        {/* f8 to d10 diagonal */}
-        <View
-          style={{
-            position: 'absolute',
-            left: padding + 5 * cellWidth,
-            top: padding + 7 * cellHeight,
-            width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
-            height: 2,
-            backgroundColor: '#3E2723',
-            transform: [{rotate: `${Math.atan2(2 * cellHeight, -2 * cellWidth) * (180 / Math.PI)}deg`}],
-            transformOrigin: 'top left',
-          }}
-        />
+        {/* Blue palace (bottom) - d8 to f10 */}
+        {Array.from({length: 3}, (_, i) => (
+          <View
+            key={`blue-diag1-${i}`}
+            style={{
+              position: 'absolute',
+              left: padding + (3 + i) * cellWidth - 1,
+              top: padding + (7 + i) * cellHeight,
+              width: cellWidth + 2,
+              height: cellHeight,
+              borderBottomWidth: 2,
+              borderBottomColor: '#3E2723',
+              transform: [{rotate: `${Math.atan(cellHeight / cellWidth) * (180 / Math.PI)}deg`}],
+              transformOrigin: 'top left',
+            }}
+          />
+        ))}
+        {/* Blue palace (bottom) - f8 to d10 */}
+        {Array.from({length: 3}, (_, i) => (
+          <View
+            key={`blue-diag2-${i}`}
+            style={{
+              position: 'absolute',
+              left: padding + (5 - i) * cellWidth - 1,
+              top: padding + (7 + i) * cellHeight,
+              width: cellWidth + 2,
+              height: cellHeight,
+              borderBottomWidth: 2,
+              borderBottomColor: '#3E2723',
+              transform: [{rotate: `${-Math.atan(cellHeight / cellWidth) * (180 / Math.PI)}deg`}],
+              transformOrigin: 'top right',
+            }}
+          />
+        ))}
 
         {/* Intersections with pieces */}
         {board.length === 0 ? (
