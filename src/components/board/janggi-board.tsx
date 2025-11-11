@@ -286,71 +286,59 @@ export function JanggiBoard({
         ))}
 
         {/* Palace diagonal lines - Red (top) palace */}
-        {/* Top-left to bottom-right diagonal */}
+        {/* Top-left to bottom-right diagonal - connects (file 3, rank 0) to (file 5, rank 2) */}
         <View
-          style={[
-            styles.diagonalLine,
-            {
-              position: 'absolute',
-              left: padding + 3 * cellWidth,
-              top: padding + 0 * cellHeight,
-              width: Math.sqrt(2) * 2 * cellWidth,
-              height: 2,
-              backgroundColor: '#3E2723',
-              transform: [{rotate: '45deg'}],
-              transformOrigin: 'left center',
-            },
-          ]}
+          style={{
+            position: 'absolute',
+            left: padding + 3 * cellWidth,
+            top: padding + 0 * cellHeight,
+            width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
+            height: 2,
+            backgroundColor: '#3E2723',
+            transformOrigin: 'top left',
+            transform: [{rotate: Math.atan2(2 * cellHeight, 2 * cellWidth) + 'rad'}],
+          }}
         />
-        {/* Top-right to bottom-left diagonal */}
+        {/* Top-right to bottom-left diagonal - connects (file 5, rank 0) to (file 3, rank 2) */}
         <View
-          style={[
-            styles.diagonalLine,
-            {
-              position: 'absolute',
-              left: padding + 5 * cellWidth,
-              top: padding + 0 * cellHeight,
-              width: Math.sqrt(2) * 2 * cellWidth,
-              height: 2,
-              backgroundColor: '#3E2723',
-              transform: [{rotate: '-45deg'}],
-              transformOrigin: 'left center',
-            },
-          ]}
+          style={{
+            position: 'absolute',
+            left: padding + 5 * cellWidth,
+            top: padding + 0 * cellHeight,
+            width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
+            height: 2,
+            backgroundColor: '#3E2723',
+            transformOrigin: 'top left',
+            transform: [{rotate: Math.atan2(2 * cellHeight, -2 * cellWidth) + 'rad'}],
+          }}
         />
 
         {/* Palace diagonal lines - Blue (bottom) palace */}
-        {/* Top-left to bottom-right diagonal */}
+        {/* Top-left to bottom-right diagonal - connects (file 3, rank 7) to (file 5, rank 9) */}
         <View
-          style={[
-            styles.diagonalLine,
-            {
-              position: 'absolute',
-              left: padding + 3 * cellWidth,
-              top: padding + 7 * cellHeight,
-              width: Math.sqrt(2) * 2 * cellWidth,
-              height: 2,
-              backgroundColor: '#3E2723',
-              transform: [{rotate: '45deg'}],
-              transformOrigin: 'left center',
-            },
-          ]}
+          style={{
+            position: 'absolute',
+            left: padding + 3 * cellWidth,
+            top: padding + 7 * cellHeight,
+            width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
+            height: 2,
+            backgroundColor: '#3E2723',
+            transformOrigin: 'top left',
+            transform: [{rotate: Math.atan2(2 * cellHeight, 2 * cellWidth) + 'rad'}],
+          }}
         />
-        {/* Top-right to bottom-left diagonal */}
+        {/* Top-right to bottom-left diagonal - connects (file 5, rank 7) to (file 3, rank 9) */}
         <View
-          style={[
-            styles.diagonalLine,
-            {
-              position: 'absolute',
-              left: padding + 5 * cellWidth,
-              top: padding + 7 * cellHeight,
-              width: Math.sqrt(2) * 2 * cellWidth,
-              height: 2,
-              backgroundColor: '#3E2723',
-              transform: [{rotate: '-45deg'}],
-              transformOrigin: 'left center',
-            },
-          ]}
+          style={{
+            position: 'absolute',
+            left: padding + 5 * cellWidth,
+            top: padding + 7 * cellHeight,
+            width: Math.sqrt(Math.pow(2 * cellWidth, 2) + Math.pow(2 * cellHeight, 2)),
+            height: 2,
+            backgroundColor: '#3E2723',
+            transformOrigin: 'top left',
+            transform: [{rotate: Math.atan2(2 * cellHeight, -2 * cellWidth) + 'rad'}],
+          }}
         />
 
         {/* Intersections with pieces */}
