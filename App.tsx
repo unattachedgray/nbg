@@ -986,7 +986,7 @@ function App(): React.JSX.Element {
             </Pressable>
             {showVariantDropdown && (
               <View style={styles.variantDropdownMenu}>
-                {(['chess', 'janggi', 'janggi2'] as GameVariant[]).map((variant) => (
+                {(['chess', 'janggi', 'janggi2', 'janggi3'] as GameVariant[]).map((variant) => (
                   <Pressable
                     key={variant}
                     style={[
@@ -1001,7 +1001,9 @@ function App(): React.JSX.Element {
                       styles.variantDropdownItemText,
                       selectedVariant === variant && styles.variantDropdownItemTextSelected
                     ]}>
-                      {variant === 'chess' ? 'Chess' : variant === 'janggi' ? 'Janggi' : 'Janggi 2'}
+                      {variant === 'chess' ? 'Chess' :
+                       variant === 'janggi' ? 'Janggi' :
+                       variant === 'janggi2' ? 'Janggi 2' : 'Janggi 3'}
                     </Text>
                   </Pressable>
                 ))}
