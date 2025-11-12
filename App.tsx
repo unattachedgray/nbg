@@ -85,7 +85,7 @@ function App(): React.JSX.Element {
   });
 
   // Janggi3 standalone game state
-  const [janggi3Board, setJanggi3Board] = useState<Janggi3Board_Type | null>(null);
+  const [janggi3Board, setJanggi3Board] = useState<Janggi3Board_Type>(createInitialBoard());
   const [janggi3Turn, setJanggi3Turn] = useState<boolean>(true); // true = Han (red), false = Cho (blue)
   const [janggi3HighlightedMoves, setJanggi3HighlightedMoves] = useState<Position[]>([]);
 
@@ -591,8 +591,6 @@ function App(): React.JSX.Element {
   };
 
   const handleJanggi3Move = async (from: Position, to: Position) => {
-    if (!janggi3Board) return;
-
     // Validate move is legal
     const legalMoves = getJanggi3LegalMoves(janggi3Board, from, janggi3Turn);
     const isLegalMove = legalMoves.some(
@@ -638,8 +636,6 @@ function App(): React.JSX.Element {
   };
 
   const makeJanggi3AIMove = async (board: Janggi3Board_Type, isHanTurn: boolean) => {
-    if (!board) return;
-
     try {
       setIsEngineThinking(true);
 
@@ -1210,7 +1206,7 @@ function App(): React.JSX.Element {
                 />
               ) : selectedVariant === 'janggi3' ? (
                 <Janggi3Board
-                  board={janggi3Board || createInitialBoard()}
+                  board={janggi3Board}
                   onMove={handleJanggi3Move}
                   highlightedMoves={janggi3HighlightedMoves}
                   disabled={isEngineThinking}
