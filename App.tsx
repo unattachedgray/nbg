@@ -301,7 +301,10 @@ function App(): React.JSX.Element {
   // Handle variant changes without reinitializing engine
   useEffect(() => {
     console.log('Variant change detected:', selectedVariant, 'Engine ready:', engineReady);
-    if (engineRef.current && engineReady) {
+    // Janggi3 doesn't need engine, switch immediately
+    if (selectedVariant === 'janggi3') {
+      switchVariant(selectedVariant);
+    } else if (engineRef.current && engineReady) {
       switchVariant(selectedVariant);
     }
   }, [selectedVariant, engineReady]);
@@ -309,6 +312,9 @@ function App(): React.JSX.Element {
   // Re-trigger analysis when player types change to ensure suggestions show up
   useEffect(() => {
     const triggerAnalysis = async () => {
+      // Skip analysis for janggi3 (doesn't use engine)
+      if (selectedVariant === 'janggi3') return;
+
       // Only analyze if engine is ready and at least one player is human
       if (!engineRef.current || !engineReady) return;
       if (player1Type === 'ai' && player2Type === 'ai') return;
@@ -486,13 +492,45 @@ function App(): React.JSX.Element {
   };
 
   const switchVariant = async (variant: GameVariant) => {
-    if (!engineRef.current || !engineReady) {
-      console.log('Engine not ready, cannot switch variant');
-      return;
-    }
-
     try {
       console.log(`Switching to variant: ${variant}`);
+
+      // Janggi3 is standalone - no engine needed
+      if (variant === 'janggi3') {
+        const initialBoard = createInitialBoard();
+        setJanggi3Board(initialBoard);
+        setJanggi3Turn(true); // Han starts
+        setJanggi3HighlightedMoves([]);
+
+        // Clear engine analysis (not used for janggi3)
+        setAnalysis([]);
+        setAnalysisTurn(null);
+        setAnalysisFen('');
+
+        // If Han (bottom/player2) is AI, make first move
+        if (player2Type === 'ai') {
+          Promise.resolve().then(() => makeJanggi3AIMove(initialBoard, true));
+        }
+
+        // Reset game counters
+        setCurrentGameMoves(0);
+        setRecentMoveTimestamps([]);
+        setMovesPerMinute(0);
+        setCurrentTurn('w');
+        setGameStatus('');
+        setMoveSequence([]);
+        setHoveredMove(null);
+
+        showToast(`Switched to ${variant}`, 'success');
+        console.log(`✅ Successfully switched to ${variant}`);
+        return; // Exit early - no engine needed
+      }
+
+      // For other variants, check if engine is ready
+      if (!engineRef.current || !engineReady) {
+        console.log('Engine not ready, cannot switch variant');
+        return;
+      }
 
       // Tell engine to switch variant (map janggi2 to janggi for engine)
       const engineVariant = variant === 'janggi2' ? 'janggi' : variant;
@@ -532,22 +570,6 @@ function App(): React.JSX.Element {
           setAnalysisFen(janggiStartingFen);
         } catch (error) {
           console.error('Error getting initial analysis:', error);
-        }
-      } else if (variant === 'janggi3') {
-        // Janggi3 standalone - no engine needed
-        const initialBoard = createInitialBoard();
-        setJanggi3Board(initialBoard);
-        setJanggi3Turn(true); // Han starts
-        setJanggi3HighlightedMoves([]);
-
-        // Clear engine analysis (not used for janggi3)
-        setAnalysis([]);
-        setAnalysisTurn(null);
-        setAnalysisFen('');
-
-        // If Han (bottom/player2) is AI, make first move
-        if (player2Type === 'ai') {
-          Promise.resolve().then(() => makeJanggi3AIMove(initialBoard, true));
         }
       }
 

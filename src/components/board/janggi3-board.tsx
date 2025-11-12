@@ -11,21 +11,21 @@ import {
 // Janggi piece images
 const PIECE_IMAGES: Record<string, ImageSourcePropType> = {
   // Han (Red) pieces
-  'han_jol': require('../../assets/janggi2-pieces/rp.png'),
-  'han_sang': require('../../assets/janggi2-pieces/re.png'),
-  'han_ma': require('../../assets/janggi2-pieces/rh.png'),
-  'han_po': require('../../assets/janggi2-pieces/rc.png'),
-  'han_cha': require('../../assets/janggi2-pieces/rr.png'),
-  'han_sa': require('../../assets/janggi2-pieces/ra.png'),
-  'han_king': require('../../assets/janggi2-pieces/rk.png'),
+  'han_jol': require('../../assets/janggi-pieces/rp.png'),
+  'han_sang': require('../../assets/janggi-pieces/re.png'),
+  'han_ma': require('../../assets/janggi-pieces/rh.png'),
+  'han_po': require('../../assets/janggi-pieces/rc.png'),
+  'han_cha': require('../../assets/janggi-pieces/rr.png'),
+  'han_sa': require('../../assets/janggi-pieces/ra.png'),
+  'han_king': require('../../assets/janggi-pieces/rk.png'),
   // Cho (Blue) pieces
-  'cho_jol': require('../../assets/janggi2-pieces/bp.png'),
-  'cho_sang': require('../../assets/janggi2-pieces/be.png'),
-  'cho_ma': require('../../assets/janggi2-pieces/bh.png'),
-  'cho_po': require('../../assets/janggi2-pieces/bc.png'),
-  'cho_cha': require('../../assets/janggi2-pieces/br.png'),
-  'cho_sa': require('../../assets/janggi2-pieces/ba.png'),
-  'cho_king': require('../../assets/janggi2-pieces/bk.png'),
+  'cho_jol': require('../../assets/janggi-pieces/bp.png'),
+  'cho_sang': require('../../assets/janggi-pieces/be.png'),
+  'cho_ma': require('../../assets/janggi-pieces/bh.png'),
+  'cho_po': require('../../assets/janggi-pieces/bc.png'),
+  'cho_cha': require('../../assets/janggi-pieces/br.png'),
+  'cho_sa': require('../../assets/janggi-pieces/ba.png'),
+  'cho_king': require('../../assets/janggi-pieces/bk.png'),
 };
 
 interface Janggi3BoardProps {
