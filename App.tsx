@@ -593,10 +593,11 @@ function App(): React.JSX.Element {
     setJanggi3HighlightedMoves([]);
 
     // Check for game over
-    const gameResult = getGameResult(newBoard, newTurn);
-    if (gameResult) {
-      setGameStatus(`Game Over: ${gameResult}`);
-      showToast(`Game Over: ${gameResult}`, 'info');
+    const gameResult = getGameResult(newBoard);
+    if (gameResult !== null) {
+      const resultText = gameResult === 1 ? 'Han wins!' : gameResult === -1 ? 'Cho wins!' : 'Draw';
+      setGameStatus(`Game Over: ${resultText}`);
+      showToast(`Game Over: ${resultText}`, 'info');
       return;
     }
 
@@ -638,10 +639,11 @@ function App(): React.JSX.Element {
       setIsEngineThinking(false);
 
       // Check for game over
-      const gameResult = getGameResult(newBoard, newTurn);
-      if (gameResult) {
-        setGameStatus(`Game Over: ${gameResult}`);
-        showToast(`Game Over: ${gameResult}`, 'info');
+      const gameResult = getGameResult(newBoard);
+      if (gameResult !== null) {
+        const resultText = gameResult === 1 ? 'Han wins!' : gameResult === -1 ? 'Cho wins!' : 'Draw';
+        setGameStatus(`Game Over: ${resultText}`);
+        showToast(`Game Over: ${resultText}`, 'info');
         return;
       }
 
@@ -679,12 +681,7 @@ function App(): React.JSX.Element {
 
       if (!validation.isValid) {
         // Show error toast and return early
-        Toast.show({
-          type: 'error',
-          text1: 'Invalid Move',
-          text2: validation.error || 'This move is not allowed',
-          visibilityTime: 2000,
-        });
+        showToast(validation.error || 'Invalid move', 'error');
         return;
       }
 

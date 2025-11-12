@@ -144,6 +144,8 @@ export class XBoardEngine {
     const nnueFiles: Record<GameVariant, string> = {
       chess: 'nn-46832cfbead3.nnue',
       janggi: 'janggi-9991472750de.nnue',
+      janggi2: 'janggi-9991472750de.nnue', // Same as janggi
+      janggi3: '', // Standalone, doesn't use engine
       xiangqi: 'xiangqi-nnue.nnue',
       shogi: 'shogi-nnue.nnue',
     };
