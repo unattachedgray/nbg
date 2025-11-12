@@ -2,24 +2,24 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Pressable, Dimensions, Image, ImageSourcePropType} from 'react-native';
 import {GameVariant} from '../../types/game';
 
-// Janggi piece images
+// Janggi piece images (ladofa/janggi style)
 const PIECE_IMAGES: Record<string, ImageSourcePropType> = {
   // Red (Han) pieces
-  rk: require('../../assets/janggi-pieces/rk.png'),
-  ra: require('../../assets/janggi-pieces/ra.png'),
-  rr: require('../../assets/janggi-pieces/rr.png'),
-  rh: require('../../assets/janggi-pieces/rh.png'),
-  re: require('../../assets/janggi-pieces/re.png'),
-  rc: require('../../assets/janggi-pieces/rc.png'),
-  rp: require('../../assets/janggi-pieces/rp.png'),
+  rk: require('../../assets/janggi2-pieces/rk.png'),
+  ra: require('../../assets/janggi2-pieces/ra.png'),
+  rr: require('../../assets/janggi2-pieces/rr.png'),
+  rh: require('../../assets/janggi2-pieces/rh.png'),
+  re: require('../../assets/janggi2-pieces/re.png'),
+  rc: require('../../assets/janggi2-pieces/rc.png'),
+  rp: require('../../assets/janggi2-pieces/rp.png'),
   // Blue (Cho) pieces
-  bk: require('../../assets/janggi-pieces/bk.png'),
-  ba: require('../../assets/janggi-pieces/ba.png'),
-  br: require('../../assets/janggi-pieces/br.png'),
-  bh: require('../../assets/janggi-pieces/bh.png'),
-  be: require('../../assets/janggi-pieces/be.png'),
-  bc: require('../../assets/janggi-pieces/bc.png'),
-  bp: require('../../assets/janggi-pieces/bp.png'),
+  bk: require('../../assets/janggi2-pieces/bk.png'),
+  ba: require('../../assets/janggi2-pieces/ba.png'),
+  br: require('../../assets/janggi2-pieces/br.png'),
+  bh: require('../../assets/janggi2-pieces/bh.png'),
+  be: require('../../assets/janggi2-pieces/be.png'),
+  bc: require('../../assets/janggi2-pieces/bc.png'),
+  bp: require('../../assets/janggi2-pieces/bp.png'),
 };
 
 // Janggi piece symbols (traditional Korean characters) - fallback
@@ -42,7 +42,7 @@ const PIECE_SYMBOLS: Record<string, string> = {
   bp: '兵',
 };
 
-interface JanggiBoardProps {
+interface Janggi2BoardProps {
   variant?: GameVariant;
   onMove?: (from: string, to: string) => void;
   fen?: string;
@@ -50,7 +50,7 @@ interface JanggiBoardProps {
   legalMoves?: string[]; // Legal moves from engine
 }
 
-// Board dimensions - 9 files (A-I) × 10 ranks (0-9)
+// Board dimensions - 9 files (A-I) × 10 ranks (1-10)
 const BOARD_COLS = 9; // 9 vertical lines
 const BOARD_ROWS = 10; // 10 horizontal lines
 const windowWidth = Dimensions.get('window').width;
@@ -62,13 +62,13 @@ const GRID_HEIGHT = (BOARD_ROWS - 1) * CELL_SIZE;
 const BOARD_WIDTH = GRID_WIDTH + LABEL_SIZE * 2;
 const BOARD_HEIGHT = GRID_HEIGHT + LABEL_SIZE * 2;
 
-export function JanggiBoard({
+export function Janggi2Board({
   variant = 'janggi',
   onMove,
   fen,
   suggestedMove,
   legalMoves = [],
-}: JanggiBoardProps): React.JSX.Element {
+}: Janggi2BoardProps): React.JSX.Element {
   // Parse FEN to piece array with {x, y, pieceKey, symbol, color}
   const parseFEN = (fenString: string) => {
     const [boardPart] = fenString.split(' ');

@@ -106,57 +106,147 @@ export function positionToFEN(position: JanggiPosition): string {
 }
 
 /**
- * Apply a move to a Janggi position and return updated position
+ * Validate if a Janggi move is legal (basic validation)
  * @param fen Current position FEN
  * @param move Move in notation like "a0b0" (from square to square)
- * @returns Updated FEN
+ * @returns Object with isValid boolean and error message if invalid
  */
-export function applyMoveToFEN(fen: string, move: string): string {
-  console.log('applyMoveToFEN called with FEN:', fen, 'move:', move);
-
+export function validateJanggiMove(fen: string, move: string): {isValid: boolean; error?: string} {
   if (move.length < 4) {
-    console.error('Invalid move notation:', move);
-    return fen;
+    return {isValid: false, error: 'Invalid move notation'};
   }
 
-  const from = move.substring(0, 2);
-  const to = move.substring(2, 4);
-  console.log('From:', from, 'To:', to);
+  // Parse move notation (format: file+rank+file+rank, e.g., "e1e2" or "e10e9")
+  // Find where second file starts (it's the first letter after the first file)
+  const fromFile = move.charCodeAt(0) - 'a'.charCodeAt(0);
+  let rankSplitIdx = 1;
+  while (rankSplitIdx < move.length && (move[rankSplitIdx] < 'a' || move[rankSplitIdx] > 'i')) {
+    rankSplitIdx++;
+  }
 
-  // Parse coordinates
-  const fromFile = from.charCodeAt(0) - 'a'.charCodeAt(0);
-  const fromRank = parseInt(from[1], 10);
-  const toFile = to.charCodeAt(0) - 'a'.charCodeAt(0);
-  const toRank = parseInt(to[1], 10);
+  const fromRank = parseInt(move.substring(1, rankSplitIdx), 10);
+  const toFile = move.charCodeAt(rankSplitIdx) - 'a'.charCodeAt(0);
+  const toRank = parseInt(move.substring(rankSplitIdx + 1), 10);
 
-  // Validate coordinates
+  const from = move.substring(0, rankSplitIdx);
+  const to = move.substring(rankSplitIdx);
+
+  // Check if from and to are different
+  if (from === to) {
+    return {isValid: false, error: 'From and to squares must be different'};
+  }
+
+  // Validate coordinates (Janggi uses files a-i [0-8] and ranks 1-10)
   if (
     fromFile < 0 ||
     fromFile > 8 ||
     toFile < 0 ||
     toFile > 8 ||
-    fromRank < 0 ||
-    fromRank > 9 ||
-    toRank < 0 ||
-    toRank > 9
+    fromRank < 1 ||
+    fromRank > 10 ||
+    toRank < 1 ||
+    toRank > 10
   ) {
-    console.error('Invalid move coordinates:', move);
-    return fen;
+    return {isValid: false, error: 'Move coordinates out of bounds'};
   }
+
+  // For Janggi, Fairy-Stockfish uses rank notation 1-10 (not 0-9!)
+  // Rank 1 = bottom (red), Rank 10 = top (blue)
+  // FEN array uses 0-9: index 0 = top (blue), index 9 = bottom (red)
+  // Conversion: FEN rank index = 10 - notation rank
+  const fromRankIndex = 10 - fromRank;
+  const toRankIndex = 10 - toRank;
 
   // Parse FEN
   const position = parseJanggiFEN(fen);
 
-  // Get piece at from square
-  const piece = position.board[fromRank]?.[fromFile];
+  // Check if there's a piece at from square
+  const piece = position.board[fromRankIndex]?.[fromFile];
+
+  // ALWAYS log for debugging the coordinate system
+  console.log('=== JANGGI MOVE DEBUG ===');
+  console.log('Engine move notation:', move);
+  console.log('Parsed: file', String.fromCharCode(fromFile + 97), '(index', fromFile + ') rank', fromRank);
+  console.log('Conversion: FEN rank', fromRankIndex, '= 10 -', fromRank);
+  console.log('Piece at [', fromRankIndex, '][', fromFile, ']:', piece);
+
   if (!piece) {
-    console.error('No piece at from square:', from);
+    console.log('ERROR: No piece found!');
+    console.log('Full board state:');
+    position.board.forEach((rank, i) => {
+      const rankStr = rank.map((p, fileIdx) => {
+        const marker = (i === fromRankIndex && fileIdx === fromFile) ? ' <--HERE' : '';
+        return `${String.fromCharCode(97 + fileIdx)}:${p || '___'}${marker}`;
+      }).join(' ');
+      console.log(`  FEN rank ${i}: ${rankStr}`);
+    });
+    console.log('=============================');
+    return {isValid: false, error: 'No piece at from square'};
+  }
+
+  console.log('✓ Found piece:', piece);
+  console.log('=========================');
+
+  // Check if piece belongs to current player
+  const pieceColor = piece[0]; // 'r' or 'b'
+  const expectedColor = position.turn === 'w' ? 'r' : 'b';
+  if (pieceColor !== expectedColor) {
+    return {isValid: false, error: 'Not your turn - cannot move opponent\'s piece'};
+  }
+
+  // Check if capturing own piece
+  const targetPiece = position.board[toRankIndex]?.[toFile];
+  if (targetPiece && targetPiece[0] === pieceColor) {
+    return {isValid: false, error: 'Cannot capture your own piece'};
+  }
+
+  // Basic validation passed
+  // TODO: Add full Janggi movement rules (piece-specific movement patterns)
+  return {isValid: true};
+}
+
+/**
+ * Apply a move to a Janggi position and return updated position
+ * @param fen Current position FEN
+ * @param move Move in notation like "a0b0" (from square to square)
+ * @returns Updated FEN, or original FEN if move is invalid
+ */
+export function applyMoveToFEN(fen: string, move: string): string {
+  // Validate move first
+  const validation = validateJanggiMove(fen, move);
+  if (!validation.isValid) {
+    console.error('Invalid move:', validation.error);
     return fen;
   }
 
+  // Parse move notation (format: file+rank+file+rank, e.g., "e1e2" or "e10e9")
+  // Find where second file starts (it's the first letter after the first file)
+  const fromFile = move.charCodeAt(0) - 'a'.charCodeAt(0);
+  let rankSplitIdx = 1;
+  while (rankSplitIdx < move.length && (move[rankSplitIdx] < 'a' || move[rankSplitIdx] > 'i')) {
+    rankSplitIdx++;
+  }
+
+  const fromRank = parseInt(move.substring(1, rankSplitIdx), 10);
+  const toFile = move.charCodeAt(rankSplitIdx) - 'a'.charCodeAt(0);
+  const toRank = parseInt(move.substring(rankSplitIdx + 1), 10);
+
+  // For Janggi, Fairy-Stockfish uses rank notation 1-10 (not 0-9!)
+  // Rank 1 = bottom (red), Rank 10 = top (blue)
+  // FEN array uses 0-9: index 0 = top (blue), index 9 = bottom (red)
+  // Conversion: FEN rank index = 10 - notation rank
+  const fromRankIndex = 10 - fromRank;
+  const toRankIndex = 10 - toRank;
+
+  // Parse FEN
+  const position = parseJanggiFEN(fen);
+
+  // Get piece at from square (we already validated it exists)
+  const piece = position.board[fromRankIndex][fromFile]!;
+
   // Move piece
-  position.board[fromRank][fromFile] = null;
-  position.board[toRank][toFile] = piece;
+  position.board[fromRankIndex][fromFile] = null;
+  position.board[toRankIndex][toFile] = piece;
 
   // Toggle turn
   position.turn = position.turn === 'w' ? 'b' : 'w';

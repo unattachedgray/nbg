@@ -1,4 +1,4 @@
-export type GameVariant = 'chess' | 'janggi' | 'xiangqi' | 'shogi';
+export type GameVariant = 'chess' | 'janggi' | 'janggi2' | 'xiangqi' | 'shogi';
 
 export type PieceColor = 'white' | 'black' | 'red' | 'blue';
 

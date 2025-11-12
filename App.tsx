@@ -14,13 +14,14 @@ import {
 } from 'react-native';
 import {ChessBoard} from './src/components/board/chess-board';
 import {JanggiBoard} from './src/components/board/janggi-board';
+import {Janggi2Board} from './src/components/board/janggi2-board';
 import {AnalysisPanel} from './src/components/analysis/analysis-panel';
 import {TermText} from './src/components/ui/tooltip';
 import {ToastNotification, Toast} from './src/components/ui/toast-notification';
 import {GameVariant, GameMode, Square, EngineAnalysis} from './src/types/game';
 import {createXBoardEngine, XBoardEngine} from './src/services/xboard-engine';
 import {Chess} from 'chess.js';
-import {applyMoveToFEN} from './src/utils/janggi-fen';
+import {applyMoveToFEN, validateJanggiMove} from './src/utils/janggi-fen';
 import {
   setupNNUE,
   SetupProgress,
@@ -49,6 +50,7 @@ function App(): React.JSX.Element {
   const [player1Type, setPlayer1Type] = useState<'human' | 'ai'>('ai'); // Black (top)
   const [player2Type, setPlayer2Type] = useState<'human' | 'ai'>('human'); // White (bottom)
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [showVariantDropdown, setShowVariantDropdown] = useState(false);
   const [currentTurn, setCurrentTurn] = useState<'w' | 'b'>('w'); // Track whose turn it is
   const [gameStatus, setGameStatus] = useState<string>(''); // Track check/checkmate/stalemate
   const [fastMode, setFastMode] = useState(false); // Disable rendering for AI vs AI
@@ -289,6 +291,34 @@ function App(): React.JSX.Element {
     }
   }, [selectedVariant, engineReady]);
 
+  // Re-trigger analysis when player types change to ensure suggestions show up
+  useEffect(() => {
+    const triggerAnalysis = async () => {
+      // Only analyze if engine is ready and at least one player is human
+      if (!engineRef.current || !engineReady) return;
+      if (player1Type === 'ai' && player2Type === 'ai') return;
+
+      // Check if current player is human
+      const currentPlayerType = currentTurn === 'w' ? player2Type : player1Type;
+      if (currentPlayerType === 'human') {
+        try {
+          setIsAnalyzing(true);
+          const fen = (selectedVariant === 'janggi' || selectedVariant === 'janggi2') ? currentFen : gameRef.current.fen();
+          const moveAnalysis = await engineRef.current.analyze(fen, 15);
+          setAnalysis([moveAnalysis]);
+          setAnalysisTurn(currentTurn);
+          setAnalysisFen(fen);
+        } catch (error) {
+          console.error('Error analyzing after player type change:', error);
+        } finally {
+          setIsAnalyzing(false);
+        }
+      }
+    };
+
+    triggerAnalysis();
+  }, [player1Type, player2Type]);
+
   const initializeApp = async () => {
     try {
       // For Windows, NNUE file is handled via setup script before build
@@ -412,7 +442,9 @@ function App(): React.JSX.Element {
       console.log('Initializing chess engine...');
       setEngineReady(false);
 
-      const engine = await createXBoardEngine(selectedVariant);
+      // Map janggi2 to janggi for engine (same rules, different pieces)
+      const engineVariant = selectedVariant === 'janggi2' ? 'janggi' : selectedVariant;
+      const engine = await createXBoardEngine(engineVariant);
       engineRef.current = engine;
 
       setEngineReady(true);
@@ -447,8 +479,9 @@ function App(): React.JSX.Element {
     try {
       console.log(`Switching to variant: ${variant}`);
 
-      // Tell engine to switch variant
-      await engineRef.current.setVariant(variant);
+      // Tell engine to switch variant (map janggi2 to janggi for engine)
+      const engineVariant = variant === 'janggi2' ? 'janggi' : variant;
+      await engineRef.current.setVariant(engineVariant);
 
       // Reset game state based on variant
       if (variant === 'chess') {
@@ -466,7 +499,7 @@ function App(): React.JSX.Element {
         } catch (error) {
           console.error('Error getting initial analysis:', error);
         }
-      } else if (variant === 'janggi') {
+      } else if (variant === 'janggi' || variant === 'janggi2') {
         // Janggi starting position (9x10 board)
         // Generals (k/K) are in the CENTER of their palaces (rank 1 and 8, file 4)
         const janggiStartingFen =
@@ -518,16 +551,26 @@ function App(): React.JSX.Element {
     let newFen: string;
     let newTurn: 'w' | 'b';
 
-    if (selectedVariant === 'janggi') {
+    if (selectedVariant === 'janggi' || selectedVariant === 'janggi2') {
       // For Janggi, we can't use chess.js (doesn't support Janggi)
-      // Use manual FEN manipulation
-      console.log(`Janggi move: ${from}${to}`);
-      console.log('Current FEN before move:', currentFen);
-      newFen = applyMoveToFEN(currentFen, `${from}${to}`);
-      console.log('Updated Janggi FEN after applyMoveToFEN:', newFen);
-      console.log('FEN validation check - split length:', newFen.split('/').length);
+      // Validate move first
+      const moveNotation = `${from}${to}`;
+      const validation = validateJanggiMove(currentFen, moveNotation);
+
+      if (!validation.isValid) {
+        // Show error toast and return early
+        Toast.show({
+          type: 'error',
+          text1: 'Invalid Move',
+          text2: validation.error || 'This move is not allowed',
+          visibilityTime: 2000,
+        });
+        return;
+      }
+
+      // Apply the move
+      newFen = applyMoveToFEN(currentFen, moveNotation);
       setCurrentFen(newFen);
-      console.log('State updated - setCurrentFen called with:', newFen);
       newTurn = currentTurn === 'w' ? 'b' : 'w';
       setCurrentTurn(newTurn);
       // Skip game status checks for Janggi (need engine to determine)
@@ -579,14 +622,15 @@ function App(): React.JSX.Element {
     }
 
     // Check if next player is AI and should auto-move
-    const nextTurn = selectedVariant === 'janggi' ? newTurn : gameRef.current.turn();
-    const isGameOver = selectedVariant === 'janggi' ? false : gameRef.current.isGameOver(); // For Janggi, assume game continues
+    const nextTurn = (selectedVariant === 'janggi' || selectedVariant === 'janggi2') ? newTurn : gameRef.current.turn();
+    const isGameOver = (selectedVariant === 'janggi' || selectedVariant === 'janggi2') ? false : gameRef.current.isGameOver(); // For Janggi, assume game continues
     const currentPlayerType = nextTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
 
     if (currentPlayerType === 'ai' && !isGameOver) {
       // Next player is AI, trigger immediately (no setTimeout delay)
       // Use setImmediate or Promise.resolve to avoid blocking UI
-      Promise.resolve().then(() => getEngineMove());
+      // Pass the newFen directly to avoid race condition with state update
+      Promise.resolve().then(() => getEngineMove(newFen));
     }
   };
 
@@ -614,7 +658,7 @@ function App(): React.JSX.Element {
     }
   };
 
-  const getEngineMove = async () => {
+  const getEngineMove = async (providedFen?: string) => {
     if (!engineRef.current || !engineReady) {
       return;
     }
@@ -629,7 +673,8 @@ function App(): React.JSX.Element {
       // DON'T clear analysis - keep previous suggestions visible
 
       // Tell engine about current position and get move
-      const fen = selectedVariant === 'janggi' ? currentFen : gameRef.current.fen();
+      // Use provided FEN if available (avoids race condition), otherwise fall back to state
+      const fen = providedFen || ((selectedVariant === 'janggi' || selectedVariant === 'janggi2') ? currentFen : gameRef.current.fen());
       // Lightning-fast thinking for AI vs AI in fast mode: 10ms, otherwise 50ms for AI vs AI, 500ms for human games
       const thinkTime = fastMode ? 10 : (player1Type === 'ai' && player2Type === 'ai') ? 50 : 500;
       const engineMove = await engineRef.current.getBestMove(fen, thinkTime);
@@ -637,13 +682,9 @@ function App(): React.JSX.Element {
       let newFen: string;
       let newTurn: 'w' | 'b';
 
-      if (selectedVariant === 'janggi') {
+      if (selectedVariant === 'janggi' || selectedVariant === 'janggi2') {
         // For Janggi, apply move manually to FEN
-        console.log(`Janggi AI move: ${engineMove}`);
-        console.log('Current FEN before AI move:', currentFen);
-        newFen = applyMoveToFEN(currentFen, engineMove);
-        console.log('Updated Janggi FEN after AI move:', newFen);
-        console.log('FEN validation check - split length:', newFen.split('/').length);
+        newFen = applyMoveToFEN(fen, engineMove);
         newTurn = currentTurn === 'w' ? 'b' : 'w';
       } else {
         // For Chess, use chess.js
@@ -938,16 +979,34 @@ function App(): React.JSX.Element {
             <Text style={styles.variantLabel}>Game: </Text>
             <Pressable
               style={styles.variantDropdown}
-              onPress={() => {
-                const variants: GameVariant[] = ['chess', 'janggi'];
-                const currentIndex = variants.indexOf(selectedVariant);
-                const nextVariant = variants[(currentIndex + 1) % variants.length];
-                setSelectedVariant(nextVariant);
-              }}>
+              onPress={() => setShowVariantDropdown(!showVariantDropdown)}>
               <Text style={styles.variantDropdownText}>
-                {selectedVariant === 'chess' ? 'Chess' : 'Janggi'} ▼
+                {selectedVariant === 'chess' ? 'Chess' : selectedVariant === 'janggi' ? 'Janggi' : 'Janggi 2'} ▼
               </Text>
             </Pressable>
+            {showVariantDropdown && (
+              <View style={styles.variantDropdownMenu}>
+                {(['chess', 'janggi', 'janggi2'] as GameVariant[]).map((variant) => (
+                  <Pressable
+                    key={variant}
+                    style={[
+                      styles.variantDropdownItem,
+                      selectedVariant === variant && styles.variantDropdownItemSelected
+                    ]}
+                    onPress={() => {
+                      setSelectedVariant(variant);
+                      setShowVariantDropdown(false);
+                    }}>
+                    <Text style={[
+                      styles.variantDropdownItemText,
+                      selectedVariant === variant && styles.variantDropdownItemTextSelected
+                    ]}>
+                      {variant === 'chess' ? 'Chess' : variant === 'janggi' ? 'Janggi' : 'Janggi 2'}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
           </View>
         </View>
       </View>
@@ -968,7 +1027,20 @@ function App(): React.JSX.Element {
                       ? currentFen
                       : 'rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1'
                   }
-                  suggestedMove={hoveredMove || undefined}
+                  suggestedMove={hoveredMove || (analysis[0]?.pv?.[0])}
+                  legalMoves={analysis[0]?.pv || []}
+                />
+              ) : selectedVariant === 'janggi2' ? (
+                <Janggi2Board
+                  variant={selectedVariant}
+                  onMove={handleMove}
+                  fen={
+                    currentFen &&
+                    currentFen.split('/').length === 10
+                      ? currentFen
+                      : 'rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1'
+                  }
+                  suggestedMove={hoveredMove || (analysis[0]?.pv?.[0])}
                   legalMoves={analysis[0]?.pv || []}
                 />
               ) : (
@@ -976,7 +1048,7 @@ function App(): React.JSX.Element {
                   variant={selectedVariant}
                   onMove={handleMove}
                   fen={currentFen || undefined}
-                  suggestedMove={hoveredMove || undefined}
+                  suggestedMove={hoveredMove || (analysis[0]?.pv?.[0])}
                   moveSequence={moveSequence}
                 />
               )}
@@ -998,6 +1070,7 @@ function App(): React.JSX.Element {
                 currentTurn={currentTurn}
                 player1Type={player1Type}
                 player2Type={player2Type}
+                variant={selectedVariant}
               />
             </View>
 
@@ -1316,6 +1389,7 @@ const styles = StyleSheet.create({
   variantSelector: {
     flexDirection: 'row',
     alignItems: 'center',
+    position: 'relative',
   },
   variantLabel: {
     fontSize: 12,
@@ -1334,6 +1408,39 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#333333',
+  },
+  variantDropdownMenu: {
+    position: 'absolute',
+    top: 32,
+    left: 45,
+    backgroundColor: '#ffffff',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#d0d0d0',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    minWidth: 120,
+    zIndex: 1000,
+  },
+  variantDropdownItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  variantDropdownItemSelected: {
+    backgroundColor: '#e3f2fd',
+  },
+  variantDropdownItemText: {
+    fontSize: 13,
+    color: '#333333',
+  },
+  variantDropdownItemTextSelected: {
+    fontWeight: '600',
+    color: '#2196F3',
   },
   mainContent: {
     flex: 1,

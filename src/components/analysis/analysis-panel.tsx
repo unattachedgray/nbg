@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, Pressable} from 'react-native';
 import {Chess} from 'chess.js';
-import {EngineAnalysis} from '../../types/game';
+import {EngineAnalysis, GameVariant} from '../../types/game';
 import {TermText} from '../ui/tooltip';
 
 interface AnalysisPanelProps {
@@ -16,6 +16,7 @@ interface AnalysisPanelProps {
   currentTurn?: 'w' | 'b';
   player1Type?: 'human' | 'ai'; // black
   player2Type?: 'human' | 'ai'; // white
+  variant?: GameVariant; // Game variant (chess, janggi, etc.)
 }
 
 export function AnalysisPanel({
@@ -30,6 +31,7 @@ export function AnalysisPanel({
   currentTurn,
   player1Type,
   player2Type,
+  variant = 'chess',
 }: AnalysisPanelProps): React.JSX.Element {
   const [isHoveringSuggestion, setIsHoveringSuggestion] = useState(false);
   const [isHoveringContinuation, setIsHoveringContinuation] = useState(false);
@@ -111,6 +113,12 @@ export function AnalysisPanel({
   // FINAL VALIDATION: Filter moves to ensure they're for the correct color
   const validateMoveColor = (move: string): boolean => {
     if (!currentFen || move.length < 4) return false;
+
+    // For Janggi, skip chess.js validation (chess.js doesn't support Janggi FEN)
+    // The engine provides valid moves, so we trust them
+    if (variant === 'janggi' || variant === 'janggi2') {
+      return true;
+    }
 
     try {
       const testGame = new Chess(currentFen);
