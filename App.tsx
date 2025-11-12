@@ -544,6 +544,11 @@ function App(): React.JSX.Element {
         setAnalysis([]);
         setAnalysisTurn(null);
         setAnalysisFen('');
+
+        // If Han (bottom/player2) is AI, make first move
+        if (player2Type === 'ai') {
+          Promise.resolve().then(() => makeJanggi3AIMove(initialBoard, true));
+        }
       }
 
       // Reset game counters
@@ -602,7 +607,8 @@ function App(): React.JSX.Element {
     }
 
     // Check if next player is AI and should auto-move
-    const currentPlayerType = newTurn ? player1Type : player2Type; // true=Han=player1, false=Cho=player2
+    // Han (bottom) = player2, Cho (top) = player1
+    const currentPlayerType = newTurn ? player2Type : player1Type;
     if (currentPlayerType === 'ai') {
       // Trigger AI move after a short delay
       Promise.resolve().then(() => makeJanggi3AIMove(newBoard, newTurn));
@@ -648,7 +654,8 @@ function App(): React.JSX.Element {
       }
 
       // Check if next player is also AI (AI vs AI mode)
-      const nextPlayerType = newTurn ? player1Type : player2Type;
+      // Han (bottom) = player2, Cho (top) = player1
+      const nextPlayerType = newTurn ? player2Type : player1Type;
       if (nextPlayerType === 'ai') {
         // Continue AI vs AI
         setTimeout(() => makeJanggi3AIMove(newBoard, newTurn), 1000);
@@ -908,8 +915,8 @@ function App(): React.JSX.Element {
       setJanggi3HighlightedMoves([]);
       setGameStatus('');
 
-      // If Han (player1) is AI, make first move
-      if (player1Type === 'ai') {
+      // If Han (bottom/player2) is AI, make first move
+      if (player2Type === 'ai') {
         Promise.resolve().then(() => makeJanggi3AIMove(initialBoard, true));
       }
     } else {
@@ -1112,7 +1119,10 @@ function App(): React.JSX.Element {
               style={styles.variantDropdown}
               onPress={() => setShowVariantDropdown(!showVariantDropdown)}>
               <Text style={styles.variantDropdownText}>
-                {selectedVariant === 'chess' ? 'Chess' : selectedVariant === 'janggi' ? 'Janggi' : 'Janggi 2'} ▼
+                {selectedVariant === 'chess' ? 'Chess' :
+                 selectedVariant === 'janggi' ? 'Janggi' :
+                 selectedVariant === 'janggi2' ? 'Janggi 2' :
+                 'Janggi 3'} ▼
               </Text>
             </Pressable>
             {showVariantDropdown && (
