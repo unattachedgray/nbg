@@ -39,6 +39,15 @@ import {
 } from './src/game/janggi3-game';
 import {getLegalMoves as getJanggi3LegalMoves} from './src/game/janggi3-moves';
 import {getAIMove as getJanggi3AIMove} from './src/game/janggi3-ai';
+import {
+  Board as Janggi2Board_Type,
+  Position as Janggi2Position,
+  createInitialBoard as createJanggi2InitialBoard,
+  applyMove as applyJanggi2Move,
+  getGameResult as getJanggi2GameResult,
+} from './src/game/janggi2-game';
+import {getLegalMoves as getJanggi2LegalMoves} from './src/game/janggi2-moves';
+import {getEngineMove as getJanggi2EngineMove, getEngineEvaluation as getJanggi2Evaluation} from './src/game/janggi2-ai';
 
 function App(): React.JSX.Element {
   const [selectedVariant, setSelectedVariant] =
@@ -88,6 +97,11 @@ function App(): React.JSX.Element {
   const [janggi3Board, setJanggi3Board] = useState<Janggi3Board_Type>(createInitialBoard());
   const [janggi3Turn, setJanggi3Turn] = useState<boolean>(true); // true = Han (red), false = Cho (blue)
   const [janggi3HighlightedMoves, setJanggi3HighlightedMoves] = useState<Position[]>([]);
+
+  // Janggi2 engine-integrated game state
+  const [janggi2Board, setJanggi2Board] = useState<Janggi2Board_Type>(createJanggi2InitialBoard());
+  const [janggi2Turn, setJanggi2Turn] = useState<boolean>(true); // true = Han (red), false = Cho (blue)
+  const [janggi2HighlightedMoves, setJanggi2HighlightedMoves] = useState<Janggi2Position[]>([]);
 
   const engineRef = useRef<XBoardEngine | null>(null);
   const gameRef = useRef(new Chess());
@@ -302,7 +316,8 @@ function App(): React.JSX.Element {
   useEffect(() => {
     console.log('Variant change detected:', selectedVariant, 'Engine ready:', engineReady);
     // Janggi3 doesn't need engine, switch immediately
-    if (selectedVariant === 'janggi3') {
+    // Janggi2 needs engine but we can still try to switch (will check inside)
+    if (selectedVariant === 'janggi3' || selectedVariant === 'janggi2') {
       switchVariant(selectedVariant);
     } else if (engineRef.current && engineReady) {
       switchVariant(selectedVariant);
@@ -319,12 +334,21 @@ function App(): React.JSX.Element {
       if (!engineRef.current || !engineReady) return;
       if (player1Type === 'ai' && player2Type === 'ai') return;
 
+      // Handle janggi2 with board-based analysis
+      if (selectedVariant === 'janggi2') {
+        const currentPlayerType = janggi2Turn ? player2Type : player1Type;
+        if (currentPlayerType === 'human') {
+          triggerJanggi2Analysis(janggi2Board, janggi2Turn);
+        }
+        return;
+      }
+
       // Check if current player is human
       const currentPlayerType = currentTurn === 'w' ? player2Type : player1Type;
       if (currentPlayerType === 'human') {
         try {
           setIsAnalyzing(true);
-          const fen = (selectedVariant === 'janggi' || selectedVariant === 'janggi2') ? currentFen : gameRef.current.fen();
+          const fen = selectedVariant === 'janggi' ? currentFen : gameRef.current.fen();
           const moveAnalysis = await engineRef.current.analyze(fen, 15);
           setAnalysis([moveAnalysis]);
           setAnalysisTurn(currentTurn);
@@ -338,7 +362,7 @@ function App(): React.JSX.Element {
     };
 
     triggerAnalysis();
-  }, [player1Type, player2Type]);
+  }, [player1Type, player2Type, janggi2Board, janggi2Turn]);
 
   const initializeApp = async () => {
     try {
@@ -526,15 +550,53 @@ function App(): React.JSX.Element {
         return; // Exit early - no engine needed
       }
 
+      // Janggi2 uses engine - check if engine is ready
+      if (variant === 'janggi2') {
+        if (!engineRef.current || !engineReady) {
+          console.log('Engine not ready, cannot switch to janggi2');
+          showToast('Engine not ready', 'error');
+          return;
+        }
+
+        // Tell engine to switch to janggi variant
+        await engineRef.current.setVariant('janggi');
+
+        // Initialize janggi2 board
+        const initialBoard = createJanggi2InitialBoard();
+        setJanggi2Board(initialBoard);
+        setJanggi2Turn(true); // Han starts
+        setJanggi2HighlightedMoves([]);
+
+        // Trigger initial analysis
+        triggerJanggi2Analysis(initialBoard, true);
+
+        // If Han (bottom/player2) is AI, make first move
+        if (player2Type === 'ai') {
+          Promise.resolve().then(() => makeJanggi2AIMove(initialBoard, true));
+        }
+
+        // Reset game counters
+        setCurrentGameMoves(0);
+        setRecentMoveTimestamps([]);
+        setMovesPerMinute(0);
+        setCurrentTurn('w');
+        setGameStatus('');
+        setMoveSequence([]);
+        setHoveredMove(null);
+
+        showToast(`Switched to ${variant}`, 'success');
+        console.log(`✅ Successfully switched to ${variant}`);
+        return;
+      }
+
       // For other variants, check if engine is ready
       if (!engineRef.current || !engineReady) {
         console.log('Engine not ready, cannot switch variant');
         return;
       }
 
-      // Tell engine to switch variant (map janggi2 to janggi for engine)
-      const engineVariant = variant === 'janggi2' ? 'janggi' : variant;
-      await engineRef.current.setVariant(engineVariant);
+      // Tell engine to switch variant
+      await engineRef.current.setVariant(variant);
 
       // Reset game state based on variant
       if (variant === 'chess') {
@@ -552,7 +614,7 @@ function App(): React.JSX.Element {
         } catch (error) {
           console.error('Error getting initial analysis:', error);
         }
-      } else if (variant === 'janggi' || variant === 'janggi2') {
+      } else if (variant === 'janggi') {
         // Janggi starting position (9x10 board)
         // Generals (k/K) are in the CENTER of their palaces (rank 1 and 8, file 4)
         const janggiStartingFen =
@@ -681,6 +743,142 @@ function App(): React.JSX.Element {
     } catch (error) {
       console.error('Error making AI move:', error);
       setIsEngineThinking(false);
+    }
+  };
+
+  const handleJanggi2Move = async (from: Janggi2Position, to: Janggi2Position) => {
+    // Validate move is legal
+    const legalMoves = getJanggi2LegalMoves(janggi2Board, from, janggi2Turn);
+    const isLegalMove = legalMoves.some(
+      move => move.to.row === to.row && move.to.col === to.col
+    );
+
+    if (!isLegalMove) {
+      showToast('Invalid move', 'error');
+      return;
+    }
+
+    // Apply move to create new board
+    const newBoard = applyJanggi2Move(janggi2Board, { from, to });
+    setJanggi2Board(newBoard);
+
+    // Switch turn
+    const newTurn = !janggi2Turn;
+    setJanggi2Turn(newTurn);
+
+    // Increment move counter and add timestamp
+    setCurrentGameMoves(prev => prev + 1);
+    setRecentMoveTimestamps(prev => [...prev, Date.now()]);
+
+    // Clear highlighted moves
+    setJanggi2HighlightedMoves([]);
+
+    // Check for game over
+    const gameResult = getJanggi2GameResult(newBoard);
+    if (gameResult !== null) {
+      const resultText = gameResult === 1 ? 'Han wins!' : gameResult === -1 ? 'Cho wins!' : 'Draw';
+      setGameStatus(`Game Over: ${resultText}`);
+      showToast(`Game Over: ${resultText}`, 'info');
+      return;
+    }
+
+    // Trigger engine analysis for new position
+    if (engineRef.current) {
+      triggerJanggi2Analysis(newBoard, newTurn);
+    }
+
+    // Check if next player is AI and should auto-move
+    // Han (bottom) = player2, Cho (top) = player1
+    const currentPlayerType = newTurn ? player2Type : player1Type;
+    if (currentPlayerType === 'ai') {
+      // Trigger AI move after a short delay
+      Promise.resolve().then(() => makeJanggi2AIMove(newBoard, newTurn));
+    }
+  };
+
+  const makeJanggi2AIMove = async (board: Janggi2Board_Type, isHanTurn: boolean) => {
+    try {
+      setIsEngineThinking(true);
+
+      if (!engineRef.current) {
+        showToast('Engine not ready', 'error');
+        setIsEngineThinking(false);
+        return;
+      }
+
+      // Get AI move from engine
+      const aiMove = await getJanggi2EngineMove(board, isHanTurn, engineRef.current, 2000);
+      if (!aiMove) {
+        setGameStatus('No legal moves - Game Over');
+        showToast('No legal moves available', 'info');
+        setIsEngineThinking(false);
+        return;
+      }
+
+      // Apply AI move
+      const newBoard = applyJanggi2Move(board, aiMove);
+      setJanggi2Board(newBoard);
+
+      // Switch turn
+      const newTurn = !isHanTurn;
+      setJanggi2Turn(newTurn);
+
+      // Increment move counter
+      setCurrentGameMoves(prev => prev + 1);
+      setRecentMoveTimestamps(prev => [...prev, Date.now()]);
+
+      setIsEngineThinking(false);
+
+      // Check for game over
+      const gameResult = getJanggi2GameResult(newBoard);
+      if (gameResult !== null) {
+        const resultText = gameResult === 1 ? 'Han wins!' : gameResult === -1 ? 'Cho wins!' : 'Draw';
+        setGameStatus(`Game Over: ${resultText}`);
+        showToast(`Game Over: ${resultText}`, 'info');
+        return;
+      }
+
+      // Trigger engine analysis for new position
+      triggerJanggi2Analysis(newBoard, newTurn);
+
+      // Check if next player is also AI (AI vs AI mode)
+      // Han (bottom) = player2, Cho (top) = player1
+      const nextPlayerType = newTurn ? player2Type : player1Type;
+      if (nextPlayerType === 'ai') {
+        // Continue AI vs AI
+        setTimeout(() => makeJanggi2AIMove(newBoard, newTurn), 1000);
+      }
+    } catch (error) {
+      console.error('Error making AI move:', error);
+      setIsEngineThinking(false);
+    }
+  };
+
+  const triggerJanggi2Analysis = async (board: Janggi2Board_Type, isHanTurn: boolean) => {
+    if (!engineRef.current) return;
+
+    try {
+      setIsAnalyzing(true);
+      const evaluation = await getJanggi2Evaluation(board, isHanTurn, engineRef.current, 15);
+
+      if (evaluation) {
+        // Convert to EngineAnalysis format for display
+        const analysisData: EngineAnalysis = {
+          depth: evaluation.depth,
+          score: evaluation.score,
+          bestMove: evaluation.bestMove ?
+            `${String.fromCharCode(97 + evaluation.bestMove.from.col)}${evaluation.bestMove.from.row}${String.fromCharCode(97 + evaluation.bestMove.to.col)}${evaluation.bestMove.to.row}` : '',
+          pv: evaluation.pv,
+          nodes: 0,
+          nps: 0,
+          time: 0,
+        };
+        setAnalysis([analysisData]);
+      }
+      setIsAnalyzing(false);
+    } catch (error) {
+      console.error('Error analyzing position:', error);
+      setIsAnalyzing(false);
     }
   };
 
@@ -1203,6 +1401,13 @@ function App(): React.JSX.Element {
                   }
                   suggestedMove={hoveredMove || (analysis[0]?.pv?.[0])}
                   legalMoves={analysis[0]?.pv || []}
+                />
+              ) : selectedVariant === 'janggi2' ? (
+                <Janggi2Board
+                  board={janggi2Board}
+                  onMove={handleJanggi2Move}
+                  highlightedMoves={janggi2HighlightedMoves}
+                  disabled={isEngineThinking}
                 />
               ) : selectedVariant === 'janggi3' ? (
                 <Janggi3Board
