@@ -360,15 +360,21 @@ function App(): React.JSX.Element {
     if (selectedVariant !== 'janggi2') return;
 
     // Only if engine is ready
-    if (!engineRef.current || !engineReady) return;
+    if (!engineRef.current || !engineReady) {
+      console.log(`[Janggi2 Auto-start] Engine not ready`);
+      return;
+    }
 
     // Check if starting player (Han/player2) is AI and game is at start (move count = 0)
     if (player2Type === 'ai' && currentGameMoves === 0) {
+      console.log(`[Janggi2 Auto-start] Starting AI move (player2=${player2Type}, moves=${currentGameMoves})`);
       // Small delay to ensure board is rendered and engine is ready
       const timer = setTimeout(() => {
         makeJanggi2AIMove(janggi2Board, janggi2Turn);
       }, 500);
       return () => clearTimeout(timer);
+    } else {
+      console.log(`[Janggi2 Auto-start] Not starting (player2=${player2Type}, moves=${currentGameMoves})`);
     }
   }, [selectedVariant, player2Type, currentGameMoves, engineReady]);
 
@@ -870,23 +876,27 @@ function App(): React.JSX.Element {
 
   const makeJanggi2AIMove = async (board: Janggi2Board_Type, isHanTurn: boolean) => {
     try {
+      console.log(`[Janggi2 AI] Starting move for ${isHanTurn ? 'Han (red)' : 'Cho (blue)'}`);
       setIsEngineThinking(true);
 
       // Check if engine is available
       if (!engineRef.current || !engineReady) {
-        console.error('Engine not ready for janggi2 AI move');
+        console.error('[Janggi2 AI] Engine not ready for janggi2 AI move');
         setIsEngineThinking(false);
         return;
       }
 
       // Convert board to FEN for engine
       const currentFen = janggi2BoardToFEN(board, isHanTurn, 1);
+      console.log(`[Janggi2 AI] Current FEN: ${currentFen}`);
 
       // Get best move from NNUE engine
       const thinkTime = (player1TypeRef.current === 'ai' && player2TypeRef.current === 'ai') ? 50 : 500;
       const engineMove = await engineRef.current.getBestMove(currentFen, thinkTime);
+      console.log(`[Janggi2 AI] Engine move: ${engineMove}`);
 
       if (!engineMove) {
+        console.error('[Janggi2 AI] No legal moves available');
         setGameStatus('No legal moves - Game Over');
         showToast('No legal moves available', 'info');
         setIsEngineThinking(false);
@@ -908,9 +918,11 @@ function App(): React.JSX.Element {
 
       const from: Janggi2Position = { row: fromRow, col: fromCol };
       const to: Janggi2Position = { row: toRow, col: toCol };
+      console.log(`[Janggi2 AI] Parsed move: from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
 
       // Apply AI move
       const newBoard = applyJanggi2Move(board, { from, to });
+      console.log(`[Janggi2 AI] Board updated, setting state`);
       setJanggi2Board(newBoard);
 
       // Switch turn
@@ -959,12 +971,16 @@ function App(): React.JSX.Element {
       // Han (bottom) = player2, Cho (top) = player1
       // Use refs to see real-time player type changes
       const nextPlayerType = newTurn ? player2TypeRef.current : player1TypeRef.current;
+      console.log(`[Janggi2 AI] Next turn: ${newTurn ? 'Han' : 'Cho'}, player type: ${nextPlayerType}`);
       if (nextPlayerType === 'ai') {
         // Continue AI vs AI
+        console.log(`[Janggi2 AI] Scheduling next AI move in 1 second`);
         setTimeout(() => makeJanggi2AIMove(newBoard, newTurn), 1000);
+      } else {
+        console.log(`[Janggi2 AI] Next player is human, waiting for input`);
       }
     } catch (error) {
-      console.error('Error making AI move:', error);
+      console.error('[Janggi2 AI] Error making AI move:', error);
       setIsEngineThinking(false);
     }
   };
