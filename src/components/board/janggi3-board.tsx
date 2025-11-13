@@ -8,7 +8,7 @@ import {
   PieceType,
 } from '../../game/janggi3-game';
 
-// Janggi piece images
+// Janggi piece images (same as janggi1 and janggi2)
 const PIECE_IMAGES: Record<string, ImageSourcePropType> = {
   // Han (Red) pieces
   'han_jol': require('../../assets/janggi-pieces/rp.png'),
