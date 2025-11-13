@@ -834,8 +834,8 @@ function App(): React.JSX.Element {
     let newFen: string;
     let newTurn: 'w' | 'b';
 
-    if (selectedVariant === 'janggi' || selectedVariant === 'janggi2') {
-      // For Janggi, we can't use chess.js (doesn't support Janggi)
+    if (selectedVariant === 'janggi') {
+      // For Janggi (engine-based), we can't use chess.js (doesn't support Janggi)
       // Validate move first
       const moveNotation = `${from}${to}`;
       const validation = validateJanggiMove(currentFen, moveNotation);
@@ -901,8 +901,8 @@ function App(): React.JSX.Element {
 
     // Check if next player is AI and should auto-move
     // Note: janggi2 and janggi3 have their own move handlers, so skip engine for them
-    const nextTurn = (selectedVariant === 'janggi' || selectedVariant === 'janggi2') ? newTurn : gameRef.current.turn();
-    const isGameOver = (selectedVariant === 'janggi' || selectedVariant === 'janggi2') ? false : gameRef.current.isGameOver(); // For Janggi, assume game continues
+    const nextTurn = selectedVariant === 'janggi' ? newTurn : gameRef.current.turn();
+    const isGameOver = selectedVariant === 'janggi' ? false : gameRef.current.isGameOver(); // For Janggi (engine), assume game continues
     const currentPlayerType = nextTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
 
     if (currentPlayerType === 'ai' && !isGameOver && selectedVariant !== 'janggi2' && selectedVariant !== 'janggi3') {
@@ -1073,6 +1073,18 @@ function App(): React.JSX.Element {
       // If Han (bottom/player2) is AI, make first move
       if (player2Type === 'ai') {
         Promise.resolve().then(() => makeJanggi3AIMove(initialBoard, true));
+      }
+    } else if (selectedVariant === 'janggi2') {
+      // Janggi2 standalone - reset board
+      const initialBoard = createJanggi2InitialBoard();
+      setJanggi2Board(initialBoard);
+      setJanggi2Turn(true); // Han starts
+      setJanggi2HighlightedMoves([]);
+      setGameStatus('');
+
+      // If Han (bottom/player2) is AI, make first move
+      if (player2Type === 'ai') {
+        Promise.resolve().then(() => makeJanggi2AIMove(initialBoard, true));
       }
     } else {
       // Reset game state for chess/janggi (engine-based variants)
