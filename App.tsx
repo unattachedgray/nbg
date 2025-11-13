@@ -1329,19 +1329,6 @@ function App(): React.JSX.Element {
                 />
               ) : selectedVariant === 'janggi2' ? (
                 <Janggi2Board
-                  variant={selectedVariant}
-                  onMove={handleMove}
-                  fen={
-                    currentFen &&
-                    currentFen.split('/').length === 10
-                      ? currentFen
-                      : 'rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1'
-                  }
-                  suggestedMove={hoveredMove || (analysis[0]?.pv?.[0])}
-                  legalMoves={analysis[0]?.pv || []}
-                />
-              ) : selectedVariant === 'janggi2' ? (
-                <Janggi2Board
                   board={janggi2Board}
                   onMove={handleJanggi2Move}
                   highlightedMoves={janggi2HighlightedMoves}
