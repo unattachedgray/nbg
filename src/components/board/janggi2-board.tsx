@@ -54,6 +54,11 @@ export function Janggi2Board({
 }: Janggi2BoardProps): React.JSX.Element {
   const [selectedPos, setSelectedPos] = useState<Position | null>(null);
 
+  // Safety check - if board is undefined, don't render
+  if (!board) {
+    return <View style={styles.container}><Text>Loading board...</Text></View>;
+  }
+
   const handleCellPress = (row: number, col: number) => {
     if (disabled) return;
 
