@@ -1,76 +1,54 @@
 /**
- * Janggi2 Engine-Based AI
- * Uses Fairy-Stockfish engine for move selection and evaluation
+ * Janggi2 Simple AI
+ * Basic random move selection for now
  */
 
-import { Board, Move, boardToFEN, engineMoveToMove } from './janggi2-game';
-import { XBoardEngine } from '../services/xboard-engine';
+import { Board, Move, applyMove, getGameResult } from './janggi2-game';
+import { getAllLegalMoves } from './janggi2-moves';
 
 /**
- * Get AI move from engine
+ * Get AI move (random for now)
  */
-export async function getEngineMove(
-  board: Board,
-  isHanTurn: boolean,
-  engine: XBoardEngine,
-  timeMs: number = 2000
-): Promise<Move | null> {
-  try {
-    // Convert board to FEN
-    const fen = boardToFEN(board, isHanTurn);
+export function getAIMove(board: Board, isHanTurn: boolean): Move | null {
+  const legalMoves = getAllLegalMoves(board, isHanTurn);
 
-    // Get best move from engine
-    const engineMoveStr = await engine.getBestMove(fen, timeMs);
-
-    if (!engineMoveStr) {
-      return null;
-    }
-
-    // Convert engine move to Move object
-    const move = engineMoveToMove(engineMoveStr);
-    return move;
-  } catch (error) {
-    console.error('Error getting engine move:', error);
-    return null;
+  if (legalMoves.length === 0) {
+    return null; // No legal moves
   }
+
+  // For now, pick a random legal move
+  const randomIndex = Math.floor(Math.random() * legalMoves.length);
+  return legalMoves[randomIndex];
 }
 
 /**
- * Get position evaluation from engine
+ * Evaluate board position (simple material count)
  */
-export async function getEngineEvaluation(
-  board: Board,
-  isHanTurn: boolean,
-  engine: XBoardEngine,
-  depth: number = 15
-): Promise<{
-  score: number;
-  bestMove: Move | null;
-  depth: number;
-  pv: string[];
-} | null> {
-  try {
-    // Convert board to FEN
-    const fen = boardToFEN(board, isHanTurn);
+function evaluateBoard(board: Board): number {
+  let score = 0;
 
-    // Get analysis from engine
-    const analysis = await engine.analyze(fen, depth);
-
-    if (!analysis) {
-      return null;
+  for (let row = 0; row < 10; row++) {
+    for (let col = 0; col < 9; col++) {
+      const piece = board[row][col];
+      score += getPieceValue(piece);
     }
+  }
 
-    // Convert best move to Move object
-    const bestMove = analysis.bestMove ? engineMoveToMove(analysis.bestMove) : null;
+  return score;
+}
 
-    return {
-      score: analysis.score,
-      bestMove,
-      depth: analysis.depth,
-      pv: analysis.pv,
-    };
-  } catch (error) {
-    console.error('Error getting engine evaluation:', error);
-    return null;
+function getPieceValue(piece: number): number {
+  const absPiece = Math.abs(piece);
+  const sign = piece > 0 ? 1 : -1;
+
+  switch (absPiece) {
+    case 1: return sign * 2;    // Soldier
+    case 2: return sign * 3;    // Elephant
+    case 3: return sign * 5;    // Horse
+    case 4: return sign * 7;    // Cannon
+    case 5: return sign * 13;   // Chariot
+    case 6: return sign * 3;    // Guard
+    case 7: return sign * 10000; // King
+    default: return 0;
   }
 }

@@ -1,6 +1,6 @@
 /**
- * Janggi2 Game Logic - Engine-Integrated Implementation
- * Based on janggi3 standalone implementation, but integrated with Fairy-Stockfish
+ * Janggi2 Game Logic - Standalone Implementation
+ * Ported from ladofa/janggi Python implementation
  *
  * Board: 10 rows × 9 columns (0-indexed)
  * Coordinate system: (row, col) where row 0 is top (Cho/Blue), row 9 is bottom (Han/Red)
@@ -217,7 +217,7 @@ export function getGameResult(board: Board): number | null {
 }
 
 /**
- * Convert position to algebraic notation (e.g., "a0")
+ * Convert position to algebraic notation (e.g., "e4")
  */
 export function positionToNotation(pos: Position): string {
   const files = 'abcdefghi';
@@ -234,76 +234,4 @@ export function notationToPosition(notation: string): Position | null {
   const row = parseInt(notation[1], 10);
   if (col === -1 || isNaN(row) || row < 0 || row > 9) return null;
   return { row, col };
-}
-
-/**
- * Convert board to Janggi FEN notation for engine
- * Format: position side-to-move
- */
-export function boardToFEN(board: Board, isHanTurn: boolean): string {
-  const pieceToChar: Record<number, string> = {
-    [PieceType.HAN_KING]: 'K',
-    [PieceType.HAN_SA]: 'A',
-    [PieceType.HAN_CHA]: 'R',
-    [PieceType.HAN_PO]: 'C',
-    [PieceType.HAN_MA]: 'N',
-    [PieceType.HAN_SANG]: 'E',
-    [PieceType.HAN_JOL]: 'P',
-    [PieceType.CHO_KING]: 'k',
-    [PieceType.CHO_SA]: 'a',
-    [PieceType.CHO_CHA]: 'r',
-    [PieceType.CHO_PO]: 'c',
-    [PieceType.CHO_MA]: 'n',
-    [PieceType.CHO_SANG]: 'e',
-    [PieceType.CHO_JOL]: 'p',
-  };
-
-  const fenRows: string[] = [];
-
-  for (let row = 0; row < 10; row++) {
-    let fenRow = '';
-    let emptyCount = 0;
-
-    for (let col = 0; col < 9; col++) {
-      const piece = board[row][col];
-
-      if (piece === PieceType.EMPTY) {
-        emptyCount++;
-      } else {
-        if (emptyCount > 0) {
-          fenRow += emptyCount.toString();
-          emptyCount = 0;
-        }
-        fenRow += pieceToChar[piece] || '';
-      }
-    }
-
-    if (emptyCount > 0) {
-      fenRow += emptyCount.toString();
-    }
-
-    fenRows.push(fenRow);
-  }
-
-  const position = fenRows.join('/');
-  const sideToMove = isHanTurn ? 'r' : 'b'; // red (Han) or blue (Cho)
-
-  return `${position} ${sideToMove} - - 0 1`;
-}
-
-/**
- * Convert engine move notation (e.g., "a0b2") to Move object
- */
-export function engineMoveToMove(moveStr: string): Move | null {
-  if (moveStr.length < 4) return null;
-
-  const fromNotation = moveStr.substring(0, 2);
-  const toNotation = moveStr.substring(2, 4);
-
-  const from = notationToPosition(fromNotation);
-  const to = notationToPosition(toNotation);
-
-  if (!from || !to) return null;
-
-  return { from, to };
 }

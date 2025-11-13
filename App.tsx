@@ -47,7 +47,7 @@ import {
   getGameResult as getJanggi2GameResult,
 } from './src/game/janggi2-game';
 import {getLegalMoves as getJanggi2LegalMoves} from './src/game/janggi2-moves';
-import {getEngineMove as getJanggi2EngineMove, getEngineEvaluation as getJanggi2Evaluation} from './src/game/janggi2-ai';
+import {getAIMove as getJanggi2AIMove} from './src/game/janggi2-ai';
 
 function App(): React.JSX.Element {
   const [selectedVariant, setSelectedVariant] =
@@ -327,21 +327,12 @@ function App(): React.JSX.Element {
   // Re-trigger analysis when player types change to ensure suggestions show up
   useEffect(() => {
     const triggerAnalysis = async () => {
-      // Skip analysis for janggi3 (doesn't use engine)
-      if (selectedVariant === 'janggi3') return;
+      // Skip analysis for janggi3 and janggi2 (don't use engine)
+      if (selectedVariant === 'janggi3' || selectedVariant === 'janggi2') return;
 
       // Only analyze if engine is ready and at least one player is human
       if (!engineRef.current || !engineReady) return;
       if (player1Type === 'ai' && player2Type === 'ai') return;
-
-      // Handle janggi2 with board-based analysis
-      if (selectedVariant === 'janggi2') {
-        const currentPlayerType = janggi2Turn ? player2Type : player1Type;
-        if (currentPlayerType === 'human') {
-          triggerJanggi2Analysis(janggi2Board, janggi2Turn);
-        }
-        return;
-      }
 
       // Check if current player is human
       const currentPlayerType = currentTurn === 'w' ? player2Type : player1Type;
@@ -550,25 +541,13 @@ function App(): React.JSX.Element {
         return; // Exit early - no engine needed
       }
 
-      // Janggi2 uses engine - check if engine is ready
+      // Janggi2 - standalone implementation (no engine required)
       if (variant === 'janggi2') {
-        if (!engineRef.current || !engineReady) {
-          console.log('Engine not ready, cannot switch to janggi2');
-          showToast('Engine not ready', 'error');
-          return;
-        }
-
-        // Tell engine to switch to janggi variant
-        await engineRef.current.setVariant('janggi');
-
         // Initialize janggi2 board
         const initialBoard = createJanggi2InitialBoard();
         setJanggi2Board(initialBoard);
         setJanggi2Turn(true); // Han starts
         setJanggi2HighlightedMoves([]);
-
-        // Trigger initial analysis
-        triggerJanggi2Analysis(initialBoard, true);
 
         // If Han (bottom/player2) is AI, make first move
         if (player2Type === 'ai') {
@@ -586,7 +565,7 @@ function App(): React.JSX.Element {
 
         showToast(`Switched to ${variant}`, 'success');
         console.log(`✅ Successfully switched to ${variant}`);
-        return;
+        return; // Exit early - no engine needed
       }
 
       // For other variants, check if engine is ready
@@ -782,11 +761,6 @@ function App(): React.JSX.Element {
       return;
     }
 
-    // Trigger engine analysis for new position
-    if (engineRef.current) {
-      triggerJanggi2Analysis(newBoard, newTurn);
-    }
-
     // Check if next player is AI and should auto-move
     // Han (bottom) = player2, Cho (top) = player1
     const currentPlayerType = newTurn ? player2Type : player1Type;
@@ -800,14 +774,8 @@ function App(): React.JSX.Element {
     try {
       setIsEngineThinking(true);
 
-      if (!engineRef.current) {
-        showToast('Engine not ready', 'error');
-        setIsEngineThinking(false);
-        return;
-      }
-
-      // Get AI move from engine
-      const aiMove = await getJanggi2EngineMove(board, isHanTurn, engineRef.current, 2000);
+      // Use random AI, not engine
+      const aiMove = getJanggi2AIMove(board, isHanTurn);
       if (!aiMove) {
         setGameStatus('No legal moves - Game Over');
         showToast('No legal moves available', 'info');
@@ -838,9 +806,6 @@ function App(): React.JSX.Element {
         return;
       }
 
-      // Trigger engine analysis for new position
-      triggerJanggi2Analysis(newBoard, newTurn);
-
       // Check if next player is also AI (AI vs AI mode)
       // Han (bottom) = player2, Cho (top) = player1
       const nextPlayerType = newTurn ? player2Type : player1Type;
@@ -854,33 +819,6 @@ function App(): React.JSX.Element {
     }
   };
 
-  const triggerJanggi2Analysis = async (board: Janggi2Board_Type, isHanTurn: boolean) => {
-    if (!engineRef.current) return;
-
-    try {
-      setIsAnalyzing(true);
-      const evaluation = await getJanggi2Evaluation(board, isHanTurn, engineRef.current, 15);
-
-      if (evaluation) {
-        // Convert to EngineAnalysis format for display
-        const analysisData: EngineAnalysis = {
-          depth: evaluation.depth,
-          score: evaluation.score,
-          bestMove: evaluation.bestMove ?
-            `${String.fromCharCode(97 + evaluation.bestMove.from.col)}${evaluation.bestMove.from.row}${String.fromCharCode(97 + evaluation.bestMove.to.col)}${evaluation.bestMove.to.row}` : '',
-          pv: evaluation.pv,
-          nodes: 0,
-          nps: 0,
-          time: 0,
-        };
-        setAnalysis([analysisData]);
-      }
-      setIsAnalyzing(false);
-    } catch (error) {
-      console.error('Error analyzing position:', error);
-      setIsAnalyzing(false);
-    }
-  };
 
   const handleMove = async (from: Square, to: Square) => {
     // Increment request ID to invalidate any pending analysis
