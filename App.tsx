@@ -107,8 +107,7 @@ function App(): React.JSX.Element {
   const [janggi2Turn, setJanggi2Turn] = useState<boolean>(true); // true = Han (red), false = Cho (blue)
   const [janggi2HighlightedMoves, setJanggi2HighlightedMoves] = useState<Janggi2Position[]>([]);
   const [janggi2Fen, setJanggi2Fen] = useState<string>(() => {
-    const {boardToFEN} = require('./game/janggi2-game');
-    return boardToFEN(createJanggi2InitialBoard(), true, 1);
+    return janggi2BoardToFEN(createJanggi2InitialBoard(), true, 1);
   });
 
   const engineRef = useRef<XBoardEngine | null>(null);
@@ -355,6 +354,24 @@ function App(): React.JSX.Element {
     }
   }, [selectedVariant, player2Type, currentGameMoves]);
 
+  // Auto-start AI vs AI games for janggi2 when starting player is AI
+  useEffect(() => {
+    // Only for janggi2 variant
+    if (selectedVariant !== 'janggi2') return;
+
+    // Only if engine is ready
+    if (!engineRef.current || !engineReady) return;
+
+    // Check if starting player (Han/player2) is AI and game is at start (move count = 0)
+    if (player2Type === 'ai' && currentGameMoves === 0) {
+      // Small delay to ensure board is rendered and engine is ready
+      const timer = setTimeout(() => {
+        makeJanggi2AIMove(janggi2Board, janggi2Turn);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedVariant, player2Type, currentGameMoves, engineReady]);
+
   // Re-trigger analysis when player types change to ensure suggestions show up
   useEffect(() => {
     const triggerAnalysis = async () => {
@@ -572,13 +589,37 @@ function App(): React.JSX.Element {
         return; // Exit early - no engine needed
       }
 
-      // Janggi2 - standalone implementation (no engine required)
+      // Janggi2 - engine-integrated implementation
       if (variant === 'janggi2') {
+        // For janggi2, check if engine is ready
+        if (!engineRef.current || !engineReady) {
+          console.log('Engine not ready, cannot switch to janggi2');
+          return;
+        }
+
+        // Tell engine to switch to janggi variant (janggi2 uses same rules)
+        await engineRef.current.setVariant('janggi');
+
         // Initialize janggi2 board
         const initialBoard = createJanggi2InitialBoard();
         setJanggi2Board(initialBoard);
         setJanggi2Turn(true); // Han starts
         setJanggi2HighlightedMoves([]);
+
+        // Convert initial board to FEN for engine
+        const initialFen = janggi2BoardToFEN(initialBoard, true, 1);
+        setJanggi2Fen(initialFen);
+        setCurrentFen(initialFen);
+
+        // Get initial analysis for janggi2
+        try {
+          const initialAnalysis = await engineRef.current.analyze(initialFen, 15);
+          setAnalysis([initialAnalysis]);
+          setAnalysisTurn('w');
+          setAnalysisFen(initialFen);
+        } catch (error) {
+          console.error('Error getting initial analysis:', error);
+        }
 
         // If Han (bottom/player2) is AI, make first move
         if (player2Type === 'ai') {
@@ -595,8 +636,8 @@ function App(): React.JSX.Element {
         setHoveredMove(null);
 
         showToast(`Switched to ${variant}`, 'success');
-        console.log(`✅ Successfully switched to ${variant}`);
-        return; // Exit early - no engine needed
+        console.log(`✅ Successfully switched to ${variant} with NNUE engine`);
+        return;
       }
 
       // For other variants, check if engine is ready
@@ -778,6 +819,14 @@ function App(): React.JSX.Element {
     const newTurn = !janggi2Turn;
     setJanggi2Turn(newTurn);
 
+    // Update FEN
+    const newFen = janggi2BoardToFEN(newBoard, newTurn, 1);
+    setJanggi2Fen(newFen);
+    setCurrentFen(newFen);
+
+    // Update currentTurn for analysis panel (Han=w, Cho=b)
+    setCurrentTurn(newTurn ? 'w' : 'b');
+
     // Increment move counter and add timestamp
     setCurrentGameMoves(prev => prev + 1);
     setRecentMoveTimestamps(prev => [...prev, Date.now()]);
@@ -794,6 +843,21 @@ function App(): React.JSX.Element {
       return;
     }
 
+    // Get analysis for new position (if engine is available)
+    if (engineRef.current && engineReady) {
+      try {
+        setIsAnalyzing(true);
+        const moveAnalysis = await engineRef.current.analyze(newFen, 15);
+        setAnalysis([moveAnalysis]);
+        setAnalysisTurn(newTurn ? 'w' : 'b');
+        setAnalysisFen(newFen);
+        setIsAnalyzing(false);
+      } catch (error) {
+        console.error('Error analyzing position:', error);
+        setIsAnalyzing(false);
+      }
+    }
+
     // Check if next player is AI and should auto-move
     // Han (bottom) = player2, Cho (top) = player1
     // Use refs to see real-time player type changes
@@ -808,22 +872,58 @@ function App(): React.JSX.Element {
     try {
       setIsEngineThinking(true);
 
-      // Use random AI, not engine
-      const aiMove = getJanggi2AIMove(board, isHanTurn);
-      if (!aiMove) {
+      // Check if engine is available
+      if (!engineRef.current || !engineReady) {
+        console.error('Engine not ready for janggi2 AI move');
+        setIsEngineThinking(false);
+        return;
+      }
+
+      // Convert board to FEN for engine
+      const currentFen = janggi2BoardToFEN(board, isHanTurn, 1);
+
+      // Get best move from NNUE engine
+      const thinkTime = (player1TypeRef.current === 'ai' && player2TypeRef.current === 'ai') ? 50 : 500;
+      const engineMove = await engineRef.current.getBestMove(currentFen, thinkTime);
+
+      if (!engineMove) {
         setGameStatus('No legal moves - Game Over');
         showToast('No legal moves available', 'info');
         setIsEngineThinking(false);
         return;
       }
 
+      // Parse engine move notation (e.g., "a0b1" or "a9b10") to Position objects
+      // Extract from square: first character is file, remaining digits until next letter are rank
+      const fromCol = engineMove.charCodeAt(0) - 'a'.charCodeAt(0);
+      let fromRankEnd = 1;
+      while (fromRankEnd < engineMove.length && /\d/.test(engineMove[fromRankEnd])) {
+        fromRankEnd++;
+      }
+      const fromRow = parseInt(engineMove.substring(1, fromRankEnd));
+
+      // Extract to square: next character after fromRank is file, remaining are rank
+      const toCol = engineMove.charCodeAt(fromRankEnd) - 'a'.charCodeAt(0);
+      const toRow = parseInt(engineMove.substring(fromRankEnd + 1));
+
+      const from: Janggi2Position = { row: fromRow, col: fromCol };
+      const to: Janggi2Position = { row: toRow, col: toCol };
+
       // Apply AI move
-      const newBoard = applyJanggi2Move(board, aiMove);
+      const newBoard = applyJanggi2Move(board, { from, to });
       setJanggi2Board(newBoard);
 
       // Switch turn
       const newTurn = !isHanTurn;
       setJanggi2Turn(newTurn);
+
+      // Update FEN
+      const newFen = janggi2BoardToFEN(newBoard, newTurn, 1);
+      setJanggi2Fen(newFen);
+      setCurrentFen(newFen);
+
+      // Update currentTurn for analysis panel (Han=w, Cho=b)
+      setCurrentTurn(newTurn ? 'w' : 'b');
 
       // Increment move counter
       setCurrentGameMoves(prev => prev + 1);
@@ -838,6 +938,21 @@ function App(): React.JSX.Element {
         setGameStatus(`Game Over: ${resultText}`);
         showToast(`Game Over: ${resultText}`, 'info');
         return;
+      }
+
+      // Get analysis for new position (if at least one player is human)
+      if (player1TypeRef.current === 'human' || player2TypeRef.current === 'human') {
+        try {
+          setIsAnalyzing(true);
+          const moveAnalysis = await engineRef.current.analyze(newFen, 15);
+          setAnalysis([moveAnalysis]);
+          setAnalysisTurn(newTurn ? 'w' : 'b');
+          setAnalysisFen(newFen);
+          setIsAnalyzing(false);
+        } catch (error) {
+          console.error('Error analyzing position:', error);
+          setIsAnalyzing(false);
+        }
       }
 
       // Check if next player is also AI (AI vs AI mode)
@@ -1125,12 +1240,38 @@ function App(): React.JSX.Element {
         Promise.resolve().then(() => makeJanggi3AIMove(initialBoard, true));
       }
     } else if (selectedVariant === 'janggi2') {
-      // Janggi2 standalone - reset board
+      // Janggi2 with engine - reset board
       const initialBoard = createJanggi2InitialBoard();
       setJanggi2Board(initialBoard);
       setJanggi2Turn(true); // Han starts
       setJanggi2HighlightedMoves([]);
       setGameStatus('');
+
+      // Convert initial board to FEN for engine
+      const initialFen = janggi2BoardToFEN(initialBoard, true, 1);
+      setJanggi2Fen(initialFen);
+      setCurrentFen(initialFen);
+
+      // Set current turn (Han starts, so 'w')
+      setCurrentTurn('w');
+
+      // Reset analysis
+      setAnalysis([]);
+      setAnalysisFen('');
+      setMoveSequence([]);
+      setHoveredMove(null);
+
+      // Get initial analysis if engine is ready
+      if (engineRef.current && engineReady) {
+        try {
+          const initialAnalysis = await engineRef.current.analyze(initialFen, 15);
+          setAnalysis([initialAnalysis]);
+          setAnalysisTurn('w');
+          setAnalysisFen(initialFen);
+        } catch (error) {
+          console.error('Error getting initial analysis:', error);
+        }
+      }
 
       // If Han (bottom/player2) is AI, make first move
       if (player2Type === 'ai') {
@@ -1420,7 +1561,7 @@ function App(): React.JSX.Element {
           {/* Right Column - Suggestions and Controls */}
           <View style={styles.rightColumn}>
             {/* Analysis Panel - only show for engine-based variants */}
-            {selectedVariant !== 'janggi2' && selectedVariant !== 'janggi3' && (
+            {selectedVariant !== 'janggi3' && (
               <View style={styles.analysisContainer}>
                 <AnalysisPanel
                   analysis={analysis}
