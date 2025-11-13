@@ -45,6 +45,10 @@ import {
   createInitialBoard as createJanggi2InitialBoard,
   applyMove as applyJanggi2Move,
   getGameResult as getJanggi2GameResult,
+  boardToFEN as janggi2BoardToFEN,
+  FENToBoard as janggi2FENToBoard,
+  positionToNotation as janggi2PositionToNotation,
+  notationToPosition as janggi2NotationToPosition,
 } from './src/game/janggi2-game';
 import {getLegalMoves as getJanggi2LegalMoves} from './src/game/janggi2-moves';
 import {getAIMove as getJanggi2AIMove} from './src/game/janggi2-ai';
@@ -102,6 +106,10 @@ function App(): React.JSX.Element {
   const [janggi2Board, setJanggi2Board] = useState<Janggi2Board_Type>(createJanggi2InitialBoard());
   const [janggi2Turn, setJanggi2Turn] = useState<boolean>(true); // true = Han (red), false = Cho (blue)
   const [janggi2HighlightedMoves, setJanggi2HighlightedMoves] = useState<Janggi2Position[]>([]);
+  const [janggi2Fen, setJanggi2Fen] = useState<string>(() => {
+    const {boardToFEN} = require('./game/janggi2-game');
+    return boardToFEN(createJanggi2InitialBoard(), true, 1);
+  });
 
   const engineRef = useRef<XBoardEngine | null>(null);
   const gameRef = useRef(new Chess());
@@ -318,8 +326,8 @@ function App(): React.JSX.Element {
   useEffect(() => {
     console.log('Variant change detected:', selectedVariant, 'Engine ready:', engineReady);
     // Janggi3 doesn't need engine, switch immediately
-    // Janggi2 needs engine but we can still try to switch (will check inside)
-    if (selectedVariant === 'janggi3' || selectedVariant === 'janggi2') {
+    // Janggi2 and janggi need engine, wait for ready
+    if (selectedVariant === 'janggi3') {
       switchVariant(selectedVariant);
     } else if (engineRef.current && engineReady) {
       switchVariant(selectedVariant);
@@ -332,20 +340,16 @@ function App(): React.JSX.Element {
     player2TypeRef.current = player2Type;
   }, [player1Type, player2Type]);
 
-  // Auto-start AI vs AI games for janggi2/janggi3 when starting player is AI
+  // Auto-start AI vs AI games for janggi3 when starting player is AI
   useEffect(() => {
-    // Only for standalone variants
-    if (selectedVariant !== 'janggi2' && selectedVariant !== 'janggi3') return;
+    // Only for standalone variant janggi3
+    if (selectedVariant !== 'janggi3') return;
 
     // Check if starting player (Han/player2) is AI and game is at start (move count = 0)
     if (player2Type === 'ai' && currentGameMoves === 0) {
       // Small delay to ensure board is rendered
       const timer = setTimeout(() => {
-        if (selectedVariant === 'janggi2') {
-          makeJanggi2AIMove(janggi2Board, janggi2Turn);
-        } else if (selectedVariant === 'janggi3') {
-          makeJanggi3AIMove(janggi3Board, janggi3Turn);
-        }
+        makeJanggi3AIMove(janggi3Board, janggi3Turn);
       }, 500);
       return () => clearTimeout(timer);
     }
@@ -354,8 +358,8 @@ function App(): React.JSX.Element {
   // Re-trigger analysis when player types change to ensure suggestions show up
   useEffect(() => {
     const triggerAnalysis = async () => {
-      // Skip analysis for janggi3 and janggi2 (don't use engine)
-      if (selectedVariant === 'janggi3' || selectedVariant === 'janggi2') return;
+      // Skip analysis for janggi3 (standalone, doesn't use engine)
+      if (selectedVariant === 'janggi3') return;
 
       // Only analyze if engine is ready and at least one player is human
       if (!engineRef.current || !engineReady) return;
@@ -366,7 +370,7 @@ function App(): React.JSX.Element {
       if (currentPlayerType === 'human') {
         try {
           setIsAnalyzing(true);
-          const fen = selectedVariant === 'janggi' ? currentFen : gameRef.current.fen();
+          const fen = selectedVariant === 'janggi' ? currentFen : selectedVariant === 'janggi2' ? janggi2Fen : gameRef.current.fen();
           const moveAnalysis = await engineRef.current.analyze(fen, 15);
           setAnalysis([moveAnalysis]);
           setAnalysisTurn(currentTurn);
@@ -380,7 +384,7 @@ function App(): React.JSX.Element {
     };
 
     triggerAnalysis();
-  }, [player1Type, player2Type, janggi2Board, janggi2Turn]);
+  }, [player1Type, player2Type, janggi2Fen, currentTurn]);
 
   const initializeApp = async () => {
     try {
@@ -984,7 +988,7 @@ function App(): React.JSX.Element {
 
       // Tell engine about current position and get move
       // Use provided FEN if available (avoids race condition), otherwise fall back to state
-      const fen = providedFen || (selectedVariant === 'janggi' ? currentFen : gameRef.current.fen());
+      const fen = providedFen || (selectedVariant === 'janggi' ? currentFen : selectedVariant === 'janggi2' ? janggi2Fen : gameRef.current.fen());
       // Lightning-fast thinking for AI vs AI in fast mode: 10ms, otherwise 50ms for AI vs AI, 500ms for human games
       const thinkTime = fastMode ? 10 : (player1Type === 'ai' && player2Type === 'ai') ? 50 : 500;
       const engineMove = await engineRef.current.getBestMove(fen, thinkTime);
@@ -992,10 +996,25 @@ function App(): React.JSX.Element {
       let newFen: string;
       let newTurn: 'w' | 'b';
 
-      if (selectedVariant === 'janggi') {
-        // For Janggi, apply move manually to FEN
-        newFen = applyMoveToFEN(fen, engineMove);
-        newTurn = currentTurn === 'w' ? 'b' : 'w';
+      if (selectedVariant === 'janggi' || selectedVariant === 'janggi2') {
+        // For Janggi variants, apply move manually to FEN
+        if (selectedVariant === 'janggi2') {
+          // For janggi2, convert engine move notation to Position-based move
+          // Engine move format: "a0b1" (file+rank notation with ranks 0-9)
+          // Parse and apply to FEN
+          newFen = applyMoveToFEN(fen, engineMove);
+          newTurn = currentTurn === 'w' ? 'b' : 'w';
+
+          // Update janggi2 board from FEN
+          const {board: newBoard, isHanTurn} = janggi2FENToBoard(newFen);
+          setJanggi2Board(newBoard);
+          setJanggi2Turn(isHanTurn);
+          setJanggi2Fen(newFen);
+        } else {
+          // For janggi1
+          newFen = applyMoveToFEN(fen, engineMove);
+          newTurn = currentTurn === 'w' ? 'b' : 'w';
+        }
       } else {
         // For Chess, use chess.js
         gameRef.current.move(engineMove as any);

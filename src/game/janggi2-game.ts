@@ -235,3 +235,108 @@ export function notationToPosition(notation: string): Position | null {
   if (col === -1 || isNaN(row) || row < 0 || row > 9) return null;
   return { row, col };
 }
+
+/**
+ * Convert board to FEN notation for Fairy-Stockfish
+ * Janggi FEN format: rnba1abnr/4k4/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/4K4/RNBA1ABNR w - - 0 1
+ */
+export function boardToFEN(board: Board, isHanTurn: boolean, moveNumber: number = 1): string {
+  const ranks: string[] = [];
+
+  // FEN goes from rank 10 to rank 1 (top to bottom)
+  for (let row = 0; row < 10; row++) {
+    let rankStr = '';
+    let emptyCount = 0;
+
+    for (let col = 0; col < 9; col++) {
+      const piece = board[row][col];
+
+      if (piece === PieceType.EMPTY) {
+        emptyCount++;
+      } else {
+        if (emptyCount > 0) {
+          rankStr += emptyCount.toString();
+          emptyCount = 0;
+        }
+
+        // Convert piece number to FEN letter
+        const absPiece = Math.abs(piece);
+        const isHan = piece > 0; // Positive = Han (Red, uppercase)
+
+        let letter = '';
+        switch (absPiece) {
+          case 1: letter = 'p'; break; // Jol (soldier)
+          case 2: letter = 'b'; break; // Sang (elephant) - use 'b' for bishop-like
+          case 3: letter = 'n'; break; // Ma (horse) - use 'n' for knight-like
+          case 4: letter = 'c'; break; // Po (cannon)
+          case 5: letter = 'r'; break; // Cha (chariot) - use 'r' for rook-like
+          case 6: letter = 'a'; break; // Sa (advisor)
+          case 7: letter = 'k'; break; // King (general)
+        }
+
+        rankStr += isHan ? letter.toUpperCase() : letter;
+      }
+    }
+
+    if (emptyCount > 0) {
+      rankStr += emptyCount.toString();
+    }
+
+    ranks.push(rankStr);
+  }
+
+  const turn = isHanTurn ? 'w' : 'b';
+  return `${ranks.join('/')} ${turn} - - 0 ${moveNumber}`;
+}
+
+/**
+ * Convert FEN notation to board array
+ */
+export function FENToBoard(fen: string): { board: Board; isHanTurn: boolean; moveNumber: number } {
+  const parts = fen.split(' ');
+  const boardPart = parts[0];
+  const turn = parts[1] || 'w';
+  const moveNumber = parseInt(parts[5] || '1', 10);
+
+  const ranks = boardPart.split('/');
+  const board: Board = Array(10).fill(0).map(() => Array(9).fill(PieceType.EMPTY));
+
+  for (let row = 0; row < 10; row++) {
+    const rankData = ranks[row] || '';
+    let col = 0;
+
+    for (let i = 0; i < rankData.length; i++) {
+      const char = rankData[i];
+
+      if (char >= '1' && char <= '9') {
+        const emptyCount = parseInt(char);
+        col += emptyCount;
+      } else {
+        const isHan = char === char.toUpperCase(); // Uppercase = Han (Red, positive)
+        const letter = char.toLowerCase();
+
+        let pieceType = 0;
+        switch (letter) {
+          case 'p': pieceType = 1; break; // Jol
+          case 'b': pieceType = 2; break; // Sang (elephant)
+          case 'n': pieceType = 3; break; // Ma (horse)
+          case 'c': pieceType = 4; break; // Po (cannon)
+          case 'r': pieceType = 5; break; // Cha (chariot)
+          case 'a': pieceType = 6; break; // Sa (advisor)
+          case 'k': pieceType = 7; break; // King
+        }
+
+        if (pieceType > 0) {
+          board[row][col] = isHan ? pieceType : -pieceType;
+        }
+        col++;
+      }
+    }
+  }
+
+  return {
+    board,
+    isHanTurn: turn === 'w',
+    moveNumber
+  };
+}
