@@ -1355,22 +1355,24 @@ function App(): React.JSX.Element {
 
           {/* Right Column - Suggestions and Controls */}
           <View style={styles.rightColumn}>
-            {/* Analysis Panel */}
-            <View style={styles.analysisContainer}>
-              <AnalysisPanel
-                analysis={analysis}
-                analysisTurn={analysisTurn}
-                analysisFen={analysisFen}
-                currentFen={currentFen}
-                onSuggestionClick={handleSuggestionClick}
-                onSuggestionHover={setHoveredMove}
-                onContinuationHover={setMoveSequence}
-                currentTurn={currentTurn}
-                player1Type={player1Type}
-                player2Type={player2Type}
-                variant={selectedVariant}
-              />
-            </View>
+            {/* Analysis Panel - only show for engine-based variants */}
+            {selectedVariant !== 'janggi2' && selectedVariant !== 'janggi3' && (
+              <View style={styles.analysisContainer}>
+                <AnalysisPanel
+                  analysis={analysis}
+                  analysisTurn={analysisTurn}
+                  analysisFen={analysisFen}
+                  currentFen={currentFen}
+                  onSuggestionClick={handleSuggestionClick}
+                  onSuggestionHover={setHoveredMove}
+                  onContinuationHover={setMoveSequence}
+                  currentTurn={currentTurn}
+                  player1Type={player1Type}
+                  player2Type={player2Type}
+                  variant={selectedVariant}
+                />
+              </View>
+            )}
 
             {/* Stats Panel */}
             <View style={styles.statsContainer}>
