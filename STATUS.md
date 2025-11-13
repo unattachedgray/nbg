@@ -41,19 +41,15 @@
 
 ### 🔨 Currently Working On
 
-- ✅ **Janggi Board Implementation** - Intersection-based board layout (90% complete)
-  - ✅ Downloaded and integrated Kakao-style Janggi SVG pieces (14 files)
-  - ✅ Fixed SVG scaling issues by adding viewBox attributes
-  - ✅ Redesigned board from square-based to intersection-based grid (9×10)
-  - ✅ Corrected starting position with generals in palace centers
-  - ✅ Fixed piece sizing and positioning - pieces centered on intersections
-  - ✅ Increased board padding (30px → 40px) for label visibility
-  - ✅ Fixed rank labels to show 1-10 correctly
-  - ⚠️ **Palace diagonal lines** - Still troubleshooting React Native transform rendering
-    - Attempted: rotated View elements, react-native-svg (dependency issues), segmented approach
-    - Issue: Transform rotation not rendering correctly on Windows UWP
-    - Coordinates are correct (d1-f3, f1-d3, d8-f10, f8-d10) but visual rendering needs fix
-- Next: Complete palace diagonals, then implement Janggi legal move validation and engine integration
+- ✅ **Janggi2 NNUE Engine Integration** - COMPLETE!
+  - ✅ Modified variant initialization to use Fairy-Stockfish NNUE engine
+  - ✅ Updated AI to use engine.getBestMove() instead of random moves
+  - ✅ Added engine analysis support for human moves
+  - ✅ Enabled analysis panel display for janggi2
+  - ✅ Proper FEN conversion between board state and engine
+  - ✅ Support for both human vs AI and AI vs AI modes
+  - Uses janggi-9991472750de.nnue for strong tactical play
+- Next: Test gameplay and fine-tune performance settings
 
 ---
 
@@ -291,6 +287,19 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 12, 2025 - 8:40 PM
+- **Completed NNUE Engine Integration for Janggi2**
+  - Janggi2 now uses Fairy-Stockfish NNUE engine instead of random AI
+  - Modified `switchVariant()` to initialize engine with janggi variant for janggi2
+  - Updated `makeJanggi2AIMove()` to call `engine.getBestMove()` with proper FEN conversion
+  - Updated `handleJanggi2Move()` to get engine analysis after human moves
+  - Updated `handleNewGame()` to properly reset janggi2 with engine analysis
+  - Enabled analysis panel display for janggi2 (shows suggestions and evaluation)
+  - Improved engine move parsing to handle multi-digit ranks (e.g., "a9b10")
+  - Engine uses janggi-9991472750de.nnue for strong tactical play
+  - Supports human vs AI and AI vs AI modes with engine-powered moves
+  - Analysis now shows best moves, evaluation scores, and continuation lines
 
 ### November 10, 2025 - 4:15 PM
 - **Implemented Complete Janggi Move Tracking**
