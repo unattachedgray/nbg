@@ -332,6 +332,25 @@ function App(): React.JSX.Element {
     player2TypeRef.current = player2Type;
   }, [player1Type, player2Type]);
 
+  // Auto-start AI vs AI games for janggi2/janggi3 when starting player is AI
+  useEffect(() => {
+    // Only for standalone variants
+    if (selectedVariant !== 'janggi2' && selectedVariant !== 'janggi3') return;
+
+    // Check if starting player (Han/player2) is AI and game is at start (move count = 0)
+    if (player2Type === 'ai' && currentGameMoves === 0) {
+      // Small delay to ensure board is rendered
+      const timer = setTimeout(() => {
+        if (selectedVariant === 'janggi2') {
+          makeJanggi2AIMove(janggi2Board, janggi2Turn);
+        } else if (selectedVariant === 'janggi3') {
+          makeJanggi3AIMove(janggi3Board, janggi3Turn);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedVariant, player2Type, currentGameMoves]);
+
   // Re-trigger analysis when player types change to ensure suggestions show up
   useEffect(() => {
     const triggerAnalysis = async () => {

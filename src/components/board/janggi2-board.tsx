@@ -195,10 +195,10 @@ export function Janggi2Board({
                   key={`int-${row}-${col}`}
                   style={{
                     position: 'absolute',
-                    width: CELL_SIZE * 0.9,
-                    height: CELL_SIZE * 0.9,
-                    top: row * CELL_SIZE - (CELL_SIZE * 0.45),
-                    left: col * CELL_SIZE - (CELL_SIZE * 0.45),
+                    width: CELL_SIZE,
+                    height: CELL_SIZE,
+                    top: row * CELL_SIZE - (CELL_SIZE * 0.5),
+                    left: col * CELL_SIZE - (CELL_SIZE * 0.5),
                     backgroundColor: isSelected
                       ? 'rgba(255, 224, 130, 0.6)'
                       : isHighlighted
