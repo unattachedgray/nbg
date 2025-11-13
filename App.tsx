@@ -1546,7 +1546,7 @@ function App(): React.JSX.Element {
                 <Pressable style={styles.controlButton} onPress={handleNewGame}>
                   <Text style={styles.controlButtonText}>New Game</Text>
                 </Pressable>
-                {player1Type === 'ai' && player2Type === 'ai' && (
+                {player1Type === 'ai' && player2Type === 'ai' && selectedVariant !== 'janggi2' && selectedVariant !== 'janggi3' && (
                   <>
                     <Pressable
                       style={[
