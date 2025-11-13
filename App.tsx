@@ -900,11 +900,12 @@ function App(): React.JSX.Element {
     }
 
     // Check if next player is AI and should auto-move
+    // Note: janggi2 and janggi3 have their own move handlers, so skip engine for them
     const nextTurn = (selectedVariant === 'janggi' || selectedVariant === 'janggi2') ? newTurn : gameRef.current.turn();
     const isGameOver = (selectedVariant === 'janggi' || selectedVariant === 'janggi2') ? false : gameRef.current.isGameOver(); // For Janggi, assume game continues
     const currentPlayerType = nextTurn === 'w' ? player2Type : player1Type; // w=player2(white), b=player1(black)
 
-    if (currentPlayerType === 'ai' && !isGameOver) {
+    if (currentPlayerType === 'ai' && !isGameOver && selectedVariant !== 'janggi2' && selectedVariant !== 'janggi3') {
       // Next player is AI, trigger immediately (no setTimeout delay)
       // Use setImmediate or Promise.resolve to avoid blocking UI
       // Pass the newFen directly to avoid race condition with state update
@@ -952,7 +953,7 @@ function App(): React.JSX.Element {
 
       // Tell engine about current position and get move
       // Use provided FEN if available (avoids race condition), otherwise fall back to state
-      const fen = providedFen || ((selectedVariant === 'janggi' || selectedVariant === 'janggi2') ? currentFen : gameRef.current.fen());
+      const fen = providedFen || (selectedVariant === 'janggi' ? currentFen : gameRef.current.fen());
       // Lightning-fast thinking for AI vs AI in fast mode: 10ms, otherwise 50ms for AI vs AI, 500ms for human games
       const thinkTime = fastMode ? 10 : (player1Type === 'ai' && player2Type === 'ai') ? 50 : 500;
       const engineMove = await engineRef.current.getBestMove(fen, thinkTime);
@@ -960,7 +961,7 @@ function App(): React.JSX.Element {
       let newFen: string;
       let newTurn: 'w' | 'b';
 
-      if (selectedVariant === 'janggi' || selectedVariant === 'janggi2') {
+      if (selectedVariant === 'janggi') {
         // For Janggi, apply move manually to FEN
         newFen = applyMoveToFEN(fen, engineMove);
         newTurn = currentTurn === 'w' ? 'b' : 'w';
@@ -1074,7 +1075,7 @@ function App(): React.JSX.Element {
         Promise.resolve().then(() => makeJanggi3AIMove(initialBoard, true));
       }
     } else {
-      // Reset game state for chess/janggi/janggi2
+      // Reset game state for chess/janggi (engine-based variants)
       gameRef.current.reset();
       setCurrentFen(gameRef.current.fen());
       setCurrentTurn('w'); // White starts
@@ -1101,7 +1102,8 @@ function App(): React.JSX.Element {
         }
 
         // If player 2 (white/bottom) is AI, make first move immediately
-        if (player2Type === 'ai') {
+        // Skip for standalone variants (janggi2, janggi3) which handle AI differently
+        if (player2Type === 'ai' && selectedVariant !== 'janggi2' && selectedVariant !== 'janggi3') {
           Promise.resolve().then(() => getEngineMove());
         }
       }
