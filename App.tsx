@@ -108,6 +108,8 @@ function App(): React.JSX.Element {
   const autoPlayStopRef = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const analysisRequestIdRef = useRef(0); // Track which analysis request is current
+  const player1TypeRef = useRef<'human' | 'ai'>(player1Type); // Ref for AI chain to see latest value
+  const player2TypeRef = useRef<'human' | 'ai'>(player2Type); // Ref for AI chain to see latest value
 
   const showToast = (message: string, type: Toast['type'] = 'info') => {
     const id = Date.now().toString();
@@ -323,6 +325,12 @@ function App(): React.JSX.Element {
       switchVariant(selectedVariant);
     }
   }, [selectedVariant, engineReady]);
+
+  // Keep refs in sync with player type state so AI chains can see real-time changes
+  useEffect(() => {
+    player1TypeRef.current = player1Type;
+    player2TypeRef.current = player2Type;
+  }, [player1Type, player2Type]);
 
   // Re-trigger analysis when player types change to ensure suggestions show up
   useEffect(() => {
@@ -669,7 +677,8 @@ function App(): React.JSX.Element {
 
     // Check if next player is AI and should auto-move
     // Han (bottom) = player2, Cho (top) = player1
-    const currentPlayerType = newTurn ? player2Type : player1Type;
+    // Use refs to see real-time player type changes
+    const currentPlayerType = newTurn ? player2TypeRef.current : player1TypeRef.current;
     if (currentPlayerType === 'ai') {
       // Trigger AI move after a short delay
       Promise.resolve().then(() => makeJanggi3AIMove(newBoard, newTurn));
@@ -714,7 +723,8 @@ function App(): React.JSX.Element {
 
       // Check if next player is also AI (AI vs AI mode)
       // Han (bottom) = player2, Cho (top) = player1
-      const nextPlayerType = newTurn ? player2Type : player1Type;
+      // Use refs to see real-time player type changes
+      const nextPlayerType = newTurn ? player2TypeRef.current : player1TypeRef.current;
       if (nextPlayerType === 'ai') {
         // Continue AI vs AI
         setTimeout(() => makeJanggi3AIMove(newBoard, newTurn), 1000);
@@ -763,7 +773,8 @@ function App(): React.JSX.Element {
 
     // Check if next player is AI and should auto-move
     // Han (bottom) = player2, Cho (top) = player1
-    const currentPlayerType = newTurn ? player2Type : player1Type;
+    // Use refs to see real-time player type changes
+    const currentPlayerType = newTurn ? player2TypeRef.current : player1TypeRef.current;
     if (currentPlayerType === 'ai') {
       // Trigger AI move after a short delay
       Promise.resolve().then(() => makeJanggi2AIMove(newBoard, newTurn));
@@ -808,7 +819,8 @@ function App(): React.JSX.Element {
 
       // Check if next player is also AI (AI vs AI mode)
       // Han (bottom) = player2, Cho (top) = player1
-      const nextPlayerType = newTurn ? player2Type : player1Type;
+      // Use refs to see real-time player type changes
+      const nextPlayerType = newTurn ? player2TypeRef.current : player1TypeRef.current;
       if (nextPlayerType === 'ai') {
         // Continue AI vs AI
         setTimeout(() => makeJanggi2AIMove(newBoard, newTurn), 1000);
