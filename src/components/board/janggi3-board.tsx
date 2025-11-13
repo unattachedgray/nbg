@@ -192,10 +192,10 @@ export function Janggi3Board({
                   key={`int-${row}-${col}`}
                   style={{
                     position: 'absolute',
-                    width: CELL_SIZE * 0.8,
-                    height: CELL_SIZE * 0.8,
-                    top: row * CELL_SIZE - (CELL_SIZE * 0.4),
-                    left: col * CELL_SIZE - (CELL_SIZE * 0.4),
+                    width: CELL_SIZE * 0.9,
+                    height: CELL_SIZE * 0.9,
+                    top: row * CELL_SIZE - (CELL_SIZE * 0.45),
+                    left: col * CELL_SIZE - (CELL_SIZE * 0.45),
                     backgroundColor: isSelected
                       ? 'rgba(255, 224, 130, 0.6)'
                       : isHighlighted
