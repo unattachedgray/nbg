@@ -32,6 +32,7 @@ interface Janggi2BoardProps {
   onMove?: (from: Position, to: Position) => void;
   highlightedMoves?: Position[];
   disabled?: boolean;
+  currentTurn?: boolean; // true = Han (red), false = Cho (blue)
 }
 
 // Board dimensions - 9 files (A-I) × 10 ranks (1-10)
@@ -51,6 +52,7 @@ export function Janggi2Board({
   onMove,
   highlightedMoves = [],
   disabled = false,
+  currentTurn = true, // Default to Han's turn
 }: Janggi2BoardProps): React.JSX.Element {
   const [selectedPos, setSelectedPos] = useState<Position | null>(null);
 
@@ -75,10 +77,16 @@ export function Janggi2Board({
         setSelectedPos(null);
       }
     } else {
-      // First click - select piece
+      // First click - select piece (only if it belongs to current player)
       const piece = getPiece(board, clickedPos);
       if (piece !== PieceType.EMPTY) {
-        setSelectedPos(clickedPos);
+        // Check piece ownership: positive = Han, negative = Cho
+        const isHanPiece = piece > 0;
+        const isCurrentPlayerPiece = (currentTurn && isHanPiece) || (!currentTurn && !isHanPiece);
+
+        if (isCurrentPlayerPiece) {
+          setSelectedPos(clickedPos);
+        }
       }
     }
   };

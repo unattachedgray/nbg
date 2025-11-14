@@ -81,10 +81,16 @@ export function ChessBoard({
           setSelectedSquare(null);
           setLegalMoves([]);
         } else if (board[row][col] && board[row][col]!.color === game.turn()) {
-          // Select different piece
-          setSelectedSquare(square);
+          // Select different piece (only if it has valid moves)
           const moves = game.moves({square: square as any, verbose: true});
-          setLegalMoves(moves.map((m: any) => m.to));
+          if (moves.length > 0) {
+            setSelectedSquare(square);
+            setLegalMoves(moves.map((m: any) => m.to));
+          } else {
+            // Piece has no legal moves, deselect
+            setSelectedSquare(null);
+            setLegalMoves([]);
+          }
         } else {
           // Deselect
           setSelectedSquare(null);
@@ -92,11 +98,16 @@ export function ChessBoard({
         }
       } catch (error) {
         console.error('Error making move:', error);
-        // If there's an error, try to select the clicked square if it has a piece
+        // If there's an error, try to select the clicked square if it has a piece with legal moves
         if (board[row][col] && board[row][col]!.color === game.turn()) {
-          setSelectedSquare(square);
           const moves = game.moves({square: square as any, verbose: true});
-          setLegalMoves(moves.map((m: any) => m.to));
+          if (moves.length > 0) {
+            setSelectedSquare(square);
+            setLegalMoves(moves.map((m: any) => m.to));
+          } else {
+            setSelectedSquare(null);
+            setLegalMoves([]);
+          }
         } else {
           setSelectedSquare(null);
           setLegalMoves([]);

@@ -1554,6 +1554,7 @@ function App(): React.JSX.Element {
                   onMove={handleJanggi2Move}
                   highlightedMoves={janggi2HighlightedMoves}
                   disabled={isEngineThinking}
+                  currentTurn={janggi2Turn}
                 />
               ) : selectedVariant === 'janggi3' ? (
                 <Janggi3Board
@@ -1561,6 +1562,7 @@ function App(): React.JSX.Element {
                   onMove={handleJanggi3Move}
                   highlightedMoves={janggi3HighlightedMoves}
                   disabled={isEngineThinking}
+                  currentTurn={janggi3Turn}
                 />
               ) : (
                 <ChessBoard

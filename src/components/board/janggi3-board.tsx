@@ -33,6 +33,7 @@ interface Janggi3BoardProps {
   onMove?: (from: Position, to: Position) => void;
   highlightedMoves?: Position[];
   disabled?: boolean;
+  currentTurn?: boolean; // true = Han (red), false = Cho (blue)
 }
 
 const BOARD_COLS = 9;
@@ -51,6 +52,7 @@ export function Janggi3Board({
   onMove,
   highlightedMoves = [],
   disabled = false,
+  currentTurn = true, // Default to Han's turn
 }: Janggi3BoardProps): React.JSX.Element {
   const [selectedPos, setSelectedPos] = useState<Position | null>(null);
 
@@ -70,10 +72,16 @@ export function Janggi3Board({
         setSelectedPos(null);
       }
     } else {
-      // First click - select piece
+      // First click - select piece (only if it belongs to current player)
       const piece = getPiece(board, clickedPos);
       if (piece !== PieceType.EMPTY) {
-        setSelectedPos(clickedPos);
+        // Check piece ownership: positive = Han, negative = Cho
+        const isHanPiece = piece > 0;
+        const isCurrentPlayerPiece = (currentTurn && isHanPiece) || (!currentTurn && !isHanPiece);
+
+        if (isCurrentPlayerPiece) {
+          setSelectedPos(clickedPos);
+        }
       }
     }
   };

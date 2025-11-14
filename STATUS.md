@@ -1,6 +1,6 @@
 # Chess App - Project Status
 
-**Last Updated**: November 12, 2025, 12:00 AM
+**Last Updated**: November 13, 2025, 10:00 PM
 **Status**: ✅ **Active Development - Core Features Complete**
 
 ---
@@ -287,6 +287,17 @@ npm run windows
 ---
 
 ## 📝 Recent Changes Log
+
+### November 13, 2025 - 10:00 PM
+- **Fixed Piece Selection Validation Across All Board Variants**
+  - Fixed chess-board.tsx to prevent selecting pieces with no legal moves
+  - Added legal move validation when switching between pieces (not just initial selection)
+  - Fixed error handling to check for legal moves before allowing piece selection
+  - Added `currentTurn` prop to Janggi2Board and Janggi3Board components
+  - Implemented player ownership validation for Janggi boards (Han vs Cho)
+  - Players can now only select and move their own pieces
+  - Prevents clicking opponent's pieces or pieces with no legal moves
+  - Ensures consistent move validation across Chess, Janggi, Janggi2, and Janggi3 variants
 
 ### November 12, 2025 - 8:40 PM
 - **Completed NNUE Engine Integration for Janggi2**
